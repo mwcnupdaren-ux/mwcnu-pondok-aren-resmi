@@ -5619,3 +5619,63 @@ body, .lead, .pg-head .lead, #berita .pg-head .lead,
 .ntags-lg{margin:4px 0 18px!important}
 #baca .ntags{margin-top:14px!important}
 
+
+
+
+/* = ===============================================================
+   39. PENGATURAN FONT & TIPOGRAFI PENULISAN STANDAR ARTIKEL
+   Global (Tipografi & Bacaan) + per artikel (font/drop cap).
+   = =============================================================== */
+:root:root{
+  --art-font:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --art-judul:'Plus Jakarta Sans',system-ui,sans-serif;
+  --art-size:16px;
+  --art-lh:1.75;
+}
+
+#baca h1.at{font-family:var(--art-judul)!important;letter-spacing:-0.033em!important}
+#baca .abody{max-width:68ch!important}
+#baca .abody p{
+  font-family:var(--art-font)!important;
+  font-size:var(--art-size)!important;
+  line-height:var(--art-lh)!important;
+  margin:0 0 1.05em!important;
+  color:var(--ink)!important;
+}
+#baca .abody.art-serif p{
+  font-family:Georgia,'Times New Roman',serif!important;
+}
+#baca .abody.art-sans p{font-family:'Inter',system-ui,sans-serif!important}
+#baca .abody h3{
+  font-family:var(--art-judul)!important;font-weight:700!important;
+  font-size:1.22rem!important;letter-spacing:-0.02em!important;
+  margin:1.9em 0 .7em!important;line-height:1.3!important;
+}
+#baca .abody ul,#baca .abody ol{margin:0 0 1.1em!important;padding-left:1.4em!important}
+#baca .abody li{font-family:var(--art-font)!important;font-size:var(--art-size)!important;line-height:var(--art-lh)!important;margin:.35em 0!important}
+#baca .abody strong{font-weight:700!important;color:var(--ink)!important}
+#baca .abody mark{background:color-mix(in srgb,var(--acc) 13%,transparent)!important;color:var(--ink)!important;padding:0 4px!important;border-radius:4px!important}
+
+/* Drop cap standar */
+#baca .abody.art-drop p:first-of-type::first-letter,
+body.art-drop-global #baca .abody p:first-of-type::first-letter{
+  font-family:var(--art-judul)!important;font-weight:800!important;
+  float:left!important;font-size:3.1em!important;line-height:.85!important;
+  padding:.06em .12em 0 0!important;color:var(--acc-deep)!important;
+}
+#baca .abody.art-serif.art-drop p:first-of-type::first-letter,
+body.art-drop-global #baca .abody.art-serif p:first-of-type::first-letter{font-family:Georgia,serif!important}
+
+/* Standar bacaan halaman */
+#baca .al{font-family:var(--fz)!important;font-size:1.02rem!important;line-height:1.68!important}
+#baca .by b{font-family:var(--fp)!important}
+#baca .kick{font-family:var(--fp)!important}
+
+@media print{
+  #baca .abody p{line-height:1.65!important}
+}
+@media(max-width:560px){
+  :root:root{--art-size:15.5px}
+  #baca h1.at{font-size:1.9rem!important}
+}
+

@@ -75,6 +75,14 @@
     [].forEach.call(document.querySelectorAll('[data-cms-src]'), function (e) {
       var v = M.safeImage(get(e.getAttribute('data-cms-src'))); if (v) e.setAttribute('src', v);
     });
+    /* Tipografi global (Pengaturan → Tipografi & Bacaan) */
+    var tg = S.tipografi || {}, fam = function (n) { return n === 'Serif' ? "Georgia,'Times New Roman',serif" : n === 'Plus Jakarta Sans' ? "'Plus Jakarta Sans',system-ui,sans-serif" : "'Inter',system-ui,sans-serif"; };
+    var root = document.documentElement;
+    if (tg.font_judul) root.style.setProperty('--art-judul', fam(tg.font_judul));
+    if (tg.font_isi) root.style.setProperty('--art-font', fam(tg.font_isi));
+    var sz = parseFloat(tg.ukuran_isi); if (sz && sz >= 14 && sz <= 20) root.style.setProperty('--art-size', sz + 'px');
+    var lh = parseFloat(tg.jarak_baris); if (lh && lh >= 1.4 && lh <= 2.2) root.style.setProperty('--art-lh', String(lh));
+    try { if (tg.dropcap) document.body.classList.add('art-drop-global'); } catch (e) {}
     if (S.sambutan && S.sambutan.nama) [].forEach.call(document.querySelectorAll('[data-cms-src="sambutan.foto"]'), function (e) { if (e.alt.indexOf('H. Fathur Rahman') === 0) e.alt = e.alt.replace('H. Fathur Rahman', String(S.sambutan.nama)); });
     if (M.R.length) {
       var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), n, ns = [];
@@ -111,7 +119,7 @@
   function go(d) {
     if (done) return; done = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=21';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=22';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }

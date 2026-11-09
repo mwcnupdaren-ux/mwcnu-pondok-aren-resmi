@@ -24,7 +24,8 @@ var COLS = {
   T('featured','Sorotan beranda',{t:'bool'}),
   T('ringkasan','Ringkasan (tampil di daftar berita)',{t:'area'}), T('foto','Foto utama',{t:'image',f:'berita'}), T('lead','Paragraf pembuka',{t:'area'}),
   T('caption','Keterangan foto'), T('meta_judul','Judul SEO',{h:'Kosongkan bila mengikuti judul.'}), T('meta_desc','Deskripsi SEO',{t:'area',h:'1–2 kalimat untuk mesin pencari & berbagi. Kosongkan bila mengikuti ringkasan.'}),
-  T('isi','Isi berita',{t:'rich',h:'Pisahkan paragraf dengan satu baris kosong.'}),
+  T('font_artikel','Font isi artikel ini',{t:'select',o:['Ikuti pengaturan','Sans','Serif']}), T('dropcap_art','Drop cap artikel ini',{t:'bool'}),
+  T('isi','Isi berita',{t:'rich',h:'Pisahkan paragraf dengan satu baris kosong. Gunakan ## untuk judul bagian, - untuk daftar, **tebal**.'}),
   T('info','Info kegiatan',{t:'area',h:'Satu baris satu info dengan format "Label: nilai". Contoh: Tempat: Aula MWC'}),
   T('foto_tambahan','Foto tambahan',{t:'images',f:'berita'}), T('video','Video terkait',{t:'area',h:'Tempel tautan atau ID YouTube video yang sudah ada di daftar Video TVNU, satu per baris.'})] },
  agenda: { l: 'Agenda', g: 'Konten', e: 'pengurus', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.lokasi || ''); }, F: [
@@ -61,7 +62,8 @@ var SETS = {
  kartu: { l: 'Kartu Anggota', F: [T('pejabat','Penandatangan kartu',{t:'repeat',fixed:2,sub:[T('j','Jabatan'),T('n','Nama dan gelar'),T('ttd','Tanda tangan',{t:'image',f:'ttd',png:1,max:700})],h:'Dua penandatangan: Rois Syuriyah dan Ketua Tanfidziyah. Unggah tanda tangan PNG berlatar transparan (JPG latar putih juga bisa).'})] },
  pay: { l: 'Rekening & QRIS', F: [T('banks','Rekening',{t:'repeat',sub:[T('bank','Bank'),T('norek','Nomor rekening'),T('an','Atas nama')]}), T('qris','Gambar QRIS',{t:'image',f:'qris',png:1,max:1000})] },
  identitas: { l: 'Identitas Organisasi', F: [T('sk1','Keterangan SK (baris 1)',{h:'Tampil pada halaman Struktur Pengurus.'}), T('sk2','Keterangan SK (baris 2)'), T('sk3','Keterangan SK (baris 3)'), T('slogan','Slogan (footer)')] },
- zakat: { l: 'Zakat (Harga Emas)', F: [T('harga_emas','Harga emas per gram (Rp)',{t:'num',h:'Dipakai sebagai nilai awal kalkulator zakat. Nisab = 85 gram.'}), T('acuan','Keterangan acuan',{h:'Contoh: Antam (Logam Mulia) per 13 Okt 2026'})] }
+ zakat: { l: 'Zakat (Harga Emas)', F: [T('harga_emas','Harga emas per gram (Rp)',{t:'num',h:'Dipakai sebagai nilai awal kalkulator zakat. Nisab = 85 gram.'}), T('acuan','Keterangan acuan',{h:'Contoh: Antam (Logam Mulia) per 13 Okt 2026'})] },
+ tipografi: { l: 'Tipografi & Bacaan', F: [T('font_judul','Font judul artikel',{t:'select',o:['Plus Jakarta Sans','Inter','Serif']}), T('font_isi','Font isi artikel',{t:'select',o:['Inter','Plus Jakarta Sans','Serif']}), T('ukuran_isi','Ukuran isi (px)',{t:'num',h:'Standar: 16. Rentang 14–20.'}), T('jarak_baris','Jarak baris',{t:'num',h:'Standar: 1.75. Rentang 1.4–2.2.'}), T('dropcap','Huruf awal besar (drop cap)',{t:'bool'})] }
 };
 var GROUPS = [['Konten', ['berita','agenda','video','galeri','kegiatan','majelis','tanya_jawab']], ['Beranda & layanan', ['layanan','program']], ['Organisasi', ['pengurus','ranting','banom','halaman']]];
 var S = { dirty: false, set: {}, items: {}, staff: [], me: null };
