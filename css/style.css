@@ -5679,3 +5679,21 @@ body.art-drop-global #baca .abody.art-serif p:first-of-type::first-letter{font-f
   #baca h1.at{font-size:1.9rem!important}
 }
 
+
+
+
+/* = ===============================================================
+   40. POLISH MOBILE — badge hero + tab kalkulator zis
+   = =============================================================== */
+@media(max-width:560px){
+  .hero-badge{white-space:normal!important;text-align:center!important;font-size:.62rem!important;letter-spacing:.14em!important;padding:8px 14px!important;line-height:1.4!important}
+  #zis .seg,.seg{display:flex!important;overflow-x:auto!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;max-width:100%!important}
+  #zis .seg::-webkit-scrollbar,.seg::-webkit-scrollbar{display:none!important}
+  #zis .seg button,.seg button{flex:0 0 auto!important}
+  .rp input{padding-left:38px!important}
+  .rp i{left:13px!important}
+}
+
+
+@media(max-width:560px){#zis .seg,.seg{flex-wrap:wrap!important;overflow-x:visible!important}}
+
