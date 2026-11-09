@@ -1,6 +1,11 @@
 -- =====================================================================
 -- MWCNU Pondok Aren: DATA AWAL CMS (isi sama dengan situs saat ini)
--- Jalankan SETELAH schema.sql. Aman dijalankan ulang: jenis konten yang sudah ada isinya TIDAK ditimpa.
+-- SATU FILE saja di folder ini (supabase/seed.sql). Cara pakai:
+-- 1. Di Supabase Dashboard → SQL Editor → New query.
+-- 2. Buka file ini dengan text editor, pilih-semua (Ctrl+A),
+--    lalu tempel ke editor SQL (format paste, bukan per baris).
+-- 3. Klik Run. Aman dijalankan ulang: jenis konten yang sudah
+--    ada isinya TIDAK ditimpa.
 -- =====================================================================
 
 -- Pastikan kolom trigger ada SEBELUM isi (anti error created_by)
