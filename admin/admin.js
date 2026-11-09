@@ -91,7 +91,7 @@ function signOut() { sb.auth.signOut().then(function () { location.href = '/admi
 function shell(title, active, body, actions) {
   var nav = '<a href="#/" data-nav class="' + (active === '' ? 'on' : '') + '">Ringkasan</a>';
   GROUPS.forEach(function (g) { var ks = g[1].filter(function (k) { return can(COLS[k]); }); if (!ks.length) return; nav += '<h4>' + g[0] + '</h4>'; ks.forEach(function (k) { nav += '<a data-nav href="#/' + k + '" class="' + (active === k ? 'on' : '') + '">' + COLS[k].l + '</a>'; }); });
-  if (isAdmin()) { nav += '<h4>Pengaturan situs</h4>'; Object.keys(SETS).forEach(function (k) { nav += '<a data-nav href="#/set/' + k + '" class="' + (active === 'set/' + k ? 'on' : '') + '">' + SETS[k].l + '</a>'; }); nav += '<h4>Sistem</h4><a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '">Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '">Riwayat perubahan</a>'; }
+  if (isAdmin()) { nav += '<h4>Pengaturan situs</h4>'; Object.keys(SETS).forEach(function (k) { nav += '<a data-nav href="#/set/' + k + '" class="' + (active === 'set/' + k ? 'on' : '') + '">' + SETS[k].l + '</a>'; }); nav += '<h4>Sistem</h4><a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '">Anggota &amp; Verifikasi</a><a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '">Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '">Riwayat perubahan</a>'; }
   root.innerHTML = '<div class="shell"><aside class="side" id="side"><div class="brand"><img src="/assets/img/favicon.png" alt=""><div><b>Admin MWCNU</b><small>Pondok Aren</small></div></div>' + nav + '<h4>Situs</h4><a href="/" target="_blank" rel="noopener">Lihat situs &nearr;</a></aside><main class="main"><div class="top"><div style="display:flex;gap:12px;align-items:center"><button class="btn o s burger" id="burger">Menu</button><h2>' + esc(title) + '</h2></div><div class="who"><span>' + esc(S.me.nama || S.user.email) + ' · ' + esc(roleName(S.me.role)) + '</span>' + (actions || '') + '<button class="btn o s" id="out">Keluar</button></div></div>' + body + '</main></div>';
   $('#out').onclick = signOut; $('#burger').onclick = function () { $('#side').classList.toggle('open'); };
   S.dirty = false;
@@ -156,7 +156,7 @@ function shrink(file, max, png) {
   });
 }
 function upload(file, folder, max, png) {
-  if (file.size > 12 * 1024 * 1024) return Promise.reject(new Error('Ukuran berkas maksimal 12 MB'));
+  if (file.size > 5 * 1024 * 1024) return Promise.reject(new Error('Ukuran berkas maksimal 5 MB (sesuai batas bucket media).'));
   return shrink(file, max, png).then(function (b) {
     var ext = b.type === 'image/png' ? 'png' : b.type === 'image/webp' ? 'webp' : 'jpg', path = folder + '/' + new Date().getFullYear() + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + '.' + ext;
     return sb.storage.from('media').upload(path, b, { contentType: b.type, cacheControl: '31536000' }).then(function (r) { if (r.error) throw r.error; return sb.storage.from('media').getPublicUrl(path).data.publicUrl; });
@@ -192,12 +192,16 @@ async function viewHome() {
   var r = await sb.from('content_items').select('type,published'); if (r.error) return toast(errMsg(r.error), 1);
   var n = {}, d = {}; (r.data || []).forEach(function (x) { n[x.type] = (n[x.type] || 0) + 1; if (!x.published) d[x.type] = (d[x.type] || 0) + 1; });
   var un = Object.keys(COLS).filter(function (k) { return !(S.set.managed && S.set.managed[k]); });
-  var cards = Object.keys(COLS).filter(function (k) { return can(COLS[k]) && (k !== 'berita' || S.me.role !== 'jurnalis'); }).map(function (k) { return '<a class="stat" data-nav href="#/' + k + '"><b>' + (n[k] || 0) + '</b><span>' + COLS[k].l + (d[k] ? ' · ' + d[k] + ' draf' : '') + '</span></a>'; }).join('');
-  shell('Ringkasan', '', (isAdmin() && un.length ? '<div class="note">Jenis konten berikut belum dikelola CMS, jadi situs masih memakai data bawaan: <b>' + un.map(function (k) { return COLS[k].l; }).join(', ') + '</b>. Jalankan <code>supabase/seed.sql</code> atau aktifkan dari halaman masing-masing.</div>' : '') + '<p style="color:var(--mut)">Perubahan langsung tampil di situs setelah halaman dimuat ulang.</p><div class="grid">' + cards + '</div>');
+  var cards = Object.keys(COLS).filter(function (k) { return can(COLS[k]); }).map(function (k) { return '<a class="stat" data-nav href="#/' + k + '"><b>' + (n[k] || 0) + '</b><span>' + COLS[k].l + (d[k] ? ' · ' + d[k] + ' draf' : '') + '</span></a>'; }).join('');
+  var mem = '';
+  if (isAdmin()) { mem = '<div class="panel" style="margin-bottom:16px"><div class="bar" style="justify-content:space-between;align-items:center"><b style="margin:0">Keanggotaan KTA</b><span id="memStat">…</span></div><div class="foot"><a class="btn g s" data-nav href="#/members">Buka verifikasi anggota</a><button class="btn o s" id="memRef">Muat ulang</button></div></div>'; }
+  shell('Ringkasan', '', mem + (isAdmin() && un.length ? '<div class="note">Jenis konten berikut belum dikelola CMS, jadi situs masih memakai data bawaan: <b>' + un.map(function (k) { return COLS[k].l; }).join(', ') + '</b>. Jalankan <code>supabase/seed.sql</code> atau aktifkan dari halaman masing-masing.</div>' : '') + '<p style="color:var(--mut)">Perubahan langsung tampil di situs setelah halaman dimuat ulang.</p><div class="grid">' + cards + '</div>');
+  if (isAdmin() && $('#memStat')) { sb.from('profiles').select('status').then(function (mr) { var el = $('#memStat'); if (!el) return; if (mr.error || !mr.data) { el.textContent = ''; return; } var p = mr.data.filter(function (x) { return x.status === 'pending'; }).length; el.innerHTML = p ? '<span class="chip x">' + p + ' menunggu verifikasi</span>' : '<span class="chip">Semua terverifikasi</span>'; }); }
+  if ($('#memRef')) $('#memRef').onclick = function () { viewHome(); };
 }
 async function loadItems(key) { var r = await sb.from('content_items').select('*').eq('type', key).order('sort', { ascending: true }).order('created_at', { ascending: true }); if (r.error) throw r.error; S.items[key] = r.data || []; return S.items[key]; }
 async function viewList(key, q, flt) {
-  var c = COLS[key]; if (!c) return viewHome(); if (!can(c) || (S.me.role === 'jurnalis' && key === 'berita')) return noAccess();
+  var c = COLS[key]; if (!c) return viewHome(); if (!can(c)) return noAccess();
   try { await loadItems(key); } catch (e) { return toast(errMsg(e), 1); }
   var list = S.items[key].slice(); if (c.ord === 'date') list.sort(function (a, b) { return String(b.data.tanggal || '').localeCompare(String(a.data.tanggal || '')); });
   var ff = c.filter && c.F.filter(function (f) { return f.k === c.filter; })[0];
@@ -267,6 +271,30 @@ async function viewStaff() {
   $$('[data-role]').forEach(function (s) { s.onchange = async function () { var email = s.getAttribute('data-role'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && s.value !== 'super_admin') { toast('Promosikan Super Admin lain sebelum menurunkan peran ini.', 1); return viewStaff(); } var r2 = await sb.from('staff').update({ role: s.value }).eq('email', email); if (r2.error) toast(errMsg(r2.error), 1); else toast('Peran diubah.'); viewStaff(); }; });
   $$('[data-rm]').forEach(function (b) { b.onclick = async function () { if (!confirm('Hapus pengelola ' + b.getAttribute('data-rm') + '?')) return; var email = b.getAttribute('data-rm'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && S.staff.filter(function (x) { return x.role === 'super_admin'; }).length < 2) { toast('Super Admin terakhir tidak dapat dihapus.', 1); return; } var r2 = await sb.from('staff').delete().eq('email', email); if (r2.error) toast(errMsg(r2.error), 1); else toast('Dihapus.'); viewStaff(); }; });
 }
+async function viewMembers() {
+  if (!isAdmin()) return noAccess();
+  var r = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+  if (r.error) return toast(errMsg(r.error), 1);
+  var list = r.data || [];
+  var chip = function (s) { return '<span class="chip' + (s === 'verified' ? '' : s === 'rejected' ? ' x' : '') + '">' + ({verified:'Terverifikasi',pending:'Menunggu',rejected:'Ditolak'}[s] || s) + '</span>'; };
+  shell('Anggota & Verifikasi NIA', 'members', '<div class="panel"><div class="bar"><input type="search" id="mq" placeholder="Cari nama, email, NIA, HP…" value="' + '"><select id="mf"><option value="">Semua status</option><option value="pending">Menunggu</option><option value="verified">Terverifikasi</option><option value="rejected">Ditolak</option></select></div>' +
+    (list.length ? '<table><thead><tr><th>Anggota</th><th class="hm">Kontak</th><th>NIA</th><th>Status</th><th></th></tr></thead><tbody>' +
+    list.map(function (p) { return '<tr><td class="t"><b>' + esc(p.nama || '(tanpa nama)') + '</b><small>' + esc(p.email || '') + (p.ranting ? ' · PRNU ' + esc(p.ranting) : (p.tingkat ? ' · ' + esc(p.tingkat) : '')) + '</small></td><td class="hm">' + esc(p.hp || '—') + '</td><td>' + esc(p.nia || '—') + '</td><td>' + chip(p.status) + '</td><td class="a">' +
+      (p.status !== 'verified' ? '<button class="act" data-vfy="' + p.id + '">Verifikasi</button>' : '') +
+      (p.status !== 'rejected' ? '<button class="act" data-rej="' + p.id + '">Tolak</button>' : '') +
+      (p.status !== 'pending' ? '<button class="act" data-pnd="' + p.id + '">Tunggu</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table>'
+    : '<div class="empty">Belum ada profil anggota. Akan terisi otomatis saat pengguna mendaftar KTA.</div>') + '</div>');
+  var q = $('#mq'), f = $('#mf');
+  function filt() { var t = q.value.toLowerCase(), s = f.value; $$('tbody tr').forEach(function (tr) { var ok = (!t || tr.textContent.toLowerCase().indexOf(t) > -1) && (!s || tr.textContent.toLowerCase().indexOf(s === 'pending' ? 'menunggu' : s === 'verified' ? 'terverifikasi' : 'ditolak') > -1); tr.style.display = ok ? '' : 'none'; }); }
+  q.addEventListener('input', filt); f.onchange = filt;
+  $('.main').addEventListener('click', async function (e) {
+    var b = e.target.closest('[data-vfy],[data-rej],[data-pnd]'); if (!b) return;
+    var st = b.hasAttribute('data-vfy') ? 'verified' : b.hasAttribute('data-rej') ? 'rejected' : 'pending';
+    var id = b.getAttribute('data-vfy') || b.getAttribute('data-rej') || b.getAttribute('data-pnd');
+    try { var r2 = await sb.from('profiles').update({ status: st }).eq('id', id).select().single(); if (r2.error) throw r2.error; toast('Status disimpan: ' + st + '.'); viewMembers(); }
+    catch (er) { toast(errMsg(er), 1); }
+  });
+}
 async function viewLog() {
   if (!isAdmin()) return noAccess();
   var r = await sb.from('change_log').select('*').order('at', { ascending: false }).limit(150); if (r.error) return toast(errMsg(r.error), 1);
@@ -278,6 +306,7 @@ function route() {
   if (!p[0]) return viewHome();
   if (p[0] === 'set') return viewSet(p[1]);
   if (p[0] === 'staff') return viewStaff();
+  if (p[0] === 'members') return viewMembers();
   if (p[0] === 'log') return viewLog();
   if (p[1]) return viewEdit(p[0], p[1]);
   return viewList(p[0]);

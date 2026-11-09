@@ -56,6 +56,14 @@ create policy "own update"
 
 -- (Tidak ada policy DELETE — profil tidak boleh dihapus user.)
 
+-- ── 3b) Admin staff boleh kelola SEMUA profil ──────────────
+drop policy if exists "staff manage" on public.profiles;
+create policy "staff manage"
+  on public.profiles for all
+  to authenticated
+  using (exists (select 1 from public.staff where email = lower(coalesce(auth.jwt() ->> 'email','')) and role = 'super_admin'))
+  with check (exists (select 1 from public.staff where email = lower(coalesce(auth.jwt() ->> 'email','')) and role = 'super_admin'));
+
 -- ── 4) updated_at otomatis ─────────────────────────────────
 create or replace function public.set_updated_at()
 returns trigger
