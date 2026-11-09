@@ -5379,3 +5379,10 @@ body, .lead, .pg-head .lead, #berita .pg-head .lead,
 
 #portal-search .sf .cdd-btn svg{width:15px!important;height:15px!important;padding:0!important;border-radius:0!important;background:transparent!important;stroke:var(--mut)!important}
 
+
+
+/* Hilang border kuning bawaan browser pada fokus */
+#portal-search .sf input,#portal-search .sf select,#portal-search .cdd-btn,#portal-search .sf{outline:none!important}
+#portal-search .sf input:focus,#portal-search .sf select:focus,#portal-search .cdd-btn:focus{outline:none!important;box-shadow:none!important}
+#portal-search .sf:focus-within{outline:none!important;background:color-mix(in srgb,var(--acc-soft) 45%,transparent)!important;box-shadow:inset 0 0 0 1px var(--acc-line)!important}
+
