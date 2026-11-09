@@ -4518,3 +4518,101 @@ footer h3{font-family:var(--fh)!important;letter-spacing:-.01em!important}
 #banom .bncard:hover .bnic{background:var(--bc)!important;color:#fff!important;transform:translateY(-3px) scale(1.04)}
 #banom .bncard .bnic{margin-bottom:0!important}
 #banom .bncard>span:last-child{margin-top:0!important;width:100%}
+
+
+
+/* = ===============================================================
+   26. HALAMAN BERITA — ARSIP KONVENSIONAL MODERN
+   = =============================================================== */
+#berita{background:var(--bg)!important;padding:56px 0 96px!important}
+#berita .wrap{max-width:1120px!important}
+#berita>.wrap.vb{display:none!important}
+#berita #ntabs{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none!important}
+#berita .back{
+  display:inline-flex!important;align-items:center;gap:7px;border-radius:999px!important;
+  border:1px solid var(--line)!important;background:var(--surf)!important;color:var(--mut)!important;
+  font:600 .82rem var(--fz)!important;padding:9px 16px!important;text-decoration:none!important;
+  box-shadow:none!important;transition:color .2s,border-color .2s,transform .25s var(--ease)!important;margin-bottom:34px!important
+}
+#berita .back:hover{color:var(--acc-deep)!important;border-color:var(--acc-line)!important;transform:translateX(-3px)!important}
+#berita .pg-head{border-bottom:1px solid var(--line)!important;padding-bottom:34px!important;margin-bottom:30px!important}
+#berita .pg-head h1{
+  font-family:var(--fh)!important;font-weight:700!important;
+  font-size:clamp(2.5rem,5.4vw,4.1rem)!important;letter-spacing:-.05em!important;line-height:1.04!important;
+  color:var(--ink)!important;margin:16px 0 12px!important;
+}
+#berita .pg-head .lead{color:var(--mut)!important;font-size:1.05rem!important;max-width:52ch!important;margin:0!important}
+#berita .toolbar{display:flex!important;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:34px!important}
+#berita #ntabs{display:flex!important;gap:8px!important;border:0!important;background:var(--bg-alt)!important;border-radius:999px!important;padding:5px!important;width:auto!important;margin:0!important}
+#berita #ntabs button{
+  border-radius:999px!important;border:0!important;background:transparent!important;
+  color:var(--mut)!important;font:600 .86rem var(--fz)!important;padding:9px 18px!important;
+  transition:background .25s,color .25s!important;box-shadow:none!important
+}
+#berita #ntabs button:hover{color:var(--acc-deep)!important}
+#berita #ntabs button[aria-selected="true"]{background:var(--surf)!important;color:var(--acc-deep)!important;border-color:var(--line)!important;box-shadow:0 1px 2px rgba(6,32,23,.08)!important}
+#berita .search{background:var(--bg-alt)!important;border:1px solid var(--line)!important;border-radius:999px!important;padding:11px 18px!important;font-size:.9rem!important;color:var(--ink)!important;width:280px}
+#berita .search::placeholder{color:var(--mut)!important}
+#berita .search:focus{outline:2px solid var(--acc-line)!important;border-color:var(--acc-line)!important;background:var(--surf)!important}
+
+/* Grid arsip: sorotan + kartu */
+#newsGrid.narch{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))!important;gap:20px!important}
+#newsGrid.narch .feat{grid-column:1/-1!important;display:grid!important;grid-template-columns:1.08fr 1fr!important;gap:0!important;
+  border:1px solid var(--line)!important;border-radius:var(--r-lg)!important;background:var(--surf)!important;overflow:hidden!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.04)!important;cursor:pointer;
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s!important}
+#newsGrid.narch .feat:hover{transform:translateY(-4px)!important;border-color:var(--acc-line)!important;box-shadow:0 30px 66px -30px rgba(6,32,23,.42)!important}
+#newsGrid.narch .feat .th{height:100%!important;min-height:360px!important}
+#newsGrid.narch .feat .th img{width:100%;height:100%;object-fit:cover;transition:transform .55s var(--ease)!important}
+#newsGrid.narch .feat:hover .th img{transform:scale(1.035)!important}
+#newsGrid.narch .feat .b{display:flex!important;flex-direction:column!important;justify-content:center!important;padding:clamp(26px,3.4vw,46px)!important}
+#newsGrid.narch .feat h3{font:700 clamp(1.7rem,2.6vw,2.35rem)/1.14 var(--fh)!important;letter-spacing:-.035em!important;color:var(--ink)!important;margin:16px 0 12px!important}
+#newsGrid.narch .feat p{color:var(--mut)!important;font-size:1.02rem!important;line-height:1.6!important}
+#newsGrid.narch .feat .more{color:var(--acc-deep)!important;font:600 .92rem var(--fz)!important;margin-top:18px!important}
+#newsGrid.narch .chip.top{background:var(--acc)!important;color:#fff!important}
+#newsGrid.narch .item{
+  border:1px solid var(--line)!important;border-radius:var(--r-lg)!important;background:var(--surf)!important;overflow:hidden!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.04)!important;cursor:pointer;
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s!important
+}
+#newsGrid.narch .item:hover{transform:translateY(-4px)!important;border-color:var(--acc-line)!important;box-shadow:0 26px 58px -30px rgba(6,32,23,.4)!important}
+#newsGrid.narch .item .th{height:188px!important}
+#newsGrid.narch .item .th img{transition:transform .55s var(--ease)!important}
+#newsGrid.narch .item:hover .th img{transform:scale(1.045)!important}
+#newsGrid.narch .item .b{padding:20px 22px 22px!important;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+#newsGrid.narch .item h3{font-family:var(--fh)!important;font-weight:700!important;font-size:1.12rem!important;letter-spacing:-.02em!important;line-height:1.3!important;color:var(--ink)!important}
+#newsGrid.narch .item p{color:var(--mut)!important;font-size:.9rem!important;line-height:1.55!important;margin:0!important}
+#newsGrid.narch .item .more{color:var(--acc-deep)!important;font:600 .86rem var(--fz)!important;margin-top:auto!important}
+#newsGrid.narch .chip{border-radius:999px!important;background:var(--acc-soft)!important;color:var(--acc-deep)!important;font:700 .68rem var(--fz)!important;letter-spacing:.08em!important;text-transform:uppercase!important;padding:5px 12px!important}
+#newsGrid.narch .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#newsGrid.narch .meta small{color:var(--mut)!important;font-size:.78rem!important}
+#newsGrid.narch .ne{grid-column:1/-1;border:1px dashed var(--line)!important;border-radius:var(--r-lg)!important;padding:60px 30px!important;text-align:center}
+#newsGrid.narch .ne b{font:700 1.2rem var(--fh)!important;color:var(--ink)!important;display:block;margin-bottom:6px}
+#newsGrid.narch .ne span{color:var(--mut)!important}
+
+/* Halaman baca: sentuhan modern */
+#baca .crumb a,#baca .crumb span{font:600 .82rem var(--fz)!important}
+#baca .crumb a{color:var(--acc-deep)!important}
+#baca .crumb span{color:var(--mut)!important}
+#baca .kick{display:inline-flex!important;align-items:center;justify-content:center;border-radius:999px!important;background:var(--acc-soft)!important;color:var(--acc-deep)!important;font:700 .72rem var(--fz)!important;letter-spacing:.14em!important;text-transform:uppercase!important;padding:7px 15px!important}
+#baca h1.at{font-family:var(--fh)!important;font-weight:700!important;letter-spacing:-.04em!important;line-height:1.12!important;color:var(--ink)!important}
+#baca h3{font-family:var(--fh)!important;letter-spacing:-.02em!important;color:var(--ink)!important}
+#baca h3.rh{font-weight:700!important;font-size:1.35rem!important}
+
+@media(max-width:900px){
+  #newsGrid.narch .feat{grid-template-columns:1fr!important}
+  #newsGrid.narch .feat .th{min-height:230px!important;height:230px!important}
+  #newsGrid.narch{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))!important}
+}
+@media(max-width:700px){
+  #berita{padding:40px 0 70px!important}
+  #berita .toolbar{flex-direction:column!important;align-items:stretch!important}
+  #berita #ntabs{overflow-x:auto!important}
+  #berita .search{width:100%!important}
+  #newsGrid.narch{grid-template-columns:1fr!important}
+  #newsGrid.narch .feat .b{padding:22px 20px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #newsGrid.narch .th img,#newsGrid.narch .item,#newsGrid.narch .feat{transition:none!important}
+}
+

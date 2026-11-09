@@ -1,4 +1,4 @@
-/* Pemuat konten CMS: mengambil data dari Supabase lalu menjalankan js/app.js.
+﻿/* Pemuat konten CMS: mengambil data dari Supabase lalu menjalankan js/app.js.
    Jika Supabase belum diisi / gagal / lambat, situs memakai data bawaan di app.js. */
 (function () {
   var C = window.MWC_CFG || {};
@@ -111,7 +111,7 @@
   function go(d) {
     if (done) return; done = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=3';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=4';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }

@@ -201,11 +201,16 @@ function drawN(c){curCat=c;ng.textContent='';
 [].forEach.call(nt.children,function(b){b.setAttribute('aria-selected',b.textContent==c)});
 var qv=document.getElementById('nq').value.trim().toLowerCase();
 curN=N.filter(function(n){return (c=='Semua'||n[0]==c)&&(!qv||(n[1]+' '+n[3]).toLowerCase().indexOf(qv)>-1)});
-ng.className='news'+(curN.length<3?' few':'');
+ng.className='news narch'+(curN.length<3?' few':'');
 if(!curN.length){put(ng,'<div class="ne"><b>'+(qv?'Berita tidak ditemukan':'Belum ada tulisan')+'</b><span>'+(qv?'Coba kata kunci lain.':'Tulisan kategori ini akan tampil di sini.')+'</span></div>');return}
-curN.forEach(function(n,i){var a=document.createElement('article');if(!i)a.className='big';
-put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><div class="meta">'+(!i&&c=='Semua'&&!qv?'<span class="chip">Terbaru</span>':'')+'<span class="chip">'+n[0]+'</span><small>'+n[2]+'</small></div><h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">Baca selengkapnya</span></div>');
-act(a,function(){location.hash='#berita/'+N.indexOf(n)});ng.appendChild(a)})}
+curN.forEach(function(n,i){
+var k=N.indexOf(n);
+var th=(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt="'+esc(n[1])+'"></div>');
+var meta='<div class="meta">'+(i==0?'<span class="chip top">Terbaru</span>':'')+'<span class="chip">'+n[0]+'</span><small>'+n[2]+'</small></div>';
+var body='<div class="b">'+meta+'<h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">'+(i==0?'Baca laporan lengkap':'Baca selengkapnya')+'</span></div>';
+var a=document.createElement('article');a.className=i==0?'feat':'item';
+put(a,i==0?th+body:body);act(a,function(){location.hash='#berita/'+k});
+ng.appendChild(a)})}
 document.getElementById('nq').oninput=function(){drawN(curCat)};
 cats.forEach(function(c){var b=document.createElement('button');b.textContent=c;b.setAttribute('role','tab');b.onclick=function(){drawN(c)};nt.appendChild(b)});
 drawN('Semua');route();
