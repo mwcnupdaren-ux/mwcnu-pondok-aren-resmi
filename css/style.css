@@ -4893,3 +4893,89 @@ body:not(.inview) header:not(.sc) #hbtn:hover{background:rgba(255,255,255,.16)!i
   #berita .news.narch .item,#berita .news.narch .feat,#berita .news.narch .th img{transition:none!important}
 }
 
+
+
+
+/* = ===============================================================
+   30. FONT MODERN TEGAS NON-DEKORATIF — Inter / Inter Tight
+   Menggantikan Space Grotesk, Manrope, Plus Jakarta Sans, dan serif
+   isi artikel dengan Inter (teks) + Inter Tight (judul). Amiri tetap
+   untuk teks Arab. Hero tidak diubah — hanya jenis hurufnya.
+   = =============================================================== */
+:root:root{
+  --fz:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fh:'Inter Tight','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fs:var(--fz);
+}
+
+body{
+  font-family:var(--fz)!important;
+  letter-spacing:-0.011em;
+}
+h1,h2,h3,h4,h5,h6{
+  font-family:var(--fh)!important;
+  letter-spacing:-0.03em;
+}
+main h2,.sh2 h2,.pg-head h1,#berita .pg-head h1{
+  font-family:var(--fh)!important;
+  letter-spacing:-0.035em;
+}
+#berita .news.narch .feat h3,#berita .news.narch .item h3,
+#berita .kt2,.kt2{
+  font-family:var(--fh)!important;
+}
+.sec-kicker,.chip,.kick{
+  font-family:var(--fh)!important;
+  letter-spacing:.14em;
+}
+
+/* Hero: hanya jenis huruf — tata letak, warna, ukuran tetap */
+.h2t h1{
+  font-family:'Inter Tight','Inter',system-ui,sans-serif!important;
+  letter-spacing:-0.045em!important;
+}
+.h2t h1 .gr{
+  font-family:'Inter Tight','Inter',system-ui,sans-serif!important;
+  letter-spacing:-0.045em!important;
+}
+.h2t p{
+  font-family:'Inter',system-ui,sans-serif!important;
+}
+.hero-badge,.h-btn-pri,.h-btn-sec,.qt span{
+  font-family:'Inter',system-ui,sans-serif!important;
+}
+
+/* Brand, nav, tombol, kartu — tegas */
+.brand-name,.brand,.btn,.btn-kta,.tabs button,.search,.sbtn,.sf small,
+.va,.ncatb span,.nsitem b{
+  font-family:'Inter',system-ui,sans-serif!important;
+}
+#berita .ns-h,.nsub b,.nsnum{
+  font-family:'Inter Tight','Inter',system-ui,sans-serif!important;
+}
+
+/* Isi artikel: bukan serif dekoratif */
+.abody p{
+  font-family:'Inter',system-ui,sans-serif!important;
+  font-size:1.02rem!important;
+  line-height:1.78!important;
+  letter-spacing:-0.005em;
+}
+.abody .dl{font-family:'Inter',system-ui,sans-serif!important}
+#baca h1.at{
+  font-family:'Inter Tight','Inter',system-ui,sans-serif!important;
+  letter-spacing:-0.035em!important;
+}
+
+/* Sambutan & kutipan */
+.sm-q,.sm-body p{
+  font-family:'Inter',system-ui,sans-serif!important;
+  letter-spacing:-0.01em;
+}
+
+/* Dekorasi Arab tetap Amiri */
+.wm,[class*="arab"],.quote-ar{
+  font-family:'Amiri',Georgia,serif!important;
+}
+.wm{letter-spacing:0!important}
+
