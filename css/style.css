@@ -4012,6 +4012,7 @@ header.sc #theme:hover, body.inview header #theme:hover{border-color:var(--g2);c
    editorial content visible even when observer scheduling is delayed. */
 #sambutan .sm-r,#sambutan .pf,#layanan-home .wrap,#banom .wrap,#kegiatan .wrap,#jelajahi .wrap,
 #org-intro .org-intro-inner{opacity:1!important;transform:none!important;filter:none!important}
+#portal-search .portal-search-copy,#portal-search .sbar,#portal-search .sbar *{opacity:1!important;transform:none!important;filter:none!important}
 @media(max-width:540px){#sambutan .sm-r{margin-top:0!important}}
 
 /* Final homepage spacing and photo-led hero tuning after viewport QA. */
@@ -4069,3 +4070,263 @@ header.sc #theme:hover, body.inview header #theme:hover{border-color:var(--g2);c
   #portal-search .sf:first-child{border-top:0!important}
   #portal-search .sbtn{width:100%;margin-top:6px}
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   23. RESTYLE FINAL — MODERN ELEGAN
+   Satu sumber visual terakhir. Semua aturan di atas tetap hidup;
+   lapisan ini hanya menyegarkan warna, bentuk, langit-langit bayangan,
+   dan micro-interaction tanpa menyentuh struktur, CMS, dan aksesibilitas.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root:root{
+  --brand-forest:#062E21;
+  --brand-forest-deep:#042019;
+  --brand-ivory:#F7F5EE;
+  --brand-ivory-2:#FBFAF5;
+  --brand-sage:#D6E4DA;
+  --brand-brass:#C0A15E;
+  --brand-brass-2:#E3CC93;
+  --brand-charcoal:#20292499;
+  --cream:var(--brand-ivory);
+  --gold:var(--brand-brass);
+  --gold-l:var(--brand-brass-2);
+  --ease:cubic-bezier(.22,.61,.21,1);
+  --r-card:20px;
+  --r-ui:13px;
+  --r-pill:999px;
+  --sh-1:0 1px 2px rgba(4,32,22,.05),0 2px 8px rgba(4,32,22,.04);
+  --sh-2:0 1px 2px rgba(4,32,22,.05),0 18px 44px -22px rgba(4,32,22,.28);
+  --sh-3:0 2px 4px rgba(4,32,22,.06),0 30px 70px -30px rgba(4,32,22,.42);
+}
+:root:root[data-theme="dark"],:root:root{--gold:var(--brand-brass);--gold-l:var(--brand-brass-2)}
+@media(prefers-color-scheme:dark){
+  :root:root:not([data-theme="light"]):not([data-theme="dark"]){
+    --brand-forest:#0A3627;
+    --brand-ivory:#0F1F18;
+    --brand-ivory-2:#12251C;
+    --brand-sage:#16302399;
+    --gold:var(--brand-brass);
+    --gold-l:var(--brand-brass-2);
+  }
+}
+:root:root[data-theme="dark"]{
+  --brand-forest:#0A3627;
+  --brand-ivory:#0F1F18;
+  --brand-ivory-2:#12251C;
+  --brand-sage:#16302399;
+  --gold:var(--brand-brass);
+  --gold-l:var(--brand-brass-2);
+}
+
+/* ── Kanvas & tipografi dasar ─────────────────────────────────────── */
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.7;letter-spacing:-.005em}
+::selection{background:color-mix(in srgb,var(--brand-brass) 55%,transparent);color:#1A1000}
+html:focus-within{scroll-behavior:smooth}
+body::-webkit-scrollbar{width:10px}
+body::-webkit-scrollbar-track{background:transparent}
+body::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--brand-forest) 26%,transparent);border-radius:99px;border:3px solid var(--bg)}
+body::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--brand-forest) 45%,transparent)}
+img{filter:none!important}
+
+/* Heading kanon: rasio nyaman + jejak lembut */
+main h2,.sh2 h2{
+  font-family:var(--fh)!important;
+  font-weight:750!important;
+  letter-spacing:-.048em!important;
+  line-height:1.12!important;
+}
+.sec-kicker{
+  font:700 .72rem/1 var(--fz)!important;
+  letter-spacing:.22em!important;
+  text-transform:uppercase!important;
+  color:var(--brand-brass)!important;
+}
+.sec-kicker::before{background:linear-gradient(90deg,var(--brand-brass),transparent)!important}
+
+/* ── Header ───────────────────────────────────────────────────────── */
+header{
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+  border-bottom:1px solid color-mix(in srgb,var(--line) 75%,transparent);
+  box-shadow:0 1px 24px -18px rgba(4,32,22,.5);
+}
+nav a:hover,.ddb:hover{background:color-mix(in srgb,var(--g2) 9%,transparent)!important}
+#theme{border-radius:var(--r-pill)!important;transition:border-color .2s,transform .2s}
+#theme:hover{transform:rotate(18deg)}
+@media(max-width:820px){header{backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4)}}
+
+/* ── Hero: gradasi mahkota hijau hutan + emas champagne ───────────── */
+.hero2{background:
+  radial-gradient(120% 100% at 100% 0%,rgba(192,161,94,.12),transparent 55%),
+  linear-gradient(112deg,var(--brand-forest-deep) 0%,var(--brand-forest) 55%,#0A412F 100%)}
+.hbg::after{
+  background:
+    linear-gradient(90deg,rgba(4,44,31,.97) 0%,rgba(4,47,33,.92) 36%,rgba(4,52,36,.55) 66%,rgba(4,56,38,.22) 100%),
+    linear-gradient(180deg,rgba(3,30,20,.28),transparent 36%,rgba(3,28,19,.24));
+}
+.h2t h1{
+  font-weight:800!important;
+  letter-spacing:-.056em!important;
+  line-height:1.02!important;
+  text-shadow:0 2px 44px rgba(2,20,13,.45);
+}
+.h2t h1 .gr{
+  font-weight:700!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  background:linear-gradient(92deg,#F8ECC4 0%,#EBCF8C 46%,#C9A24D 100%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;
+}
+.h2t p{color:rgba(244,247,242,.84)!important;font-weight:400;letter-spacing:-.008em}
+.hero-badge{
+  display:inline-flex!important;align-items:center;gap:10px;
+  padding:9px 20px!important;border-radius:var(--r-pill)!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  background:rgba(255,255,255,.08)!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  font:600 .7rem/1 var(--fz)!important;letter-spacing:.2em!important;
+  color:rgba(250,247,240,.9)!important;
+}
+.hero-badge::before{background:var(--brand-brass-2)!important;box-shadow:0 0 0 3px rgba(227,204,147,.18)}
+.h-btn-pri{
+  border-radius:var(--r-pill)!important;
+  background:linear-gradient(180deg,#FFFFFF,#F4F1E7)!important;
+  color:var(--brand-forest-deep)!important;
+  box-shadow:0 14px 34px -14px rgba(2,20,13,.5),inset 0 1px 0 #fff!important;
+  transition:transform .25s var(--ease),box-shadow .25s var(--ease)!important;
+}
+.h-btn-pri:hover{transform:translateY(-2px)!important;box-shadow:0 20px 44px -16px rgba(2,20,13,.58),inset 0 1px 0 #fff!important}
+.h-btn-sec{
+  border-radius:var(--r-pill)!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  background:rgba(255,255,255,.06)!important;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:background .25s var(--ease),border-color .25s,transform .25s!important;
+}
+.h-btn-sec:hover{background:rgba(255,255,255,.13)!important;border-color:rgba(255,255,255,.6)!important;transform:translateY(-2px)!important}
+
+/* Baris aksi cepat: unjuk diri senyap — kaca tipis, garis rambut */
+.qrow{border-block:1px solid rgba(255,255,255,.14)!important}
+.qt i{color:var(--brand-brass-2)!important}
+.qt{transition:background .3s var(--ease)!important}
+.qt:hover{background:rgba(255,255,255,.07)!important}
+.qt span{letter-spacing:.015em}
+
+/* ── Pencarian portal: kartu putih tenang ─────────────────────────── */
+#portal-search{background:var(--brand-ivory)!important;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+#portal-search .sbar{
+  border:1px solid color-mix(in srgb,var(--line) 85%,transparent)!important;
+  border-radius:var(--r-ui)!important;background:var(--surf)!important;
+  box-shadow:var(--sh-2)!important;padding:10px!important;
+}
+#portal-search .sbtn{border-radius:var(--r-ui)!important;background:var(--brand-forest)!important;transition:background .25s,transform .2s!important}
+#portal-search .sbtn:hover{background:var(--brand-forest-deep)!important}
+#portal-search .sbtn svg{opacity:.8}
+
+/* ── org-intro: fakta kunci di bidang gading ──────────────────────── */
+#org-intro{background:linear-gradient(180deg,var(--brand-ivory),var(--brand-ivory-2))!important;padding:84px 0 72px!important}
+#org-intro .org-copy h2{color:var(--brand-forest-deep)!important}
+#org-intro .org-copy p{color:#4A5D53!important}
+#org-intro .strow{border-color:color-mix(in srgb,var(--brand-forest) 22%,transparent)!important}
+#org-intro .stc{border-color:color-mix(in srgb,var(--brand-forest) 22%,transparent)!important;transition:background .3s var(--ease)!important}
+#org-intro .stc:hover{background:rgba(255,255,255,.55)}
+:root:root[data-theme="dark"] #org-intro .stc:hover{background:rgba(255,255,255,.03)}
+#org-intro .stc b{font-weight:800!important;letter-spacing:-.05em!important}
+#org-intro .stc .fic{color:var(--brand-brass)!important}
+
+/* ── Sambutan: nuansa naskah ──────────────────────────────────────── */
+#sambutan{background:var(--brand-ivory)!important;position:relative}
+#sambutan::before{content:"";position:absolute;inset:auto 0 0;height:1px;background:color-mix(in srgb,var(--line) 70%,transparent)}
+#sambutan .sam .pf::before{border-color:color-mix(in srgb,var(--gold) 55%,transparent)!important;inset:7px!important;border-radius:calc(var(--r-card) - 4px)!important}
+#sambutan .sam .pf{border-radius:var(--r-card)!important}
+#sambutan .sam .pf .pt{border-radius:999px 999px calc(var(--r-card) - 6px) calc(var(--r-card) - 6px)!important;box-shadow:0 30px 70px -34px rgba(4,32,22,.45)}
+#sambutan .sm-q{color:var(--brand-forest-deep)!important}
+.sm-body mark{box-shadow:inset 0 -.22em 0 color-mix(in srgb,var(--gold) 38%,transparent)!important}
+:root:root[data-theme="dark"] #sambutan{background:var(--cream)!important}
+:root:root[data-theme="dark"] #org-intro{background:var(--cream)!important}
+
+/* ── Layanan jam'iyyah: daftar editorial bernomor ─────────────────── */
+#layanan-home{background:var(--brand-ivory-2)!important}
+#layanan-home .lycard{transition:padding .3s var(--ease),background .3s var(--ease)!important}
+#layanan-home .lycard:hover{background:color-mix(in srgb,var(--brand-brass) 8%,transparent)!important;padding-left:10px!important}
+#layanan-home .lycard::before{color:var(--brand-brass)!important;opacity:.9}
+#layanan-home .lycard:hover b{color:var(--brand-forest-deep)}
+#layanan-home .lycard b{transition:color .2s!important}
+:root:root[data-theme="dark"] #layanan-home{background:var(--cream)!important}
+
+/* ── Badan Otonom: kartu inisial tenang + aksen identitas ─────────── */
+#banom{background:var(--brand-ivory)!important}
+#banom .bncard{
+  border:1px solid color-mix(in srgb,var(--line) 90%,transparent)!important;
+  border-radius:var(--r-card)!important;
+  background:var(--surf)!important;
+  box-shadow:var(--sh-1)!important;
+  padding:26px 26px!important;
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s var(--ease)!important;
+}
+#banom .bncard:hover{
+  transform:translateY(-3px)!important;
+  border-color:color-mix(in srgb,var(--bc) 45%,transparent)!important;
+  box-shadow:var(--sh-2)!important;
+}
+#banom .bncard::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:99px;background:var(--bc);opacity:0;transition:opacity .3s}
+#banom .bncard:hover::after{opacity:.85}
+#banom .bnic{
+  width:46px!important;height:46px!important;border-radius:14px!important;
+  background:color-mix(in srgb,var(--bc) 12%,var(--surf))!important;
+  color:var(--bc)!important;
+}
+#banom .bncard b{font-weight:750!important;letter-spacing:-.02em!important}
+:root:root[data-theme="dark"] #banom{background:var(--cream)!important}
+:root:root[data-theme="dark"] #banom .bncard{background:var(--surf)!important;border-color:var(--line)!important;box-shadow:none!important}
+
+/* ── Kegiatan: kolase foto dalam bingkai membulat ──────────────────── */
+#kegiatan .kc{border-radius:var(--r-card)!important;overflow:hidden!important;gap:4px!important;box-shadow:var(--sh-2)}
+#kegiatan .kcard::after{background:linear-gradient(180deg,rgba(3,24,17,.05) 30%,rgba(3,20,14,.85) 100%)!important}
+
+/* ── Jelajahi: baris beralun dengan garis rambut ───────────────────── */
+#jelajahi{background:var(--brand-ivory-2)!important}
+#jelajahi .cats a{border-radius:var(--r-ui)!important;transition:background .3s var(--ease),padding-left .3s var(--ease)!important}
+#jelajahi .cats a:hover{background:var(--brand-ivory)!important;padding-left:14px!important}
+:root:root[data-theme="dark"] #jelajahi .cats a:hover{background:color-mix(in srgb,var(--g2) 12%,transparent)!important}
+
+/* ── Tombol umum: radius seragam, angkat halus ─────────────────────── */
+.btn{border-radius:12px!important;transition:transform .25s var(--ease),box-shadow .25s var(--ease),background .25s,border-color .25s!important}
+.btn.wa{border-radius:12px!important}
+
+/* ── Footer: hijau malam dengan glo emas lembut ────────────────────── */
+footer{
+  background:linear-gradient(180deg,#073526 0%,#04241A 100%)!important;
+  position:relative;overflow:hidden;
+}
+footer::before{
+  content:"";position:absolute;top:-140px;right:-120px;width:520px;height:520px;
+  background:radial-gradient(closest-side,rgba(192,161,94,.14),transparent 72%);
+  pointer-events:none;
+}
+.fcta h2{font-family:var(--fh)!important;font-weight:750!important;letter-spacing:-.04em!important}
+.fbtn .btn{border-radius:var(--r-pill)!important;padding:13px 26px!important}
+.fcta{border-bottom-color:rgba(255,255,255,.1)!important}
+footer h3{letter-spacing:.02em}
+.fl a,.fc a{color:rgba(244,247,242,.78)!important;transition:color .2s!important}
+.fl a:hover,.fc a:hover{color:var(--brand-brass-2)!important}
+.nl{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:12px!important;overflow:hidden}
+.nl input{background:transparent!important;color:#fff!important}
+.nl input::placeholder{color:rgba(255,255,255,.45)}
+.nl button{background:rgba(255,255,255,.12)!important;color:#fff!important;border-radius:9px!important;transition:background .2s!important}
+.nl button:hover{background:rgba(255,255,255,.22)!important}
+.copy{border-top-color:rgba(255,255,255,.1)!important;color:rgba(244,247,242,.6)}
+
+/* ── Gelap: kartu & garis senyap ───────────────────────────────────── */
+:root:root[data-theme="dark"]{--sh-1:0 0 0 1px rgba(255,255,255,.04),0 10px 30px -16px rgba(0,0,0,.5);--sh-2:0 0 0 1px rgba(255,255,255,.05),0 22px 50px -24px rgba(0,0,0,.6)}
+:root:root[data-theme="dark"] body{background:#0A1712}
+:root:root[data-theme="dark"] header{border-bottom-color:rgba(255,255,255,.08)}
+
+/* ── Mobile: radius menyusut dengan rapi ───────────────────────────── */
+@media(max-width:700px){
+  :root:root{--r-card:16px;--r-ui:12px}
+  #banom .bncard{padding:20px 18px!important}
+  .hero-badge{padding:8px 16px!important;font-size:.62rem!important}
+  #org-intro{padding:60px 0 52px!important}
+}
+
