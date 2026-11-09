@@ -5218,3 +5218,27 @@ body, .lead, .pg-head .lead, #berita .pg-head .lead,
   #sambutan .pf{transition:none!important}
 }
 
+
+
+
+/* = ===============================================================
+   33. FIX MARGIN SAMBUTAN — foto & teks sejajar atas
+   = =============================================================== */
+#sambutan{padding:72px 0 80px!important}
+#sambutan .sam{align-items:start!important}
+#sambutan .pf{
+  position:relative!important;top:auto!important;
+  margin-top:0!important;
+}
+#sambutan .sm-r{padding-top:0!important;margin-top:0!important}
+#sambutan .sm-k{margin-top:0!important}
+#sambutan .sm-salam{margin-top:18px!important}
+
+@media(max-width:980px){
+  #sambutan{padding:56px 0 64px!important}
+  #sambutan .pf{position:relative!important;top:auto!important}
+}
+@media(max-width:520px){
+  #sambutan{padding:48px 0 56px!important}
+}
+
