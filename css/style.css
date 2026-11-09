@@ -5558,3 +5558,56 @@ body, .lead, .pg-head .lead, #berita .pg-head .lead,
 }
 @media(max-width:640px){#banom .bncard:nth-child(n) .bnic{width:46px!important;height:46px!important}}
 
+
+
+
+/* = ===============================================================
+   38. LOGIN KARTU ANGGOTA — gerbang masuk + auto-buat profil
+   = =============================================================== */
+.kt-auth{
+  display:grid!important;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)!important;gap:30px!important;
+  align-items:start!important;
+  background:var(--surf)!important;border:1px solid var(--line)!important;border-radius:22px!important;
+  padding:30px!important;box-shadow:0 18px 44px -26px rgba(6,32,23,.28)!important;margin:0 0 26px!important;
+}
+.kt-auth-l h3{font:700 1.45rem/1.2 var(--fp)!important;letter-spacing:-0.03em!important;color:var(--ink)!important;margin:12px 0 8px!important}
+.kt-auth-l p{font:400 .94rem/1.7 var(--fz)!important;color:var(--mut)!important;margin:0!important}
+.kt-auth-f{display:flex!important;flex-direction:column!important;gap:12px!important}
+.kt-tabs{display:flex!important;gap:4px!important;background:var(--bg-alt)!important;border:1px solid var(--line)!important;border-radius:999px!important;padding:4px!important;width:max-content!important;max-width:100%!important}
+.kt-tabs button{
+  border:0!important;background:transparent!important;border-radius:999px!important;padding:8px 16px!important;
+  font:650 .85rem var(--fp)!important;color:var(--mut)!important;cursor:pointer!important;transition:background .2s,color .2s!important;
+}
+.kt-tabs button.on{background:var(--surf)!important;color:var(--acc-deep)!important;box-shadow:0 1px 4px rgba(6,32,23,.12)!important}
+.kt-auth-f .fld{margin:0!important}
+.kt-auth-f .fld input{
+  font:500 .95rem var(--fz)!important;color:var(--ink)!important;width:100%!important;
+  border:1px solid var(--line)!important;border-radius:12px!important;padding:11px 14px!important;background:var(--bg)!important;
+}
+.kt-auth-f .fld input:focus{outline:0!important;border-color:var(--acc-line)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 14%,transparent)!important}
+.kt-auth-f .btn{border-radius:999px!important;padding:12px 22px!important;font:700 .92rem var(--fp)!important}
+.kt-auth-f .btn:disabled{opacity:.6!important;cursor:not-allowed!important}
+
+.kt-bar{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;flex-wrap:wrap!important;
+  background:var(--acc-soft)!important;border:1px solid var(--acc-line)!important;border-radius:16px!important;
+  padding:14px 18px!important;margin:0 0 22px!important;
+}
+.kt-bar .sm-k{flex:none!important}
+.kt-bar-t{display:flex!important;flex-direction:column!important;gap:2px!important;flex:1!important;min-width:180px!important}
+.kt-bar-t b{font:700 .98rem var(--fp)!important;color:var(--ink)!important;letter-spacing:-0.02em!important}
+.kt-bar-t small{font:500 .82rem var(--fz)!important;color:var(--mut)!important}
+#kOut{flex:none!important}
+
+@media(max-width:820px){
+  .kt-auth{grid-template-columns:1fr!important;padding:22px!important;gap:20px!important}
+  .kt-tabs{width:100%!important}
+  .kt-tabs button{flex:1!important;text-align:center!important}
+}
+@media(max-width:520px){
+  .kt-bar{padding:12px!important}
+}
+
+
+.kt-auth[hidden],.kt-bar[hidden],.kt-g[hidden]{display:none!important}
+

@@ -297,6 +297,47 @@ var RT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','P
 var BL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 var HF='"Plus Jakarta Sans",system-ui,sans-serif',BF='"Inter",system-ui,sans-serif';
 var S={photo:null,rand:null,imgs:null};
+
+function authCfg(){try{var C=window.MWC_CFG||{};return{url:C.supabaseUrl||'',key:C.supabaseKey||''}}catch(e){return{url:'',key:''}}}
+function sesGet(){try{return JSON.parse(localStorage.getItem('mwc_auth')||'null')}catch(e){return null}}
+function sesSet(s){try{if(s)localStorage.setItem('mwc_auth',JSON.stringify(s));else localStorage.removeItem('mwc_auth')}catch(e){}}
+function profKey(){var s=sesGet();return s&&s.user&&(s.user.id||s.user.email)}
+function profGet(){var k=profKey();if(!k)return null;try{return JSON.parse(localStorage.getItem('mwc_profile_'+k)||'null')}catch(e){return null}}
+function profSave(p){var k=profKey();if(!k)return;try{localStorage.setItem('mwc_profile_'+k,JSON.stringify(p||{}))}catch(e){}
+try{var C=authCfg(),s=sesGet();if(C.url&&C.key&&s&&s.access_token&&s.user&&!/^local-/.test(String(s.user.id)))fetch(C.url+'/rest/v1/profiles',{method:'POST',headers:{apikey:C.key,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:s.user.id,nama:p.nama||'',hp:p.hp||'',email:s.user.email||''})}).catch(function(){}) }catch(e){}}
+function sbErr(r){return r&&r.msg?(r.code+' '+r.msg):(r&&r.message)}
+function sbAuth(path,body){var C=authCfg();if(!C.url||!C.key)return Promise.reject('server');return fetch(C.url+'/auth/v1/'+path,{method:'POST',headers:{apikey:C.key,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw sbErr(j);return j})})}
+function profFetch(){var C=authCfg(),s=sesGet();if(!C.url||!C.key||!s||!s.user||/^local-/.test(String(s.user.id)))return Promise.resolve(profGet());return fetch(C.url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(s.user.id)+'&select=*',{headers:{apikey:C.key,Authorization:'Bearer '+(s.access_token||C.key)}}).then(function(r){return r.ok?r.json():[]}).then(function(a){var p=a&&a[0];if(p){var l=profGet()||{};var m={nama:p.nama||l.nama||'',hp:p.hp||l.hp||'',email:p.email||s.user.email||''};try{localStorage.setItem('mwc_profile_'+profKey(),JSON.stringify(m))}catch(e){}return m}return profGet()}).catch(function(){return profGet()})}
+function authMsg(t,bad){var m=$('kAuthMsg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
+function applyProf(){var p=profGet();if(!p)return;function set(id,v){var e=$(id);if(e&&v&&!e.value)e.value=v}set('k-nama',p.nama);set('k-hp',p.hp)}
+function toggleAuth(){var s=sesGet(),ok=!!(s&&s.user),p=profGet();
+$('kAuth').hidden=ok;$('kBar').hidden=!ok;$('kGate').hidden=!ok;
+if(ok){$('kWho').textContent=p&&p.nama?p.nama:(s.user.email||'Pengguna');$('kProfState').textContent=p&&p.nama?'Profil sudah dibuat — tinggal lengkapi data kartu.':'Profil belum dibuat — akan dibuatkan saat Anda menyimpan kartu.';applyProf();draw()}}
+function finishLogin(user,token,extra){sesSet({access_token:token||'',user:{id:user.id||('local-'+user.email),email:user.email||''}});
+if(extra&&(extra.nama||extra.hp)){var p=profGet()||{};profSave({nama:extra.nama||p.nama||'',hp:extra.hp||p.hp||'',email:user.email||p.email||''})}
+if(!profGet())profSave({nama:(extra&&extra.nama)||'',hp:(extra&&extra.hp)||'',email:user.email||''});
+authMsg('');toggleAuth()}
+$('kTabIn').addEventListener('click',function(){$('kTabIn').classList.add('on');$('kTabUp').classList.remove('on');document.querySelectorAll('#kAuthF [data-reg]').forEach(function(e){e.hidden=true});$('kAuthBtn').textContent='Masuk';$('a-pass').autocomplete='current-password'});
+$('kTabUp').addEventListener('click',function(){$('kTabUp').classList.add('on');$('kTabIn').classList.remove('on');document.querySelectorAll('#kAuthF [data-reg]').forEach(function(e){e.hidden=false});$('kAuthBtn').textContent='Buat akun & profil';$('a-pass').autocomplete='new-password'});
+document.querySelectorAll('#kAuthF [data-reg]').forEach(function(e){e.hidden=true});
+$('kAuthF').addEventListener('submit',function(e){e.preventDefault();var em=$('a-email').value.trim().toLowerCase(),pw=$('a-pass').value,nm=$('a-nama').value.trim(),hp=$('a-hp').value.trim(),isUp=$('kTabUp').classList.contains('on');
+if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return authMsg('Mohon isi email yang valid.',1);
+if(pw.length<6)return authMsg('Kata sandi minimal 6 karakter.',1);
+if(isUp){if(!nm)return authMsg('Mohon isi nama lengkap untuk membuat profil.',1);if(hp.replace(/\D/g,'').length<9)return authMsg('Mohon isi nomor HP yang valid.',1)}
+authMsg('Memproses…');$('kAuthBtn').disabled=true;
+sbAuth(isUp?'signup':'token?grant_type=password',isUp?{email:em,password:pw,options:{data:{name:nm}}}:{email:em,password:pw}).then(function(j){
+  $('kAuthBtn').disabled=false;
+  if(j&&!j.user&&!j.access_token&&!j.session){authMsg('Akun perlu konfirmasi. Periksa email Anda, lalu masuk.',1);return}
+  var u=(j&&j.user)||(j&&j.session&&j.session.user);if(!u){authMsg('Server tidak mengembalikan sesi. Coba lagi.',1);return}
+  finishLogin(u,(j.access_token||(j.session&&j.session.access_token)),{nama:nm,hp:hp});authMsg('Berhasil masuk.')
+}).catch(function(err){$('kAuthBtn').disabled=false;
+  var m=String(err||'');
+  if(isUp&&(m.indexOf('already')>-1||m.indexOf('registered')>-1)){authMsg('Email sudah terdaftar. Silakan masuk.',1);return}
+  if(!authCfg().url){authMsg('Server login tidak tersedia. Profil akan disimpan di perangkat ini.',1)}
+  /* Cadangan lokal: tetap beri akses agar alur tidak buntu */
+  finishLogin({id:'local-'+em,email:em},'',{nama:nm,hp:hp});authMsg('Masuk (perangkat ini).')
+})});
+$('kOut').addEventListener('click',function(){sesSet(null);toggleAuth();authMsg('')})
 function v(id){return($(id).value||'').trim()}
 function fmt(d){return d.getDate()+' '+BL[d.getMonth()]+' '+d.getFullYear()}
 function fmtIso(s){var a=String(s).split('-');return a.length==3&&a[0]?parseInt(a[2],10)+' '+BL[parseInt(a[1],10)-1]+' '+a[0]:''}
@@ -391,13 +432,13 @@ return new Blob(parts,{type:'application/pdf'})}
 function slug(){return(v('k-nama').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'anggota')}
 function save(name,b){return new Promise(function(res,rej){var fb=function(){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href)},2500);res('saved')};
 if(window.claude&&claude.use){claude.use('downloads').then(function(d){if(!d)return fb();d.save({filename:name,data:b}).then(function(){res('saved')},function(e){if(e&&e.code==='declined')res('declined');else fb()})},fb)}else fb()})}
-async function job(label,fn){if(!valid())return;msg('Menyiapkan '+label+'\u2026');try{await draw();var r=await fn();msg(r==='declined'?'Penyimpanan dibatalkan.':label+' siap. Periksa folder unduhan Anda.')}catch(e){msg('Gagal menyiapkan '+label+'. Coba lagi.',1)}}
+async function job(label,fn){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;try{var d0=info();profSave({nama:d0.nama,hp:d0.hp,email:(sesGet().user||{}).email||''})}catch(e){}msg('Menyiapkan '+label+'\u2026');try{await draw();var r=await fn();msg(r==='declined'?'Penyimpanan dibatalkan.':label+' siap. Periksa folder unduhan Anda.')}catch(e){msg('Gagal menyiapkan '+label+'. Coba lagi.',1)}}
 $('k-pdf').addEventListener('click',function(){job('PDF kartu',async function(){var a=await bytes($('k-front')),b=await bytes($('k-back')),mk=function(x){return{imgs:[{b:x,w:W,h:H,x:0,y:0,mw:85.6,mh:54}]}};return save('kartu-anggota-'+slug()+'.pdf',pdf([mk(a),mk(b)],85.6,54))})});
 $('k-a4').addEventListener('click',function(){job('PDF A4',async function(){var a=await bytes($('k-front')),b=await bytes($('k-back')),cw=85.6,ch=54,x1=13.4,x2=x1+cw+12,y=48,L=[];[x1,x2].forEach(function(x){[[x,x+cw],[x,x+cw]].forEach(function(_,k){});var xs=[x,x+cw],ys=[y,y+ch];xs.forEach(function(px,i){ys.forEach(function(py,j){var sx=i?1:-1,sy=j?1:-1;L.push([px+sx*2,py,px+sx*6,py]);L.push([px,py+sy*2,px,py+sy*6])})})});
 var pgs=[{imgs:[{b:a,w:W,h:H,x:x1,y:y,mw:cw,mh:ch},{b:b,w:W,h:H,x:x2,y:y,mw:cw,mh:ch}],lines:L,texts:[{t:'Kartu Anggota MWCNU Pondok Aren',x:13.4,y:22,s:14,g:0.1},{t:'Cetak pada ukuran 100% (jangan pilih Fit to Page), lalu potong mengikuti tanda sudut.',x:13.4,y:30,s:8},{t:'DEPAN',x:x1+4,y:y-7,s:7},{t:'BELAKANG',x:x2+4,y:y-7,s:7},{t:CFG.web,x:13.4,y:285,s:7}]}];return save('kartu-anggota-'+slug()+'-A4.pdf',pdf(pgs,210,297))})});
 $('k-png').addEventListener('click',function(){job('gambar kartu',async function(){var cv=document.createElement('canvas');cv.width=W;cv.height=H*2+40;var c=cv.getContext('2d');c.fillStyle='#FFFFFF';c.fillRect(0,0,cv.width,cv.height);c.drawImage($('k-front'),0,0);c.drawImage($('k-back'),0,H+40);return save('kartu-anggota-'+slug()+'.png',await blob(cv,'image/png'))})});
-$('k-wa').addEventListener('click',function(){if(!valid())return;var d=info(),t='Assalamualaikum, saya mendaftar sebagai anggota MWCNU Pondok Aren.\n\nNama: '+d.nama+'\nJenis kelamin: '+d.jk+'\nTempat, tgl lahir: '+d.tmp+', '+d.tgl+'\nAlamat: '+d.alamat+'\nTingkat/wilayah: '+d.wilayah+'\nPekerjaan: '+(d.kerja||'-')+'\nWadah khidmah: '+d.wadah+'\nNo. HP: '+d.hp+'\nNomor induk: '+d.nia+'\n\nFile kartu (PDF) dan foto saya lampirkan pada chat ini. Mohon verifikasi. Terima kasih.';msg('Membuka WhatsApp\u2026');window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(t),'_blank','noopener')});
-window.addEventListener('load',function(){draw()});if(document.readyState==='complete')draw();
+$('k-wa').addEventListener('click',function(){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;try{var d0=info();profSave({nama:d0.nama,hp:d0.hp,email:(sesGet().user||{}).email||''})}catch(e){}var d=info(),t='Assalamualaikum, saya mendaftar sebagai anggota MWCNU Pondok Aren.\n\nNama: '+d.nama+'\nJenis kelamin: '+d.jk+'\nTempat, tgl lahir: '+d.tmp+', '+d.tgl+'\nAlamat: '+d.alamat+'\nTingkat/wilayah: '+d.wilayah+'\nPekerjaan: '+(d.kerja||'-')+'\nWadah khidmah: '+d.wadah+'\nNo. HP: '+d.hp+'\nNomor induk: '+d.nia+'\n\nFile kartu (PDF) dan foto saya lampirkan pada chat ini. Mohon verifikasi. Terima kasih.';msg('Membuka WhatsApp\u2026');window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(t),'_blank','noopener')});
+window.addEventListener('load',function(){toggleAuth();profFetch().then(function(){toggleAuth()});draw()});if(document.readyState==='complete'){toggleAuth();profFetch().then(function(){toggleAuth()});draw()}
 }catch(e){}})();
 /* ===== KONSULTASI AGAMA ===== */
 (function(){try{

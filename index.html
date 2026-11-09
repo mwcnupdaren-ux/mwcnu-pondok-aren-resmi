@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0C3B2B">
 <meta property="og:title" content="MWCNU Pondok Aren"><meta property="og:description" content="Portal resmi MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=16">
+<link rel="stylesheet" href="/css/style.css?v=17">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -229,7 +229,9 @@
 <div class="chips" style="margin-top:26px"><div class="rc"><b>Tulis dengan jelas</b><small>Sertakan konteks yang cukup, tetapi hindari data pribadi yang sensitif seperti nomor identitas.</small></div><div class="rc"><b>Boleh tanpa nama</b><small>Anda dapat memilih tampil sebagai Hamba Allah.</small></div><div class="rc"><b>Persoalan kompleks</b><small>Persoalan seperti waris atau sengketa umumnya perlu ditindaklanjuti dengan pertemuan langsung dan dokumen pendukung.</small></div></div>
 </div></section><section id="daftar" class="vw" hidden><div class="wrap" id="kartu-app"><h2>Kartu Anggota MWCNU Pondok Aren</h2><a class="back" href="#top">&larr; Kembali ke beranda</a>
 <p class="pg-lead">Buat pratinjau kartu anggota dan unduh sebagai PDF siap cetak (ukuran kartu 85,6 &times; 54 mm) atau gambar untuk disimpan di HP. Nomor dan QR dibuat di perangkat Anda; nomor ini belum tercatat atau diverifikasi oleh MWCNU, dan belum dapat digunakan sebagai bukti keanggotaan atau absensi.</p>
-<div class="kt-g">
+<div class="kt-auth" id="kAuth"><div class="kt-auth-l"><span class="sm-k"><i></i>Masuk dulu</span><h3>Masuk untuk membuat Kartu Anggota</h3><p>Untuk melindungi data Anda, pembuatan Kartu Anggota wajib masuk. Jika Anda belum punya profil, profil akan <b>dibuatkan sekaligus</b> saat Anda daftar — tidak perlu langkah tambahan.</p></div><form class="kt-auth-f" id="kAuthF"><div class="kt-tabs"><button type="button" id="kTabIn" class="on">Masuk</button><button type="button" id="kTabUp">Buat akun &amp; profil</button></div><label class="fld"><span>Email *</span><input type="email" id="a-email" autocomplete="email" placeholder="contoh: nama@email.com"></label><label class="fld"><span>Kata sandi *</span><input type="password" id="a-pass" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label class="fld" data-reg><span>Nama lengkap *</span><input type="text" id="a-nama" autocomplete="name" placeholder="Nama sesuai KTP"></label><label class="fld" data-reg><span>Nomor HP / WhatsApp *</span><input type="tel" id="a-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label><button type="submit" class="btn" id="kAuthBtn">Masuk</button><p class="fm-msg" id="kAuthMsg" role="status"></p><p class="fm-note">Kata sandi &amp; profil tersimpan aman melalui Supabase Auth. Jika server belum tersedia, profil tersimpan di perangkat ini dulu.</p></form></div>
+<div class="kt-bar" id="kBar" hidden><span class="sm-k"><i></i>Profil</span><div class="kt-bar-t"><b id="kWho">—</b><small id="kProfState">—</small></div><button type="button" class="kt-b" id="kOut">Keluar</button></div>
+<div class="kt-g" id="kGate" hidden>
 <div class="kt-f"><span class="sm-k"><i></i>Data anggota</span><h3>Isi data diri</h3>
 <div class="fld"><span>Foto (rasio 3&times;4) *</span><label class="kt-drop" for="k-foto"><input type="file" id="k-foto" accept="image/*"><b id="k-foto-t">Pilih atau ambil foto wajah</b><small>Foto menghadap depan, latar polos, wajah terlihat jelas</small></label>
 <div class="kt-crop" id="k-crop" hidden><label>Perbesar<input type="range" id="k-zoom" min="1" max="3" step="0.02" value="1"></label><label>Geser kiri-kanan<input type="range" id="k-px" min="0" max="1" step="0.01" value="0.5"></label><label>Geser atas-bawah<input type="range" id="k-py" min="0" max="1" step="0.01" value="0.35"></label></div></div>
@@ -291,9 +293,9 @@
 <div class="copy"><span>Â© <span id="yr"></span> MWCNU Pondok Aren. Masa khidmat 2025 sampai 2030.</span><a href="#top">Kembali ke atas</a></div>
 </div></footer>
 
-<script src="/js/vendor/qrcode.js?v=16"></script>
-<script src="/js/config.js?v=16"></script>
-<script src="/js/content.js?v=16"></script>
+<script src="/js/vendor/qrcode.js?v=17"></script>
+<script src="/js/config.js?v=17"></script>
+<script src="/js/content.js?v=17"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
 <div class="gs-panel" role="document">
