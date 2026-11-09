@@ -4444,3 +4444,77 @@ footer h3{font-family:var(--fh)!important;letter-spacing:-.01em!important}
   #portal-search{padding:26px 0 28px!important}
 }
 
+
+
+/* = ===============================================================
+   25. SAYAP ORGANISASI 2x2 DINAMIS + BERITA HOMEPAGE
+   = =============================================================== */
+#banomgrid{grid-template-columns:1fr 1fr!important;grid-template-rows:auto!important;gap:16px!important}
+#banom .bncard:nth-child(n){
+  grid-column:auto!important;grid-row:auto!important;
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:flex-start!important;gap:14px!important;
+  min-height:210px!important;padding:28px 28px 30px!important;position:relative!important;overflow:hidden;
+}
+#banom .bnic{
+  width:56px!important;height:56px!important;border-radius:16px!important;
+  background:color-mix(in srgb,var(--bc) 14%,var(--surf))!important;color:var(--bc)!important;
+  font:800 .95rem var(--fh)!important;letter-spacing:.04em!important;flex:none;
+}
+#banom .bncard b{font:700 1.05rem/1.25 var(--fh)!important;color:var(--ink)!important;letter-spacing:-.02em!important;margin:4px 0 0!important}
+#banom .bncard small{color:var(--mut)!important;font-size:.88rem!important;line-height:1.55!important}
+#banom .bncard::after{
+  content:'\2192'!important;position:absolute!important;right:22px;bottom:22px;
+  width:36px;height:36px;border-radius:99px;display:grid!important;place-items:center;
+  background:var(--acc-soft)!important;color:var(--acc-deep)!important;font-weight:600;
+  opacity:0;transform:translate(-8px,4px);transition:opacity .3s var(--ease),transform .3s var(--ease);
+}
+#banom .bncard:hover::after{opacity:1!important;transform:none!important}
+.bn-anim{opacity:0;transform:translateY(24px) scale(.97);animation:bnIn .75s cubic-bezier(.22,.61,.21,1) forwards}
+@keyframes bnIn{to{opacity:1;transform:none}}
+
+/* Berita homepage: kartu media modern */
+#beranda-berita{background:var(--bg-alt)!important;padding:88px 0 84px!important}
+#beranda-berita .news{gap:18px!important}
+#beranda-berita .news article{
+  border:1px solid var(--line)!important;border-radius:var(--r-lg)!important;background:var(--surf)!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.04)!important;overflow:hidden;
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s!important;
+}
+#beranda-berita .news article:hover{transform:translateY(-4px)!important;border-color:var(--acc-line)!important;box-shadow:0 26px 58px -30px rgba(6,32,23,.4)!important}
+#beranda-berita .news .th{height:186px!important}
+#beranda-berita .news .th img{transition:transform .55s var(--ease)!important}
+#beranda-berita .news article:hover .th img{transform:scale(1.045)!important}
+#beranda-berita .news div.b{padding:20px 22px 22px!important}
+#beranda-berita .news h3{font-family:var(--fh)!important;font-weight:700!important;letter-spacing:-.025em!important}
+#beranda-berita .news .more{color:var(--acc-deep)!important}
+#beranda-berita .news .chip{border-radius:99px!important;background:var(--acc-soft)!important;color:var(--acc-deep)!important}
+#beranda-berita .news article:nth-child(n+4){display:none}
+
+/* Ritme latar: jelajahi kembali putih karena berita memakai alt */
+#jelajahi{background:var(--bg)!important}
+:root:root[data-theme="dark"] #jelajahi{background:var(--bg)!important}
+
+@media(max-width:900px){
+  #banomgrid{grid-template-columns:1fr 1fr!important}
+  #beranda-berita .news{grid-template-columns:1fr 1fr!important}
+  #beranda-berita .news article:nth-child(n+3){display:none}
+}
+@media(max-width:700px){
+  #banomgrid{grid-template-columns:1fr!important}
+  #banom .bncard:nth-child(n){min-height:0!important;padding:22px!important;gap:12px!important}
+  #banom .bncard:nth-child(n)::after{display:none!important}
+  #beranda-berita{padding:60px 0 54px!important}
+  #beranda-berita .news{grid-template-columns:1fr!important}
+  #beranda-berita .news article:nth-child(n+3){display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .bn-anim{animation:none!important;opacity:1!important;transform:none!important}
+  #beranda-berita .news .th img{transition:none!important}
+}
+
+/* Perbaikan layer 25: monogram tanpa garis bawah lama, jarak rapat */
+#banom .bncard .bnic{border:0!important;border-bottom:0!important;background:color-mix(in srgb,var(--bc) 14%,var(--surf))!important;border-radius:16px!important}
+#banom .bncard:hover .bnic{background:var(--bc)!important;color:#fff!important;transform:translateY(-3px) scale(1.04)}
+#banom .bncard .bnic{margin-bottom:0!important}
+#banom .bncard>span:last-child{margin-top:0!important;width:100%}

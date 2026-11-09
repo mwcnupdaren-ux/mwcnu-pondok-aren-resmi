@@ -154,7 +154,7 @@ var BANOM=MW.md('banom',function(x){return{name:x.nama,full:x.nama_lengkap||'',d
 {name:'IPNU',full:'Ikatan Pelajar Nahdlatul Ulama',desc:'Organisasi pelajar putra untuk pembinaan karakter dan kepemimpinan',logo:'IP',color:'#1565C0'},
 {name:'IPPNU',full:'Ikatan Pelajar Putri Nahdlatul Ulama',desc:'Organisasi pelajar putri untuk dakwah, pendidikan, dan pengembangan diri',logo:'PP',color:'#7B1FA2'}
 ]);
-var bnmg=document.getElementById('banomgrid');if(bnmg){var h='';var BNroute=[['#banom-gpansor'],['#banom-fatayat'],['#banom-ipnu'],['#banom-ippnu']];BANOM.forEach(function(b,i){var link=BNroute[i]?BNroute[i][0]:'#banom',color=/^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#17352A';h+='<a class="bncard" href="'+link+'" style="--bc:'+color+'"><span class="bnic">'+esc(b.logo)+'</span><span><b>'+esc(b.name)+'</b><small>'+esc(b.desc)+'</small></span></a>'});put(bnmg,h)}
+var bnmg=document.getElementById('banomgrid');if(bnmg){var h='';var BNroute=[['#banom-gpansor'],['#banom-fatayat'],['#banom-ipnu'],['#banom-ippnu']];BANOM.forEach(function(b,i){var link=BNroute[i]?BNroute[i][0]:'#banom',color=/^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#17352A';h+='<a class="bncard" href="'+link+'" style="--bc:'+color+'"><span class="bnic">'+esc(b.logo)+'</span><span><b>'+esc(b.name)+'</b><small>'+esc(b.desc)+'</small></span></a>'});put(bnmg,h);if('IntersectionObserver' in window){var _bio=new IntersectionObserver(function(en,ob){if(en.some(function(e){return e.isIntersecting})){[].forEach.call(bnmg.querySelectorAll('.bncard'),function(c,i){c.classList.add('bn-anim');c.style.animationDelay=(i*90)+'ms'});_bio.disconnect()}},{threshold:.18});_bio.observe(bnmg)}}
 var lys=document.getElementById('lyscroll');if(lys)put(lys,LSV.map(layananCard).join(''));
 var KG=['program','berita','agenda','galeri'],dd=document.querySelector('.dd'),ddb=dd.querySelector('.ddb');
 function closeDD(){dd.classList.remove('open');ddb.setAttribute('aria-expanded','false')}
@@ -209,6 +209,10 @@ act(a,function(){location.hash='#berita/'+N.indexOf(n)});ng.appendChild(a)})}
 document.getElementById('nq').oninput=function(){drawN(curCat)};
 cats.forEach(function(c){var b=document.createElement('button');b.textContent=c;b.setAttribute('role','tab');b.onclick=function(){drawN(c)};nt.appendChild(b)});
 drawN('Semua');route();
+var _hn=document.getElementById('homeNews');
+if(_hn&&N){N.slice(0,3).forEach(function(n){var a=document.createElement('article');
+put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><div class="meta"><span class="chip">'+n[0]+'</span><small>'+n[2]+'</small></div><h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">Baca selengkapnya</span></div>');
+act(a,function(){location.hash='#berita/'+N.indexOf(n)});_hn.appendChild(a)})}
 var G=MW.md('galeri',function(x){return[x.judul,ph(x.foto),x.kegiatan||'']},[["Halal Bi Halal di Omah Singgah NU Alfath",4,"Halal Bi Halal"],["Sambutan di Lailatul Ijtima'",1,"Lailatul Ijtima'"],["Sambutan pada Halal Bi Halal",5,"Halal Bi Halal"],["Sambutan di Pondok Kacang Barat",2,"Lailatul Ijtima'"],["Lailatul Ijtima' di Pondok Kacang Barat",0,"Lailatul Ijtima'"],["Pengurus dan tamu undangan",6,"Halal Bi Halal"],["Rangkaian acara Halal Bi Halal",7,"Halal Bi Halal"],["Rangkaian acara Lailatul Ijtima'",3,"Lailatul Ijtima'"]]);
 var gl=document.getElementById('gal'),gt=document.getElementById('gtabs'),GE=['Semua',"Lailatul Ijtima'",'Halal Bi Halal'],gcur=[],lb=document.getElementById('lb'),li=0,lbi=document.getElementById('lbi');
 function lbShow(i){li=(i+gcur.length)%gcur.length;var g=gcur[li];lbi.src=PH[g[1]];lbi.alt=g[0];
