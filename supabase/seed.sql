@@ -155,3 +155,52 @@ insert into public.site_settings (key, value) values
   ('zakat', $mwc${"harga_emas": "2574000", "acuan": "Antam (Logam Mulia) per 13 Okt 2026"}$mwc$::jsonb),
   ('managed', $mwc${"berita": true, "agenda": true, "video": true, "galeri": true, "kegiatan": true, "layanan": true, "program": true, "ranting": true, "banom": true, "pengurus": true, "majelis": true, "tanya_jawab": true, "halaman": true}$mwc$::jsonb)
 on conflict (key) do nothing;
+
+-- ── 10) Sinkronisasi isi publik ↔ CMS (field terbaru) ───────────
+-- Hero: teks pengantar dpt diganti dari CMS
+update public.site_settings
+set value = value || '{"keterangan":"Majelis Wakil Cabang Nahdlatul Ulama Kecamatan Pondok Aren, Kota Tangerang Selatan. Satu rumah bagi dakwah Aswaja An-Nahdliyah, penguatan ranting di 11 kelurahan, dan khidmat keumatan di tingkat kecamatan."}'::jsonb
+where key = 'hero';
+
+-- Identitas: judul + deskripsi pengantar beranda
+update public.site_settings
+set value = value || '{"org_judul":"Satu rumah bagi dakwah dan penguatan ranting.","org_deskripsi":"MWCNU Kecamatan Pondok Aren merawat dakwah Aswaja An-Nahdliyah, menguatkan ranting di 11 kelurahan, dan menghadirkan khidmat keumatan bersama warga."}'::jsonb
+where key = 'identitas';
+
+-- Tipografi global (standar penulisan)
+insert into public.site_settings (key, value) values
+  ('tipografi', $mwc${"font_judul": "Plus Jakarta Sans", "font_isi": "Inter", "ukuran_isi": 16, "jarak_baris": 1.75, "dropcap": false}$mwc$::jsonb)
+on conflict (key) do nothing;
+
+-- Berita: penulis default + tag/sorotan artikel pertama
+update public.content_items
+set data = data || jsonb_build_object('penulis', 'Redaksi MWCNU Pondok Aren')
+where type = 'berita';
+
+update public.content_items
+set data = data || jsonb_build_object('tag', 'Halal Bi Halal, Pondok Aren', 'featured', true)
+where type = 'berita' and data ->> 'judul' like 'Halal Bi Halal%';
+
+-- ── 11) Majelis, tanya jawab, halaman statis (dari isi publik) ─
+do $$ begin if not exists (select 1 from public.content_items where type = 'majelis') then
+  insert into public.content_items (type, data, sort) values
+    ('majelis', $mwc${"nama": "Majelis Taklim Annur", "asuh": "Ust. Aprianif, Lc.", "hari": "Kamis", "jam": "19.45", "tempat": "Jl. Wisma Tajur RT 02/RW 010 No. 20, Kel. Pondok Kacang Barat", "ranting": "Pondok Kacang Barat", "hp": ""}$mwc$::jsonb, 10),
+    ('majelis', $mwc${"nama": "Majelis Taklim Baiturrahim", "asuh": "Ust. Ma'mun Murod", "hari": "Ahad", "jam": "09.00", "tempat": "Masjid Baiturrahim, Pondok Karya", "ranting": "Pondok Karya", "hp": ""}$mwc$::jsonb, 20),
+    ('majelis', $mwc${"nama": "Majelis Taklim Fastabiqul Khairat", "asuh": "Ust. Nasuha, S.Pd.I", "hari": "Senin", "jam": "19.30", "tempat": "Musholla Al-Munibin, Pondok Pucung", "ranting": "Pondok Pucung", "hp": ""}$mwc$::jsonb, 30);
+end if; end $$;
+
+do $$ begin if not exists (select 1 from public.content_items where type = 'tanya_jawab') then
+  insert into public.content_items (type, data, sort) values
+    ('tanya_jawab', $mwc${"k": "Amaliyah NU", "q": "Bagaimana hukum melaksanakan tahlil di rumah orang meninggal?", "a": "Tahlil dan yasin adalah amaliah yang masyhur di NU. Hukumnya boleh dan bernilai ibadah bila tidak melanggar syariat, serta dianjurkan menjaga adab dan niat ikhlas."}$mwc$::jsonb, 10),
+    ('tanya_jawab', $mwc${"k": "Ibadah", "q": "Kapan batas waktu mengqadha shalat?", "a": "Shalat yang terlewat wajib diqadha sesegera mungkin tanpa menunda lebih dari kewajiban. Bila lupa atau tertidur, shalatlah segera setelah ingat. Konsultasikan hal khusus dengan ustadz di majelis ranting Anda."}$mwc$::jsonb, 20);
+end if; end $$;
+
+do $$ begin if not exists (select 1 from public.content_items where type = 'halaman') then
+  insert into public.content_items (type, data, sort) values
+    ('halaman', $mwc${"slug": "sejarah", "judul": "Sejarah MWCNU Pondok Aren", "isi": "## Sejarah Singkat\nMWCNU Pondok Aren adalah Majelis Wakil Cabang Nahdlatul Ulama di Kecamatan Pondok Aren, Kota Tangerang Selatan.\n\n## Khidmat\nMWCNU bertugas membina ranting di 11 kelurahan dan badan otonom NU di tingkat kecamatan."}$mwc$::jsonb, 10),
+    ('halaman', $mwc${"slug": "visi", "judul": "Visi & Misi", "isi": "## Visi\nTerwujudnya masyarakat muslim Pondok Aren yang beriman, berilmu, dan berakhlak Aswaja An-Nahdliyah.\n\n## Misi\n- Membina ranting dan badan otonom\n- Menguatkan dakwah dan pendidikan\n- Memberdayakan ekonomi umat"}$mwc$::jsonb, 20),
+    ('halaman', $mwc${"slug": "banom-gpansor", "judul": "GP Ansor Pondok Aren", "isi": "Gerakan Pemuda Ansor di Pondok Aren bergerak dalam pemberdayaan, keamanan, dan pengabdian masyarakat."}$mwc$::jsonb, 30),
+    ('halaman', $mwc${"slug": "banom-fatayat", "judul": "Fatayat NU Pondok Aren", "isi": "Fatayat NU di Pondok Aren bergerak untuk dakwah dan pemberdayaan keluarga."}$mwc$::jsonb, 40),
+    ('halaman', $mwc${"slug": "banom-ipnu", "judul": "IPNU Pondok Aren", "isi": "IPNU membina pelajar putra untuk karakter dan kepemimpinan."}$mwc$::jsonb, 50),
+    ('halaman', $mwc${"slug": "banom-ippnu", "judul": "IPPNU Pondok Aren", "isi": "IPPNU membina pelajar putri untuk dakwah, pendidikan, dan pengembangan diri."}$mwc$::jsonb, 60);
+end if; end $$;
