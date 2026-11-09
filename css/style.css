@@ -5611,3 +5611,11 @@ body, .lead, .pg-head .lead, #berita .pg-head .lead,
 
 .kt-auth[hidden],.kt-bar[hidden],.kt-g[hidden]{display:none!important}
 
+
+
+/* Tag berita standar CMS jurnalistik */
+.ntags{display:flex;flex-wrap:wrap;gap:6px;margin:0!important}
+.ntag{font:600 .72rem var(--fz)!important;color:var(--acc-deep)!important;background:var(--acc-soft)!important;border:1px solid var(--acc-line)!important;border-radius:999px!important;padding:4px 10px!important;letter-spacing:.02em!important}
+.ntags-lg{margin:4px 0 18px!important}
+#baca .ntags{margin-top:14px!important}
+

@@ -19,9 +19,12 @@ var T = function (k, l, o) { o = o || {}; o.k = k; o.l = l; o.t = o.t || 'text';
 
 var COLS = {
  berita: { l: 'Berita & Jurnal', g: 'Konten', e: 'jurnalis', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.kategori || ''); }, F: [
-  T('kategori','Kategori',{t:'select',o:['Berita','Laporan','Literasi','Opini'],req:1}), T('judul','Judul',{req:1}), T('tanggal','Tanggal',{t:'date',req:1}),
+  T('kategori','Kategori',{t:'select',o:['Berita','Laporan','Literasi','Opini'],req:1}), T('judul','Judul',{req:1}), T('penulis','Penulis',{h:'Contoh: Redaksi MWCNU / Nama jurnalis.'}),
+  T('tanggal','Tanggal',{t:'date',req:1}), T('tag','Tag / kata kunci',{h:'Pisah dengan koma. Contoh: Halal Bi Halal, Pondok Aren'}),
+  T('featured','Sorotan beranda',{t:'bool'}),
   T('ringkasan','Ringkasan (tampil di daftar berita)',{t:'area'}), T('foto','Foto utama',{t:'image',f:'berita'}), T('lead','Paragraf pembuka',{t:'area'}),
-  T('caption','Keterangan foto'), T('isi','Isi berita',{t:'rich',h:'Pisahkan paragraf dengan satu baris kosong.'}),
+  T('caption','Keterangan foto'), T('meta_judul','Judul SEO',{h:'Kosongkan bila mengikuti judul.'}), T('meta_desc','Deskripsi SEO',{t:'area',h:'1–2 kalimat untuk mesin pencari & berbagi. Kosongkan bila mengikuti ringkasan.'}),
+  T('isi','Isi berita',{t:'rich',h:'Pisahkan paragraf dengan satu baris kosong.'}),
   T('info','Info kegiatan',{t:'area',h:'Satu baris satu info dengan format "Label: nilai". Contoh: Tempat: Aula MWC'}),
   T('foto_tambahan','Foto tambahan',{t:'images',f:'berita'}), T('video','Video terkait',{t:'area',h:'Tempel tautan atau ID YouTube video yang sudah ada di daftar Video TVNU, satu per baris.'})] },
  agenda: { l: 'Agenda', g: 'Konten', e: 'pengurus', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.lokasi || ''); }, F: [
@@ -233,10 +236,12 @@ async function viewEdit(key, id) {
   var c = COLS[key]; if (!c) return viewHome(); if (!can(c)) return noAccess();
   var item = null; if (id !== 'new') { var r = await sb.from('content_items').select('*').eq('id', id).single(); if (r.error || !r.data || !(can(c, r.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita')) { toast('Data tidak ditemukan atau Anda tidak berhak mengubahnya.', 1); return location.hash = '#/' + key; } item = r.data; }
 
-  var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita' } : {}));
+  var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita', penulis: (S.me && S.me.nama) || '' } : {}));
   if (item && !can(c, item.data)) return noAccess();
+  var pubDefault = item ? !!item.published : S.me.role !== 'jurnalis';
+  var hint = (!item && S.me.role === 'jurnalis') ? '<div class="note">Penyerahan ke tinjauan: tulisan Jurnalis disimpan sebagai <b>draf</b> dan perlu ditinjau Pengurus sebelum terbit.</div>' : '';
   var fields = c.F.map(function (f) { if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; } return f; });
-  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, '<form class="form panel" id="form" novalidate>' + formHTML(fields, data) + '<label class="chk"><input type="checkbox" id="pub" ' + (!item || item.published ? 'checked' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
+  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel" id="form" novalidate>' + formHTML(fields, data) + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
   var form = $('#form'); form.__F = fields; bindForm(form);
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); var d = readForm(form, fields); if (!can(c, d) || (key === 'berita' && !fields.filter(function (f) { return f.k === 'kategori'; })[0].o.includes(d.kategori))) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
