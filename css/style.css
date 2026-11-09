@@ -4979,3 +4979,118 @@ main h2,.sh2 h2,.pg-head h1,#berita .pg-head h1{
 }
 .wm{letter-spacing:0!important}
 
+
+
+
+/* = ===============================================================
+   31. FONT PRIMER Plus Jakarta Sans — SEKUNDER Inter
+   + REFINE LAYOUT ROUTE /BERITA (modern elegan clean)
+   Primer (display): Plus Jakarta Sans — judul, hero, brand, tombol
+   Sekunder: Inter — teks isi, meta, input, artikel
+   = =============================================================== */
+:root:root{
+  --fp:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fs:var(--fz);
+  --fh:var(--fp);
+  --fz:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+
+/* — Primer: display & brand — */
+body{font-family:var(--fz)!important}
+h1,h2,h3,h4,h5,h6,.brand,.brand-name,.btn,.btn-kta,
+.va,.ncatb span,.sec-kicker,.chip,.kick,.hero-badge,
+.h-btn-pri,.h-btn-sec,.tabs button,.sbtn,.nav-actions a{
+  font-family:var(--fp)!important;
+}
+main h2,.sh2 h2,#berita .pg-head h1,.kt2, #beranda-berita .kt2,
+#berita .news.narch .feat h3,#berita .news.narch .item h3,
+#berita .ns-h,#berita .nsub b,#berita .nsnum,
+#beranda-berita .news h3,.nside .ns-h,.nsub b,#baca h1.at,
+#sambutan .sm-q,.fcta h2,.kcard b,.bncard b,.bncard .bnic,
+.lycard b,#layanan-home .lycard b,.ncatb,.h2t h1,.h2t h1 .gr{
+  font-family:var(--fp)!important;
+}
+h1,h2,h3,.h2t h1,.h2t h1 .gr,#berita .pg-head h1,#baca h1.at{
+  letter-spacing:-0.035em;
+}
+.h2t h1,.h2t h1 .gr{letter-spacing:-0.04em}
+
+/* — Sekunder: Inter untuk teks — */
+body, .lead, .pg-head .lead, #berita .pg-head .lead,
+.meta small,.news p,.feat p,.item p,.item .more,.feat .more,
+.search,.sf input,.sf select,.sf small,.tb-item,.abody p,
+.abody .dl,.sm-body p,.sm-end,.ncatb small,.nst em,.nst b,
+.meta,.news .meta,.pg-body p,.cpl,.crumb a{
+  font-family:var(--fz)!important;
+}
+.abody p{font-size:1rem!important;line-height:1.78!important;letter-spacing:-0.005em}
+.meta small,.nst em{font-size:.76rem!important}
+
+/* — ========== REFINE LAYOUT: ROUTE /BERITA ========== — */
+#berita .wrap{max-width:1180px!important}
+
+/* kepala: lebih lega + garis lembut */
+#berita .pg-head{padding:0 0 30px!important;margin:0 0 26px!important}
+#berita .pg-head h1{font-size:clamp(2.2rem,4.2vw,3.2rem)!important;margin:16px 0 10px!important}
+#berita .pg-head .lead{font-size:1.02rem!important;line-height:1.65!important}
+
+/* toolbar: ringkas */
+#berita .toolbar{margin:0 0 28px!important;gap:12px!important}
+#berita #ntabs{padding:4px!important}
+#berita #ntabs button{padding:8px 16px!important;font-size:.84rem!important}
+#berita .search{padding:10px 18px!important;font-size:.88rem!important}
+
+/* grid arsip: sorotan 2 kolom proporsional */
+#berita .arch{grid-template-columns:minmax(0,1fr) 320px!important;gap:36px!important}
+#berita .news.narch{gap:18px!important}
+#berita .news.narch .feat{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)!important;border-radius:24px!important}
+#berita .news.narch .feat .th{min-height:300px!important}
+#berita .news.narch .feat .b{padding:32px 36px!important}
+#berita .news.narch .feat h3{font-size:clamp(1.35rem,2vw,1.75rem)!important;line-height:1.22!important}
+#berita .news.narch .feat p{display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;overflow:hidden!important;font-size:.94rem!important}
+
+/* kartu item: samakan tinggi + excerpt rapi */
+#berita .news.narch .item{border-radius:20px!important}
+#berita .news.narch .item .th{height:auto!important;aspect-ratio:16/9.5!important;flex:none!important}
+#berita .news.narch .item .th img{width:100%!important;height:100%!important;object-fit:cover!important}
+#berita .news.narch .item .b{padding:19px 21px 20px!important}
+#berita .news.narch .item h3{font-size:1.04rem!important;line-height:1.32!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;min-height:2.64em}
+#berita .news.narch .item p{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;font-size:.86rem!important;line-height:1.55!important}
+#berita .news.narch .item .more{margin-top:auto!important;padding-top:6px}
+#berita .news.narch .item .more::after{content:"→"!important;font-size:.9em;opacity:.85}
+
+/* sidebar tajam */
+#berita .nside{padding:6px 18px 16px!important}
+#berita .ns-h{padding:14px 0 10px!important;font-size:.98rem!important}
+#berita .nsitem{padding:12px 4px!important}
+#berita .nsitem .nst b{font-size:.84rem!important}
+#berita .nsth,#berita .nsph{width:60px!important;height:46px!important;border-radius:10px!important}
+#berita .ncatb{padding:10px 12px!important}
+#berita .nsub{padding:18px!important}
+
+/* homepage berita: selaraskan dengan arsip */
+#beranda-berita .news .th{height:190px!important}
+#beranda-berita .news h3{font-size:1.05rem!important;line-height:1.32!important}
+#beranda-berita .news .b{padding:19px 21px 20px!important;gap:9px!important}
+
+/* mobile */
+@media(max-width:1100px){
+  #berita .arch{grid-template-columns:1fr!important}
+  #berita .nside{order:2!important}
+  #berita .news.narch{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:720px){
+  #berita .news.narch{grid-template-columns:1fr!important}
+  #berita .news.narch .feat .th{min-height:210px!important;height:210px!important;aspect-ratio:auto!important}
+  #berita .news.narch .feat .b{padding:22px!important}
+  #berita .toolbar{flex-direction:column!important}
+}
+@media(max-width:520px){
+  #berita .pg-head h1{font-size:1.9rem!important}
+  #berita .news.narch .item h3{min-height:0}
+}
+
+
+
+@media(max-width:720px){#berita .news.narch .feat{grid-template-columns:1fr!important}#berita .news.narch .feat .th{height:200px!important;aspect-ratio:auto!important;min-height:0!important;width:100%!important}#berita .news.narch .feat .b{padding:20px!important}}
+

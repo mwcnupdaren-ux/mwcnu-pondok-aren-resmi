@@ -263,7 +263,7 @@ alamat:(MWK.set('kontak')&&MWK.set('kontak').alamat)||'Jl. Garuda Raya No. 107A,
 var LW='/assets/img/img-592fc43a.png';
 var RT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
 var BL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-var HF='"Inter Tight",system-ui,sans-serif',BF='"Inter",system-ui,sans-serif';
+var HF='"Plus Jakarta Sans",system-ui,sans-serif',BF='"Inter",system-ui,sans-serif';
 var S={photo:null,rand:null,imgs:null};
 function v(id){return($(id).value||'').trim()}
 function fmt(d){return d.getDate()+' '+BL[d.getMonth()]+' '+d.getFullYear()}
@@ -325,7 +325,7 @@ lbl(c,'SEKRETARIAT',x0,514,'#1E4D3A');wrap(c,CFG.alamat,mw,2,'500 15px '+BF).for
 txt(c,CFG.kontak,x0,596,'600 15px '+BF,ink);bar(c,H-8,8)}
 function ink(im){if(!im)return null;var cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;var x=cv.getContext('2d');x.drawImage(im,0,0);try{var d=x.getImageData(0,0,cv.width,cv.height),p=d.data;for(var i=0;i<p.length;i+=4){var l=(0.299*p[i]+0.587*p[i+1]+0.114*p[i+2])/255;p[i+3]=Math.round(p[i+3]*(1-l));p[i]=p[i+1]=p[i+2]=255}x.putImageData(d,0,0)}catch(e){}return cv}
 function li(src){return new Promise(function(r){if(!src)return r(null);var i=new Image();if(/^https?:/i.test(src))i.crossOrigin='anonymous';i.onload=function(){r(i)};i.onerror=function(){r(null)};i.src=src})}
-async function ensure(){if(S.imgs)return;try{if(document.fonts&&document.fonts.load)await Promise.all([document.fonts.load('700 30px "Inter Tight"'),document.fonts.load('500 20px "Inter"'),document.fonts.load('700 20px "Inter"'),document.fonts.load('italic 600 17px "Inter Tight"')])}catch(e){}S.imgs={lw:await li(LW),ttd:[ink(await li(CFG.pejabat[0].ttd)),ink(await li(CFG.pejabat[1].ttd))]}}
+async function ensure(){if(S.imgs)return;try{if(document.fonts&&document.fonts.load)await Promise.all([document.fonts.load('700 30px "Plus Jakarta Sans"'),document.fonts.load('500 20px "Inter"'),document.fonts.load('700 20px "Inter"'),document.fonts.load('italic 600 17px "Plus Jakarta Sans"')])}catch(e){}S.imgs={lw:await li(LW),ttd:[ink(await li(CFG.pejabat[0].ttd)),ink(await li(CFG.pejabat[1].ttd))]}}
 var tm=null;
 async function draw(){await ensure();var d=info();front($('k-front').getContext('2d'),d);back($('k-back').getContext('2d'),d);$('k-nia-p').textContent='Nomor induk anggota Anda dibuat otomatis: '+d.nia}
 function sched(){clearTimeout(tm);tm=setTimeout(draw,140)}
