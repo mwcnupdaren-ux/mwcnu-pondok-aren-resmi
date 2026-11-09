@@ -5094,3 +5094,127 @@ body, .lead, .pg-head .lead, #berita .pg-head .lead,
 
 @media(max-width:720px){#berita .news.narch .feat{grid-template-columns:1fr!important}#berita .news.narch .feat .th{height:200px!important;aspect-ratio:auto!important;min-height:0!important;width:100%!important}#berita .news.narch .feat .b{padding:20px!important}}
 
+
+
+
+/* = ===============================================================
+   32. REFINE SECTION SAMBUTAN — modern elegan clean
+   Foto kartu bersih + nama di atas foto, teks lega, tanpa garis pipe.
+   Font: primer Plus Jakarta Sans, sekunder Inter.
+   = =============================================================== */
+#sambutan{
+  background:
+    radial-gradient(900px 380px at 92% -80px, rgba(15,169,104,.05), transparent 60%),
+    var(--bg-alt)!important;
+  padding:92px 0!important;
+  overflow:hidden;
+}
+:root:root[data-theme="dark"] #sambutan{
+  background:
+    radial-gradient(900px 380px at 92% -80px, rgba(40,196,138,.06), transparent 60%),
+    var(--bg-alt)!important;
+}
+#sambutan .sam{
+  display:grid!important;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)!important;
+  gap:64px!important;align-items:center!important;
+}
+
+/* — Foto: kartu putih bersih, nama melayang di atas foto — */
+#sambutan .pf{
+  position:relative!important;
+  background:var(--surf)!important;
+  border:1px solid var(--line)!important;
+  border-radius:24px!important;
+  padding:0!important;overflow:hidden!important;
+  box-shadow:0 22px 56px -30px rgba(6,32,23,.32)!important;
+  margin:0!important;
+}
+#sambutan .pf::before{display:none!important}
+#sambutan .pf .pt{
+  border-radius:0!important;box-shadow:none!important;overflow:hidden!important;
+  aspect-ratio:4/5!important;background:#0A4A33!important;
+}
+#sambutan .pf .pt img{
+  width:100%!important;height:100%!important;object-fit:cover!important;object-position:center 18%!important;
+  display:block!important;
+}
+#sambutan .pf .sig{
+  position:absolute!important;left:14px!important;right:14px!important;bottom:14px!important;
+  margin:0!important;padding:14px 18px 14px 16px!important;
+  background:color-mix(in srgb,var(--surf) 94%,transparent)!important;
+  backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
+  border:1px solid var(--line)!important;border-left:4px solid var(--acc)!important;
+  border-radius:16px!important;box-shadow:0 12px 28px -18px rgba(6,32,23,.45)!important;
+  text-align:left!important;
+}
+#sambutan .pf .sig b{
+  display:block!important;
+  font:700 1.06rem/1.25 var(--fp)!important;color:var(--ink)!important;letter-spacing:-0.02em!important;
+}
+#sambutan .pf .sig span{
+  display:block!important;margin-top:3px!important;
+  font:500 .82rem/1.45 var(--fz)!important;color:var(--mut)!important;
+}
+
+/* — Kolom teks — */
+#sambutan .sm-r{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:0!important}
+#sambutan .sm-k{
+  background:var(--acc-soft)!important;color:var(--acc-deep)!important;
+  font:700 .68rem/1 var(--fp)!important;letter-spacing:.18em!important;
+  padding:8px 14px!important;border-radius:999px!important;
+}
+#sambutan .sm-k i{width:6px!important;height:6px!important}
+#sambutan .sm-salam{
+  display:flex!important;flex-wrap:wrap!important;align-items:baseline!important;gap:5px 12px!important;
+  margin-top:20px!important;
+}
+#sambutan .sm-salam span:first-child{
+  font:600 .92rem var(--fp)!important;color:var(--acc-deep)!important;letter-spacing:-0.01em!important;
+}
+#sambutan .sm-salam span+span{
+  font:500 .88rem var(--fz)!important;color:var(--mut)!important;
+}
+#sambutan .sm-salam span+span::before{
+  content:""!important; /* hapus pemisah "·" lama */
+  margin:0!important;
+}
+#sambutan .sm-q{
+  font:700 clamp(1.9rem,3.3vw,2.55rem)/1.12 var(--fp)!important;
+  letter-spacing:-0.038em!important;color:var(--ink)!important;
+  margin:14px 0 20px!important;max-width:22ch!important;
+}
+#sambutan .sm-body{
+  border:0!important;padding:0!important;margin:0!important;position:relative;
+}
+#sambutan .sm-body p{
+  margin:0!important;max-width:58ch!important;
+  font:400 1.01rem/1.8 var(--fz)!important;color:var(--ink)!important;
+}
+#sambutan .sm-body mark{
+  background:color-mix(in srgb,var(--acc) 14%,transparent)!important;
+  color:var(--ink)!important;font-weight:650!important;
+  border-radius:5px!important;padding:0 4px!important;box-shadow:none!important;
+}
+#sambutan .sm-end{
+  margin-top:22px!important;padding-top:18px!important;
+  border-top:1px solid var(--line)!important;
+  font:500 .9rem/1.6 var(--fz)!important;color:var(--mut)!important;font-style:italic!important;
+}
+
+/* Tablet & mobile */
+@media(max-width:980px){
+  #sambutan{padding:72px 0!important}
+  #sambutan .sam{grid-template-columns:1fr!important;gap:36px!important}
+  #sambutan .pf{max-width:460px!important;margin:0 auto!important}
+  #sambutan .sm-q{max-width:none!important}
+}
+@media(max-width:520px){
+  #sambutan{padding:56px 0!important}
+  #sambutan .sm-q{font-size:1.65rem!important}
+  #sambutan .sm-body p{font-size:.96rem!important}
+  #sambutan .pf .sig{left:10px!important;right:10px!important;bottom:10px!important;padding:12px 14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #sambutan .pf{transition:none!important}
+}
+
