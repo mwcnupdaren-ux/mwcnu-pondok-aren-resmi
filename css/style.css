@@ -4616,3 +4616,101 @@ footer h3{font-family:var(--fh)!important;letter-spacing:-.01em!important}
   #newsGrid.narch .th img,#newsGrid.narch .item,#newsGrid.narch .feat{transition:none!important}
 }
 
+
+
+
+/* = ===============================================================
+   27. PORTAL Berita — mengadopsi pola UI/UX kutipan.or.id
+   (ticker Kabar Terbaru, meta menit baca, sidebar Populer,
+   judul section bergaris vertikal)
+   = =============================================================== */
+
+/* ── Ticker berita berjalan (baris kedua di dalam header) ── */
+.ticker{
+  display:flex;align-items:center;gap:14px;height:40px;overflow:hidden;
+  border-top:1px solid rgba(6,32,23,.08);
+  background:linear-gradient(90deg,#F2FAF6,#FFFFFF 30%);
+  color:var(--ink);
+}
+.tlabel{
+  display:inline-flex;align-items:center;gap:7px;flex:none;
+  height:26px;padding:0 13px;margin-left:14px;border-radius:999px;
+  background:var(--acc)!important;color:#fff!important;
+  font:800 .64rem/1 var(--fz)!important;letter-spacing:.15em!important;text-transform:uppercase;
+}
+.tlabel svg{width:12px;height:12px}
+.tks{flex:1;min-width:0;overflow:hidden}
+.tkrow{display:inline-flex;align-items:center;gap:26px;width:max-content;padding-left:26px;
+  animation:tkScroll 38s linear infinite}
+.ticker:hover .tkrow{animation-play-state:paused}
+.titem{font:600 .84rem/1 var(--fz)!important;color:var(--ink)!important;text-decoration:none!important;
+  white-space:nowrap;transition:color .2s}
+.titem:hover{color:var(--acc-deep)!important}
+.tsep{color:var(--acc)!important;font-size:.45rem;flex:none}
+@keyframes tkScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.tkrow{animation:none!important}}
+
+:root:root[data-theme="dark"] .ticker,
+:root:root:not([data-theme="light"]):not([data-theme="dark"]) .ticker{
+  background:linear-gradient(90deg,#0D2A20,#0F2F25 30%);
+  border-top-color:rgba(255,255,255,.07);
+}
+
+html{scroll-padding-top:150px}
+
+/* Konten halaman ter-route (virtual) mulai di bawah topbar+nav+ticker */
+#berita,#baca{padding-top:176px!important}
+@media(max-width:700px){
+  #berita,#baca{padding-top:126px!important}
+}
+
+/* ── Judul section berita homepage gaya kutipan ── */
+#beranda-berita .kt-head{display:flex!important;flex-direction:column;align-items:flex-start;gap:6px}
+.kt2{
+  font-family:var(--fh)!important;font-weight:700!important;
+  font-size:clamp(1.6rem,3.2vw,2.35rem)!important;letter-spacing:-.04em!important;line-height:1.1!important;
+  color:var(--ink)!important;position:relative;padding-left:16px!important;margin:0!important;
+}
+.kt2::before{content:""!important;position:absolute;left:0;top:6%;height:82%;width:4px;border-radius:99px;background:var(--acc)!important}
+.ktlead{color:var(--mut)!important;font-size:.92rem!important;margin:0!important}
+
+/* ── Arsip: main + sidebar populer ── */
+#berita .arch{display:grid!important;grid-template-columns:minmax(0,1fr) 300px!important;gap:28px!important;align-items:start}
+#berita .news.narch{grid-template-columns:1fr!important}
+#berita .arch .feat .b{padding-right:clamp(26px,3.2vw,42px)!important;padding-left:26px!important}
+#berita .arch .item .th{height:170px!important}
+
+.nside{display:flex;flex-direction:column;gap:0;border:1px solid var(--line)!important;border-radius:var(--r-lg)!important;background:var(--surf)!important;padding:6px 18px 10px!important;box-shadow:0 1px 2px rgba(0,0,0,.04)!important}
+.ns-h{
+  display:block!important;
+  font:700 1.02rem var(--fh)!important;letter-spacing:.02em!important;color:var(--ink)!important;
+  padding:14px 0 10px!important;margin:0 0 6px!important;
+  border:0!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important;
+}
+.ns-h::before{content:none!important}
+.nsitem{display:grid!important;grid-template-columns:34px 56px minmax(0,1fr)!important;gap:12px!important;align-items:center!important;
+  padding:13px 2px!important;border:0!important;border-bottom:1px solid var(--line)!important;
+  text-decoration:none!important;border-radius:0!important;background:transparent!important;
+  transition:background .2s!important}
+.nsitem:last-child{border-bottom:0!important}
+.nsitem:hover{background:var(--acc-soft)!important;border-radius:10px!important}
+.nsnum{font:700 1.25rem var(--fh)!important;color:var(--acc-deep)!important;letter-spacing:-.03em!important;text-align:center}
+.nsth{width:56px;height:44px;object-fit:cover;border-radius:9px}
+.nsph{width:56px;height:44px;border-radius:9px;background:linear-gradient(135deg,#0A5D3F,#0FA968);opacity:.85}
+.nst{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nst b{font:600 .86rem/1.3 var(--fz)!important;color:var(--ink)!important;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.nst em{font:500 .72rem var(--fz)!important;color:var(--mut)!important;font-style:normal}
+
+@media(max-width:1100px){
+  #berita .arch{grid-template-columns:1fr!important}
+  .nside{order:-1;display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px 18px!important;padding:4px 18px 12px!important}
+  .nside .ns-h{grid-column:1/-1}
+  .nside .nsitem:nth-last-child(-n+2){border-bottom:0!important}
+}
+@media(max-width:640px){
+  .nside{grid-template-columns:1fr!important}
+  .nside .nsitem:nth-last-child(2){border-bottom:1px solid var(--line)!important}
+  .tlabel{margin-left:8px;padding:0 10px}
+}
+

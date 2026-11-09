@@ -206,7 +206,7 @@ if(!curN.length){put(ng,'<div class="ne"><b>'+(qv?'Berita tidak ditemukan':'Belu
 curN.forEach(function(n,i){
 var k=N.indexOf(n);
 var th=(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt="'+esc(n[1])+'"></div>');
-var meta='<div class="meta">'+(i==0?'<span class="chip top">Terbaru</span>':'')+'<span class="chip">'+n[0]+'</span><small>'+n[2]+'</small></div>';
+var meta='<div class="meta">'+(i==0?'<span class="chip top">Terbaru</span>':'')+'<span class="chip">'+n[0]+'</span><small>'+n[2]+' &middot; '+rtOf(n)+' menit baca</small></div>';
 var body='<div class="b">'+meta+'<h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">'+(i==0?'Baca laporan lengkap':'Baca selengkapnya')+'</span></div>';
 var a=document.createElement('article');a.className=i==0?'feat':'item';
 put(a,i==0?th+body:body);act(a,function(){location.hash='#berita/'+k});
@@ -214,9 +214,14 @@ ng.appendChild(a)})}
 document.getElementById('nq').oninput=function(){drawN(curCat)};
 cats.forEach(function(c){var b=document.createElement('button');b.textContent=c;b.setAttribute('role','tab');b.onclick=function(){drawN(c)};nt.appendChild(b)});
 drawN('Semua');route();
+function rtOf(n){var x=n[6]||{},ps=x.p||[];var w=(n[1]+' '+(x.lead||'')+' '+ps.join(' ')).split(/\s+/).length;return Math.max(1,Math.round(w/180))}
+var _tks=document.getElementById('tks');
+if(_tks&&N&&N.length){var _th=N.slice(0,8).map(function(n,i){return '<a class="titem" href="#berita/'+N.indexOf(n)+'">'+esc(n[1])+'</a>'}).join('<span class="tsep">&#9679;</span>');put(_tks,_th+'<span class="tsep">&#9679;</span>'+_th)}
+var _ns=document.getElementById('nside');
+if(_ns&&N&&N.length){put(_ns,'<h3 class="ns-h">Berita Populer</h3>'+N.slice(0,5).map(function(n,i){return '<a class="nsitem" href="#berita/'+N.indexOf(n)+'"><span class="nsnum">'+('0'+(i+1))+'</span>'+(n[4]==null?'<span class="nsph"></span>':'<img class="nsth" loading="lazy" src="'+PH[n[4]]+'" alt="">')+'<span class="nst"><b>'+esc(n[1])+'</b><em>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</em></span></a>'}).join(''))}
 var _hn=document.getElementById('homeNews');
 if(_hn&&N){N.slice(0,3).forEach(function(n){var a=document.createElement('article');
-put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><div class="meta"><span class="chip">'+n[0]+'</span><small>'+n[2]+'</small></div><h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">Baca selengkapnya</span></div>');
+put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><div class="meta"><span class="chip">'+n[0]+'</span><small>'+n[2]+' &middot; '+rtOf(n)+' menit baca</small></div><h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">Baca selengkapnya</span></div>');
 act(a,function(){location.hash='#berita/'+N.indexOf(n)});_hn.appendChild(a)})}
 var G=MW.md('galeri',function(x){return[x.judul,ph(x.foto),x.kegiatan||'']},[["Halal Bi Halal di Omah Singgah NU Alfath",4,"Halal Bi Halal"],["Sambutan di Lailatul Ijtima'",1,"Lailatul Ijtima'"],["Sambutan pada Halal Bi Halal",5,"Halal Bi Halal"],["Sambutan di Pondok Kacang Barat",2,"Lailatul Ijtima'"],["Lailatul Ijtima' di Pondok Kacang Barat",0,"Lailatul Ijtima'"],["Pengurus dan tamu undangan",6,"Halal Bi Halal"],["Rangkaian acara Halal Bi Halal",7,"Halal Bi Halal"],["Rangkaian acara Lailatul Ijtima'",3,"Lailatul Ijtima'"]]);
 var gl=document.getElementById('gal'),gt=document.getElementById('gtabs'),GE=['Semua',"Lailatul Ijtima'",'Halal Bi Halal'],gcur=[],lb=document.getElementById('lb'),li=0,lbi=document.getElementById('lbi');
