@@ -1,0 +1,7 @@
+Taruh gambar tanda tangan di folder ini:
+  rois.png     -> tanda tangan Rois Syuriyah
+  ketua.png    -> tanda tangan Ketua Tanfidziyah
+PNG berlatar transparan paling baik; JPG berlatar putih juga bisa.
+Lalu isi jalur berkasnya di js/app.js pada bagian CFG kartu:
+  pejabat:[{j:'Rois Syuriyah',n:'...',ttd:'/assets/ttd/rois.png'},{j:'Ketua Tanfidziyah',n:'...',ttd:'/assets/ttd/ketua.png'}]
+Kartu otomatis mengubah tinta gelap menjadi putih agar terbaca di latar hijau.

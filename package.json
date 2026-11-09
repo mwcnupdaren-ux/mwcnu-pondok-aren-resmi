@@ -1,0 +1,7 @@
+{
+  "name": "mwcnu-pondok-aren",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Situs resmi MWCNU Pondok Aren (statis) dengan Kartu Anggota",
+  "scripts": { "dev": "npx --yes serve . -l 8080" }
+}

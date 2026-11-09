@@ -1,0 +1,21 @@
+# Dependencies & environment
+node_modules/
+.env
+.env.*
+.vercel/
+.DS_Store
+
+# Editor config
+.vscode/
+
+# Artefak pengembangan (Q&A screenshot, skrip debug, backup) - tidak ikut di-push
+mwcnu-pondok-aren/
+baseline/
+qa.mjs
+baseline-*.png
+baseline-design*.png
+baseline-audit*.png
+creative-direction-*.png
+shot-*.png
+dev.log
+*.bak

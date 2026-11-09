@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verifikasi Kartu Anggota | MWCNU Pondok Aren</title><meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#0F3B2C;--g2:#2F6B4F;--gold:#E4761B;--neo:#2BD9A0}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:24px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#17352A;background:radial-gradient(600px 360px at 10% 0,rgba(43,217,160,.25),transparent 70%),radial-gradient(520px 320px at 100% 100%,rgba(228,118,27,.2),transparent 70%),#FAF9F5}
+main{width:100%;max-width:460px;background:#fff;border-radius:28px;padding:32px 28px;box-shadow:0 30px 60px -30px rgba(15,59,44,.5);border:1px solid #E3E7E1}
+.k{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;border-radius:999px;background:rgba(43,217,160,.14);color:var(--g2);font:700 .72rem 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase}
+h1{font:700 1.6rem/1.2 'Space Grotesk',sans-serif;margin:14px 0 6px}p{line-height:1.65;margin:8px 0;color:#4A5F55}
+.n{margin:18px 0;padding:16px;border-radius:18px;background:#F3F6F2;text-align:center;font:700 1.35rem 'Space Grotesk',sans-serif;letter-spacing:.04em;word-break:break-all}
+.s{padding:14px 16px;border-radius:16px;font-weight:700;line-height:1.5}.ok{background:rgba(43,217,160,.14);color:#0F6B4A}.bad{background:rgba(217,83,79,.12);color:#A93A36}
+a{color:var(--gold);font-weight:700}small{color:#6B7F75}
+</style></head><body><main>
+<span class="k">Pemeriksaan format saja</span><h1>Kartu Anggota MWCNU Pondok Aren</h1>
+<div class="n" id="n">-</div><div class="s" id="s"></div>
+<p id="t"></p><p class="s bad"><b>Belum diverifikasi sebagai anggota.</b> Halaman ini hanya memeriksa pola nomor dan angka cek. Nomor dapat dibuat sendiri dan tidak membuktikan keanggotaan, status aktif, maupun hak mengikuti kegiatan.</p><p><small>Pencocokan dengan data anggota akan tersedia setelah pendaftaran anggota terhubung ke basis data.</small></p>
+<p><a href="/">&larr; Kembali ke situs MWCNU Pondok Aren</a></p></main>
+<script>
+(function(){
+var raw=decodeURIComponent((location.pathname.split('/v/')[1]||'')).trim().toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40);
+function cd(s){var d=s.replace(/\D/g,''),t=0;for(var i=0;i<d.length;i++)t+=(+d[d.length-1-i])*(i%2?3:1);return(10-t%10)%10}
+var m=/^MWC-(\d{2})-(\d{2})-(\d{5,6})-(\d)$/.exec(raw),n=document.getElementById('n'),s=document.getElementById('s'),t=document.getElementById('t');
+n.textContent=raw||'(nomor tidak ditemukan)';
+if(!m){s.className='s bad';s.textContent='Format nomor induk tidak dikenali.';t.textContent='Pastikan QR dipindai dari kartu anggota MWCNU Pondok Aren yang asli.';return}
+if(cd(m[1]+m[2]+m[3])!==+m[4]){s.className='s bad';s.textContent='Angka cek tidak cocok. Nomor ini kemungkinan salah ketik atau tidak asli.';return}
+s.className='s ok';s.textContent='Format dan angka cek cocok; ini bukan verifikasi keanggotaan.';t.textContent=(m[1]==='00'?'Kode wilayah: MWCNU Kecamatan Pondok Aren.':'Kode wilayah PRNU: '+m[1]+'.')+' Tahun pada nomor: 20'+m[2]+'.';
+})();
+</script></body></html>
