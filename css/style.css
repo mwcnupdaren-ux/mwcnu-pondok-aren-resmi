@@ -5697,3 +5697,28 @@ body.art-drop-global #baca .abody.art-serif p:first-of-type::first-letter{font-f
 
 @media(max-width:560px){#zis .seg,.seg{flex-wrap:wrap!important;overflow-x:visible!important}}
 
+
+
+
+/* = ===============================================================
+   41. ANIMASI SCROLL MAKSIMAL — reveal berjenjang + angka stat
+   (prefers-reduced-motion tetap nonaktif)
+   = =============================================================== */
+html.js-rv .rv{
+  opacity:0!important;
+  transform:translateY(22px)!important;
+  filter:blur(4px)!important;
+  transition:opacity .7s cubic-bezier(.22,.61,.21,1),transform .7s cubic-bezier(.22,.61,.21,1),filter .7s cubic-bezier(.22,.61,.21,1)!important;
+  will-change:opacity,transform,filter!important;
+}
+html.js-rv .rv.in{
+  opacity:1!important;transform:none!important;filter:none!important;
+}
+html.js-rv .rv.in{transition-delay:var(--rvd,0ms)!important}
+/* kartu anak: akselerasi halus sendiri, di luar .rv induk */
+.ho .lycard.rv,.ho .bncard.rv,.ho .kcard.rv,.ho .stc.rv{will-change:transform,opacity}
+#org-intro .stc b,#banom .bncard b,.stat b{font-variant-numeric:tabular-nums!important}
+@media(prefers-reduced-motion:reduce){
+  html.js-rv .rv{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
+}
+

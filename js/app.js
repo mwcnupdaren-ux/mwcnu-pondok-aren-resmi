@@ -581,11 +581,26 @@ if(io)document.documentElement.classList.add('js-rv');
    sering menggantung tanpa pernah melaporkan irisan, .in tak pernah dipasang,
    dan konten tertinggal tak terlihat. */
 function rev(){
-  [].forEach.call(document.querySelectorAll('.ho .wrap > *,.vw .wrap > *,.fx'),function(e){
+  [].forEach.call(document.querySelectorAll('.ho .wrap > *, .ho .stc, .ho .bncard, .ho .lycard, .ho .kcard, .ho .cats a, .ho .strow .stc, .vw .wrap > *, .fx'),function(e){
     if(e.classList.contains('rv')||e.closest('.dd'))return;
     if(!io)return;
     e.classList.add('rv');
+    var p=e.parentNode,i=p?[].indexOf.call(p.children,e):0;
+    e.style.transitionDelay=(i?Math.min(i,6)*70:0)+'ms';
     io.observe(e);
+  });
+}
+/* Hitung angka statistik saat tampil */
+function countNums(){
+  [].forEach.call(document.querySelectorAll('#org-intro .stc b, #banom .bncard b, .stat b'),function(el){
+    if(el.dataset.cnt)return;var t=(el.textContent||'').trim();if(!/^\d+$/.test(t))return;el.dataset.cnt='1';
+    var target=+t;
+    function run(){
+      var t0=performance.now(),dur=700;
+      function step(now){var k=Math.min(1,(now-t0)/dur);el.textContent=String(Math.round(target*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(step)}
+      requestAnimationFrame(step);
+    }
+    if(io){var c=new IntersectionObserver(function(en){if(en[0].isIntersecting){run();c.disconnect()}},{threshold:.4});c.observe(el)}else run();
   });
 }
 /* Jaring aman: hanya untuk kasus observer/jaringan benar-benar gagal.
@@ -593,7 +608,7 @@ function rev(){
    ini sengaja berjalan lama dan sekali saja agar animasi tetap mulus. */
 function revealAll(){[].forEach.call(document.querySelectorAll('.rv:not(.in)'),function(e){e.classList.add('in')})}
 setTimeout(revealAll,8000);
-function boot(){mark();rev()}
+function boot(){mark();rev();countNums()}
 boot();
 new MutationObserver(function(){clearTimeout(boot.t);boot.t=setTimeout(boot,60)}).observe(document.getElementById('top')||document.body,{childList:true,subtree:true});
 document.addEventListener('pointermove',function(ev){var c=ev.target.closest&&ev.target.closest('.fx');if(!c)return;var r=c.getBoundingClientRect();c.style.setProperty('--mx',(ev.clientX-r.left)+'px');c.style.setProperty('--my',(ev.clientY-r.top)+'px')},{passive:true});
