@@ -94,11 +94,35 @@ function signOut() { sb.auth.signOut().then(function () { location.href = '/admi
 
 /* ---------- kerangka ---------- */
 function shell(title, active, body, actions) {
-  var nav = '<a href="#/" data-nav class="' + (active === '' ? 'on' : '') + '">Ringkasan</a>';
-  GROUPS.forEach(function (g) { var ks = g[1].filter(function (k) { return can(COLS[k]); }); if (!ks.length) return; nav += '<h4>' + g[0] + '</h4>'; ks.forEach(function (k) { nav += '<a data-nav href="#/' + k + '" class="' + (active === k ? 'on' : '') + '">' + COLS[k].l + '</a>'; }); });
-  if (isAdmin()) { nav += '<h4>Pengaturan situs</h4>'; Object.keys(SETS).forEach(function (k) { nav += '<a data-nav href="#/set/' + k + '" class="' + (active === 'set/' + k ? 'on' : '') + '">' + SETS[k].l + '</a>'; }); nav += '<h4>Sistem</h4><a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '">Anggota &amp; Verifikasi</a><a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '">Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '">Riwayat perubahan</a>'; }
-  root.innerHTML = '<div class="shell"><aside class="side" id="side"><div class="brand"><img src="/assets/img/favicon.png" alt=""><div><b>Admin MWCNU</b><small>Pondok Aren</small></div></div>' + nav + '<h4>Situs</h4><a href="/" target="_blank" rel="noopener">Lihat situs &nearr;</a></aside><main class="main"><div class="top"><div style="display:flex;gap:12px;align-items:center"><button class="btn o s burger" id="burger">Menu</button><h2>' + esc(title) + '</h2></div><div class="who"><span>' + esc(S.me.nama || S.user.email) + ' · ' + esc(roleName(S.me.role)) + '</span>' + (actions || '') + '<button class="btn o s" id="out">Keluar</button></div></div>' + body + '</main></div>';
-  $('#out').onclick = signOut; $('#burger').onclick = function () { $('#side').classList.toggle('open'); };
+  function navSection(label, links, open) { return '<details class="nav-group"' + (open || label === 'Konten' ? ' open' : '') + '><summary>' + esc(label) + '</summary><div class="nav-links">' + links + '</div></details>'; }
+  var nav = '<a href="#/" data-nav class="nav-home' + (active === '' ? ' on' : '') + '"' + (active === '' ? ' aria-current="page"' : '') + '>Ringkasan</a>';
+  GROUPS.forEach(function (g) {
+    var ks = g[1].filter(function (k) { return can(COLS[k]); }); if (!ks.length) return;
+    var links = ks.map(function (k) { return '<a data-nav href="#/' + k + '" class="' + (active === k ? 'on' : '') + '"' + (active === k ? ' aria-current="page"' : '') + '>' + esc(COLS[k].l) + '</a>'; }).join('');
+    nav += navSection(g[0], links, ks.indexOf(active) >= 0);
+  });
+  if (isAdmin()) {
+    nav += navSection('Pengaturan situs', Object.keys(SETS).map(function (k) { var a = active === 'set/' + k; return '<a data-nav href="#/set/' + k + '" class="' + (a ? 'on' : '') + '"' + (a ? ' aria-current="page"' : '') + '>' + esc(SETS[k].l) + '</a>'; }).join(''), active.indexOf('set/') === 0);
+    nav += navSection('Sistem', '<a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '"' + (active === 'members' ? ' aria-current="page"' : '') + '>Anggota &amp; Verifikasi</a><a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '"' + (active === 'staff' ? ' aria-current="page"' : '') + '>Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '"' + (active === 'log' ? ' aria-current="page"' : '') + '>Riwayat perubahan</a>', ['members','staff','log'].indexOf(active) >= 0);
+  }
+  nav += '<a class="nav-site" href="/" target="_blank" rel="noopener">Lihat situs &nearr;</a>';
+  root.innerHTML = '<div class="shell"><aside class="side" id="side"><div class="brand"><img src="/assets/img/favicon.png" alt=""><div><b>Admin MWCNU</b><small>Pondok Aren</small></div></div><label class="nav-search"><span class="sr-only">Cari menu</span><input id="navq" type="search" placeholder="Cari menu…" autocomplete="off"></label><nav class="nav-list" id="navList" aria-label="Menu admin">' + nav + '<p class="nav-empty" id="navEmpty" hidden>Tidak ada menu yang cocok.</p></nav></aside><main class="main"><div class="top"><div style="display:flex;gap:12px;align-items:center"><button class="btn o s burger" id="burger" aria-expanded="false" aria-controls="side">Menu</button><h2>' + esc(title) + '</h2></div><div class="who"><span>' + esc(S.me.nama || S.user.email) + ' · ' + esc(roleName(S.me.role)) + '</span>' + (actions || '') + '<button class="btn o s" id="out">Keluar</button></div></div>' + body + '</main></div>';
+  $('#out').onclick = signOut;
+  $('#burger').setAttribute('aria-expanded', 'false');
+  $('#burger').onclick = function () { var open = $('#side').classList.toggle('open'); this.setAttribute('aria-expanded', String(open)); };
+  var navq = $('#navq');
+  navq.addEventListener('input', function () {
+    var q = navq.value.trim().toLowerCase(), matches = 0;
+    $$('.nav-group', $('#navList')).forEach(function (group) {
+      var found = 0;
+      $$('a', group).forEach(function (a) { var show = !q || a.textContent.toLowerCase().indexOf(q) >= 0; a.hidden = !show; if (show) found++; });
+      group.hidden = !!q && !found;
+      if (q && found) group.open = true;
+      matches += found;
+    });
+    $$('.nav-home,.nav-site', $('#navList')).forEach(function (a) { var show = !q || a.textContent.toLowerCase().indexOf(q) >= 0; a.hidden = !show; if (show) matches++; });
+    $('#navEmpty').hidden = !q || !!matches;
+  });
   S.dirty = false;
 }
 function noAccess() { shell('Tidak ada akses', '', '<div class="panel empty">Peran Anda tidak memiliki akses ke bagian ini.</div>'); }
@@ -194,34 +218,59 @@ function bindForm(el) {
 
 /* ---------- tampilan ---------- */
 async function viewHome() {
-  var r = await sb.from('content_items').select('type,published'); if (r.error) return toast(errMsg(r.error), 1);
+  var results = await Promise.all([
+    sb.from('content_items').select('type,published'),
+    sb.from('content_items').select('id,type,data,published,updated_at').order('updated_at', { ascending: false }).limit(12)
+  ]);
+  var r = results[0], recent = results[1];
+  if (r.error) return toast(errMsg(r.error), 1);
+  if (recent.error) return toast(errMsg(recent.error), 1);
   var n = {}, d = {}; (r.data || []).forEach(function (x) { n[x.type] = (n[x.type] || 0) + 1; if (!x.published) d[x.type] = (d[x.type] || 0) + 1; });
   var un = Object.keys(COLS).filter(function (k) { return !(S.set.managed && S.set.managed[k]); });
   var cards = Object.keys(COLS).filter(function (k) { return can(COLS[k]); }).map(function (k) { return '<a class="stat" data-nav href="#/' + k + '"><b>' + (n[k] || 0) + '</b><span>' + COLS[k].l + (d[k] ? ' · ' + d[k] + ' draf' : '') + '</span></a>'; }).join('');
-  var mem = '';
-  if (isAdmin()) { mem = '<div class="panel" style="margin-bottom:16px"><div class="bar" style="justify-content:space-between;align-items:center"><b style="margin:0">Keanggotaan KTA</b><span id="memStat">…</span></div><div class="foot"><a class="btn g s" data-nav href="#/members">Buka verifikasi anggota</a><button class="btn o s" id="memRef">Muat ulang</button></div></div>'; }
-  shell('Ringkasan', '', mem + (isAdmin() && un.length ? '<div class="note">Jenis konten berikut belum dikelola CMS, jadi situs masih memakai data bawaan: <b>' + un.map(function (k) { return COLS[k].l; }).join(', ') + '</b>. Jalankan <code>supabase/seed.sql</code> atau aktifkan dari halaman masing-masing.</div>' : '') + '<p style="color:var(--mut)">Perubahan langsung tampil di situs setelah halaman dimuat ulang.</p><div class="grid">' + cards + '</div>');
-  if (isAdmin() && $('#memStat')) { sb.from('profiles').select('status').then(function (mr) { var el = $('#memStat'); if (!el) return; if (mr.error || !mr.data) { el.textContent = ''; return; } var p = mr.data.filter(function (x) { return x.status === 'pending'; }).length; el.innerHTML = p ? '<span class="chip x">' + p + ' menunggu verifikasi</span>' : '<span class="chip">Semua terverifikasi</span>'; }); }
-  if ($('#memRef')) $('#memRef').onclick = function () { viewHome(); };
+  var draftCount = d.berita || 0;
+  var attention = '<div class="task-grid"><a class="task-card" data-nav href="#/berita?status=draft"><span class="task-label">Draf berita</span><b>' + draftCount + '</b><small>' + (draftCount ? 'Buka daftar draf untuk ditinjau atau dilanjutkan.' : 'Tidak ada draf berita yang menunggu.') + '</small></a>';
+  if (isAdmin()) attention += '<a class="task-card" data-nav href="#/members?status=pending"><span class="task-label">Verifikasi KTA</span><b id="memCount">…</b><small id="memHint">Memeriksa pendaftaran anggota.</small></a>';
+  attention += '</div>';
+  var latest = (recent.data || []).filter(function (x) { return COLS[x.type] && can(COLS[x.type], x.data); }).slice(0, 5);
+  var latestHTML = '<section class="recent-panel"><div class="section-head"><div><h3>Terakhir diperbarui</h3><p>Konten yang paling baru disentuh di CMS.</p></div></div>' + (latest.length ? '<ul class="recent-list">' + latest.map(function (x) { var c = COLS[x.type], title = c.ti(x.data) || '(tanpa judul)', date = x.updated_at ? new Date(x.updated_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; return '<li><a data-nav href="#/' + x.type + '/' + encodeURIComponent(x.id) + '"><span><b>' + esc(title) + '</b><small>' + esc(c.l) + (date ? ' · ' + esc(date) : '') + '</small></span><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></a></li>'; }).join('') + '</ul>' : '<div class="empty">Belum ada konten terbaru yang dapat Anda kelola.</div>') + '</section>';
+  shell('Ringkasan', '', (isAdmin() && un.length ? '<div class="note">Jenis konten berikut belum dikelola CMS, jadi situs masih memakai data bawaan: <b>' + un.map(function (k) { return COLS[k].l; }).join(', ') + '</b>. Jalankan <code>supabase/seed.sql</code> atau aktifkan dari halaman masing-masing.</div>' : '') + attention + '<div class="section-head"><div><h3>Kelola konten</h3><p>Ringkasan data yang dapat Anda akses.</p></div></div><div class="grid">' + cards + '</div>' + latestHTML);
+  function loadMembers() {
+    if (!isAdmin()) return;
+    sb.from('profiles').select('status').then(function (mr) {
+      var count = $('#memCount'), hint = $('#memHint');
+      if (!count || !hint) return;
+      if (mr.error || !mr.data) { count.textContent = '—'; hint.textContent = 'Status verifikasi tidak tersedia.'; return; }
+      var pending = mr.data.filter(function (x) { return x.status === 'pending'; }).length;
+      count.textContent = String(pending);
+      hint.textContent = pending ? 'Perlu diperiksa oleh pengelola.' : 'Tidak ada pendaftaran yang menunggu.';
+    });
+  }
+  loadMembers();
 }
 async function loadItems(key) { var r = await sb.from('content_items').select('*').eq('type', key).order('sort', { ascending: true }).order('created_at', { ascending: true }); if (r.error) throw r.error; S.items[key] = r.data || []; return S.items[key]; }
-async function viewList(key, q, flt) {
+async function viewList(key, q, flt, pub) {
   var c = COLS[key]; if (!c) return viewHome(); if (!can(c)) return noAccess();
+  pub = pub || '';
   try { await loadItems(key); } catch (e) { return toast(errMsg(e), 1); }
   var list = S.items[key].slice(); if (c.ord === 'date') list.sort(function (a, b) { return String(b.data.tanggal || '').localeCompare(String(a.data.tanggal || '')); });
   var ff = c.filter && c.F.filter(function (f) { return f.k === c.filter; })[0];
-  var shown = list.filter(function (x) { return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt); });
-  var movable = !c.ord && !q;
-  var rows = shown.map(function (x, i) { var writable = isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase(); return '<tr><td class="t"><b>' + esc(c.ti(x.data) || '(tanpa judul)') + '</b><small>' + esc(c.su(x.data)) + '</small></td><td class="hm"><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></td><td class="a">' +
-    (movable && writable ? '<button class="act" data-mv="-1" data-id="' + x.id + '" title="Naik">&uarr;</button><button class="act" data-mv="1" data-id="' + x.id + '" title="Turun">&darr;</button>' : '') +
-    (writable ? '<button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button><a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a><button class="act" data-dup="' + x.id + '">Salin</button><button class="act d" data-del="' + x.id + '">Hapus</button>' : '<span class="chip">Hanya baca</span>') + '</td></tr>'; }).join('');
+  var shown = list.filter(function (x) { return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || (pub === 'published' ? x.published : !x.published)); });
+  var movable = !c.ord && !q && !pub;
+  var rows = shown.map(function (x, i) {
+    var writable = isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase(), media = safeMediaURL(x.data.foto), title = c.ti(x.data) || '(tanpa judul)';
+    var thumb = media ? '<img class="row-thumb" src="' + esc(media) + '" alt="" loading="lazy">' : '';
+    var more = '<details class="row-menu"><summary class="act" aria-label="Aksi lainnya" title="Aksi lainnya">•••</summary><div class="row-menu-items">' + (movable ? '<button class="act" data-mv="-1" data-id="' + x.id + '" title="Naikkan urutan">Naikkan</button><button class="act" data-mv="1" data-id="' + x.id + '" title="Turunkan urutan">Turunkan</button>' : '') + '<button class="act" data-dup="' + x.id + '">Salin sebagai draf</button><button class="act d" data-del="' + x.id + '">Hapus</button></div></details>';
+    return '<tr><td class="t"><span class="row-title">' + thumb + '<span><b>' + esc(title) + '</b><small>' + esc(c.su(x.data)) + '</small></span></span></td><td class="hm"><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></td><td class="a">' + (writable ? '<a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a><button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button>' + more : '<span class="chip">Hanya baca</span>') + '</td></tr>';
+  }).join('');
   var managed = S.set.managed && S.set.managed[key];
   shell(c.l, key, (!managed ? '<div class="note">Jenis ini belum dikelola CMS, jadi situs masih memakai data bawaan. ' + (isAdmin() ? '<button class="btn s" id="mng">Aktifkan pengelolaan</button> (situs akan memakai data di sini, termasuk bila kosong)' : 'Minta admin mengaktifkannya.') + '</div>' : '') +
-    '<div class="panel"><div class="bar"><input type="search" id="q" placeholder="Cari…" value="' + esc(q || '') + '">' + (ff ? '<select id="flt"><option value="">Semua ' + esc(ff.l.toLowerCase()) + '</option>' + ff.o.map(function (o) { return '<option' + (o === flt ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' : '') + '</div>' +
+    '<div class="panel"><div class="bar"><input type="search" id="q" placeholder="Cari…" value="' + esc(q || '') + '">' + (ff ? '<select id="flt" aria-label="Filter ' + esc(ff.l.toLowerCase()) + '"><option value="">Semua ' + esc(ff.l.toLowerCase()) + '</option>' + ff.o.map(function (o) { return '<option' + (o === flt ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' : '') + '<select id="pubFilter" aria-label="Status publikasi"><option value="">Semua status</option><option value="published"' + (pub === 'published' ? ' selected' : '') + '>Terbit</option><option value="draft"' + (pub === 'draft' ? ' selected' : '') + '>Draf</option></select></div>' +
     (shown.length ? '<table><thead><tr><th>Judul</th><th class="hm">Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="empty">' + (list.length ? 'Tidak ada yang cocok.' : 'Belum ada data.') + '</div>') + '</div>',
     '<a class="btn" data-nav href="#/' + key + '/new">+ Tambah</a>');
-  var qi = $('#q'); qi.addEventListener('input', function () { clearTimeout(qi.__t); qi.__t = setTimeout(function () { viewList(key, qi.value, $('#flt') && $('#flt').value); var n = $('#q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
-  if ($('#flt')) $('#flt').onchange = function () { viewList(key, $('#q').value, this.value); };
+  var qi = $('#q'); qi.addEventListener('input', function () { clearTimeout(qi.__t); qi.__t = setTimeout(function () { viewList(key, qi.value, $('#flt') && $('#flt').value, $('#pubFilter').value); var n = $('#q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
+  if ($('#flt')) $('#flt').onchange = function () { viewList(key, $('#q').value, this.value, $('#pubFilter').value); };
+  $('#pubFilter').onchange = function () { viewList(key, $('#q').value, $('#flt') && $('#flt').value, this.value); };
   if ($('#mng')) $('#mng').onclick = function () { var m = Object.assign({}, S.set.managed || {}); m[key] = true; saveSet('managed', m).then(function () { toast('Pengelolaan diaktifkan.'); viewList(key); }); };
   $('.main').addEventListener('click', async function (e) {
     var b = e.target.closest('[data-del],[data-dup],[data-pub],[data-mv]'); if (!b) return;
@@ -230,7 +279,7 @@ async function viewList(key, q, flt) {
       else if (b.hasAttribute('data-dup')) { var s = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-dup'); })[0]; var d = JSON.parse(JSON.stringify(s.data)); if (d.judul) d.judul += ' (salinan)'; var mx = S.items[key].reduce(function (m, x) { return Math.max(m, x.sort); }, 0); var r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: false }); if (r2.error) throw r2.error; toast('Disalin sebagai draf.'); }
       else if (b.hasAttribute('data-pub')) { var s2 = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-pub'); })[0]; if (!isAdmin() && S.me.role !== 'pengurus' && S.me.role !== 'editor' && s2.created_by !== (S.user.email || '').toLowerCase()) throw new Error('Anda hanya dapat menerbitkan konten yang Anda buat.'); var r3 = await sb.from('content_items').update({ published: !s2.published }).eq('id', s2.id).select().single(); if (r3.error) throw r3.error; toast(s2.published ? 'Disembunyikan.' : 'Diterbitkan.'); }
       else { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat mengubah urutan konten.'); var id = b.getAttribute('data-id'), dir = +b.getAttribute('data-mv'), vis = shown, i = vis.findIndex(function (x) { return x.id === id; }), j = i + dir; if (j < 0 || j >= vis.length) return; var A = vis[i], B = vis[j], sa = A.sort, sbv = B.sort; if (sa === sbv) { sbv = sa + dir; } var u1 = await sb.from('content_items').update({ sort: sbv }).eq('id', A.id), u2 = await sb.from('content_items').update({ sort: sa }).eq('id', B.id); if (u1.error || u2.error) throw (u1.error || u2.error); }
-      viewList(key, $('#q') && $('#q').value, $('#flt') && $('#flt').value);
+      viewList(key, $('#q') && $('#q').value, $('#flt') && $('#flt').value, $('#pubFilter') && $('#pubFilter').value);
     } catch (er) { toast(errMsg(er), 1); }
   });
 }
@@ -278,13 +327,14 @@ async function viewStaff() {
   $$('[data-role]').forEach(function (s) { s.onchange = async function () { var email = s.getAttribute('data-role'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && s.value !== 'super_admin') { toast('Promosikan Super Admin lain sebelum menurunkan peran ini.', 1); return viewStaff(); } var r2 = await sb.from('staff').update({ role: s.value }).eq('email', email); if (r2.error) toast(errMsg(r2.error), 1); else toast('Peran diubah.'); viewStaff(); }; });
   $$('[data-rm]').forEach(function (b) { b.onclick = async function () { if (!confirm('Hapus pengelola ' + b.getAttribute('data-rm') + '?')) return; var email = b.getAttribute('data-rm'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && S.staff.filter(function (x) { return x.role === 'super_admin'; }).length < 2) { toast('Super Admin terakhir tidak dapat dihapus.', 1); return; } var r2 = await sb.from('staff').delete().eq('email', email); if (r2.error) toast(errMsg(r2.error), 1); else toast('Dihapus.'); viewStaff(); }; });
 }
-async function viewMembers() {
+async function viewMembers(status) {
   if (!isAdmin()) return noAccess();
+  status = ['pending','verified','rejected'].indexOf(status) >= 0 ? status : '';
   var r = await sb.from('profiles').select('*').order('created_at', { ascending: false });
   if (r.error) return toast(errMsg(r.error), 1);
   var list = r.data || [];
   var chip = function (s) { return '<span class="chip' + (s === 'verified' ? '' : s === 'rejected' ? ' x' : '') + '">' + ({verified:'Terverifikasi',pending:'Menunggu',rejected:'Ditolak'}[s] || s) + '</span>'; };
-  shell('Anggota & Verifikasi NIA', 'members', '<div class="panel"><div class="bar"><input type="search" id="mq" placeholder="Cari nama, email, NIA, HP…" value="' + '"><select id="mf"><option value="">Semua status</option><option value="pending">Menunggu</option><option value="verified">Terverifikasi</option><option value="rejected">Ditolak</option></select></div>' +
+  shell('Anggota & Verifikasi NIA', 'members', '<div class="panel"><div class="bar"><input type="search" id="mq" placeholder="Cari nama, email, NIA, HP…" value="' + '"><select id="mf"><option value="">Semua status</option><option value="pending"' + (status === 'pending' ? ' selected' : '') + '>Menunggu</option><option value="verified"' + (status === 'verified' ? ' selected' : '') + '>Terverifikasi</option><option value="rejected"' + (status === 'rejected' ? ' selected' : '') + '>Ditolak</option></select></div>' +
     (list.length ? '<table><thead><tr><th>Anggota</th><th class="hm">Kontak</th><th>NIA</th><th>Status</th><th></th></tr></thead><tbody>' +
     list.map(function (p) { return '<tr><td class="t"><b>' + esc(p.nama || '(tanpa nama)') + '</b><small>' + esc(p.email || '') + (p.ranting ? ' · PRNU ' + esc(p.ranting) : (p.tingkat ? ' · ' + esc(p.tingkat) : '')) + '</small></td><td class="hm">' + esc(p.hp || '—') + '</td><td>' + esc(p.nia || '—') + '</td><td>' + chip(p.status) + '</td><td class="a">' +
       (p.status !== 'verified' ? '<button class="act" data-vfy="' + p.id + '">Verifikasi</button>' : '') +
@@ -309,18 +359,20 @@ async function viewLog() {
 }
 function route() {
   if (!S.me) return;
-  var p = (location.hash || '#/').replace(/^#\/?/, '').split('/');
+  var hash = (location.hash || '#/').replace(/^#\/?/, ''), qi = hash.indexOf('?');
+  var params = new URLSearchParams(qi < 0 ? '' : hash.slice(qi + 1));
+  var p = (qi < 0 ? hash : hash.slice(0, qi)).split('/');
   if (!p[0]) return viewHome();
   if (p[0] === 'set') return viewSet(p[1]);
   if (p[0] === 'staff') return viewStaff();
-  if (p[0] === 'members') return viewMembers();
+  if (p[0] === 'members') return viewMembers(params.get('status') || '');
   if (p[0] === 'log') return viewLog();
   if (p[1]) return viewEdit(p[0], p[1]);
-  return viewList(p[0]);
+  return viewList(p[0], '', '', params.get('status') || '');
 }
 document.addEventListener('click', function (e) {
   var a = e.target.closest('[data-nav]'); if (a && S.dirty && !confirm('Perubahan belum disimpan. Tinggalkan halaman ini?')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-  if (a && $('#side')) $('#side').classList.remove('open');
+  if (a && $('#side')) { $('#side').classList.remove('open'); if ($('#burger')) $('#burger').setAttribute('aria-expanded', 'false'); }
 }, true);
 window.addEventListener('beforeunload', function (e) { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
 window.addEventListener('hashchange', route);

@@ -13,6 +13,29 @@ alter table public.content_items add column if not exists created_by text;
 alter table public.content_items add column if not exists updated_by text;
 alter table public.site_settings add column if not exists updated_by text;
 
+-- Recreate trigger agar kompatibel dengan skema yang sudah naik level.
+create or replace function public.touch_row() returns trigger
+language plpgsql as $$
+begin
+  new.updated_at := now();
+
+  if tg_table_name = 'content_items' then
+    if new.updated_by is null then
+      new.updated_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
+    end if;
+
+    if tg_op = 'INSERT' and new.created_by is null then
+      new.created_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
+    end if;
+  elsif tg_table_name = 'site_settings' then
+    if new.updated_by is null then
+      new.updated_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
+    end if;
+  end if;
+
+  return new;
+end $$;
+
 do $$ begin if not exists (select 1 from public.content_items where type = 'berita') then
   insert into public.content_items (type, data, sort) values
     ('berita', $mwc${"kategori": "Berita", "judul": "Halal Bi Halal Keluarga Besar NU Pondok Aren Angkat Tema Membumikan Dakwah dan Menguatkan Ranting", "tanggal": "2026-04-26", "ringkasan": "Silaturahmi keluarga besar NU Kecamatan Pondok Aren di Omah Singgah NU Alfath.", "foto": "/assets/img/img-1a2f09f7.webp", "lead": "Keluarga Besar Nahdlatul Ulama Kecamatan Pondok Aren menggelar Halal Bi Halal bertema Membumikan Dakwah, Menguatkan Ranting dan Menjaga Tradisi.", "caption": "Halal Bi Halal Keluarga Besar NU Kecamatan Pondok Aren di Omah Singgah NU Alfath. (Dokumentasi MWCNU Pondok Aren)", "isi": "Keluarga Besar Nahdlatul Ulama Kecamatan Pondok Aren menggelar Halal Bi Halal di Omah Singgah NU Alfath pada 8 Dzulqa'dah 1447 H atau bertepatan dengan 26 April 2026 M. Kegiatan ini mengusung tema Membumikan Dakwah, Menguatkan Ranting dan Menjaga Tradisi.\n\nSpanduk kegiatan memuat identitas pengurus ranting NU dari sebelas kelurahan di Pondok Aren.\n\nRangkaian kegiatan didokumentasikan oleh Media Center NU Pondok Aren dan tayang di kanal TVNU Pondok Aren, termasuk laporan ketua panitia mengenai target pembentukan anak ranting NU se-Pondok Aren.", "info": "Tanggal: 8 Dzulqa'dah 1447 H / 26 April 2026 M\nTempat: Omah Singgah NU Alfath\nTema: Membumikan Dakwah, Menguatkan Ranting dan Menjaga Tradisi", "foto_tambahan": ["/assets/img/img-1a2f09f7.webp", "/assets/img/img-5d1ae212.webp", "/assets/img/img-6d655717.webp", "/assets/img/img-ffb9a380.webp"], "video": "ZDuEPPinBTA"}$mwc$::jsonb, 10),
@@ -99,6 +122,13 @@ do $$ begin if not exists (select 1 from public.content_items where type = 'bano
     ('banom', $mwc${"nama": "IPNU", "nama_lengkap": "Ikatan Pelajar Nahdlatul Ulama", "deskripsi": "Organisasi pelajar putra untuk pembinaan karakter dan kepemimpinan", "monogram": "IP", "warna": "#1565C0"}$mwc$::jsonb, 30),
     ('banom', $mwc${"nama": "IPPNU", "nama_lengkap": "Ikatan Pelajar Putri Nahdlatul Ulama", "deskripsi": "Organisasi pelajar putri untuk dakwah, pendidikan, dan pengembangan diri", "monogram": "PP", "warna": "#7B1FA2"}$mwc$::jsonb, 40);
 end if; end $$;
+
+-- Tambahkan Pagar Nusa meski data banom lama sudah terisi (aman diulang).
+insert into public.content_items (type, data, sort)
+select 'banom', $mwc${"nama": "Pagar Nusa", "nama_lengkap": "Pencak Silat Nahdlatul Ulama Pagar Nusa", "deskripsi": "Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.", "monogram": "PN", "warna": "#D8A62B"}$mwc$::jsonb, 50
+where not exists (
+  select 1 from public.content_items where type = 'banom' and lower(data ->> 'nama') = 'pagar nusa'
+);
 
 do $$ begin if not exists (select 1 from public.content_items where type = 'pengurus') then
   insert into public.content_items (type, data, sort) values

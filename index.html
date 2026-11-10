@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0C3B2B">
 <meta property="og:title" content="MWCNU Pondok Aren"><meta property="og:description" content="Portal resmi MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=20">
+<link rel="stylesheet" href="/css/style.css?v=21">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -42,15 +42,15 @@
   </span>
 </a>
 <nav id="nv" aria-label="Menu utama"><a href="#top">Beranda</a>
-<div class="dd"><button class="ddb" aria-expanded="false" aria-haspopup="true">Profil<i></i></button><div class="ddm"><a href="#sejarah">Sejarah</a><a href="#visi">Visi & Misi</a><a href="#struktur">Struktur Pengurus</a></div></div>
+<div class="dd"><button class="ddb" aria-expanded="false" aria-haspopup="true" aria-controls="nav-profil">Profil<i></i></button><div class="ddm" id="nav-profil"><a href="#sejarah">Sejarah</a><a href="#visi">Visi & Misi</a><a href="#struktur">Struktur Pengurus</a></div></div>
 <a href="#berita">Berita</a>
-<div class="dd"><button class="ddb" aria-expanded="false" aria-haspopup="true">Program & Layanan<i></i></button><div class="ddm"><a href="#layanan">Layanan Jam'iyyah</a><a href="#ambulans">Layanan Ambulans</a><a href="#majelis">Majelis Taklim</a><a href="#konsultasi">Konsultasi Agama</a><a href="#zis">Zakat (UPZ) & Infaq</a></div></div>
+<div class="dd"><button class="ddb" aria-expanded="false" aria-haspopup="true" aria-controls="nav-program">Program & Layanan<i></i></button><div class="ddm" id="nav-program"><a href="#program">Program Khidmat</a><a href="#layanan">Layanan Jam'iyyah</a><a href="#ambulans">Layanan Ambulans</a><a href="#majelis">Majelis Taklim</a><a href="#konsultasi">Konsultasi Agama</a><a href="#zis">Zakat (UPZ) & Infaq</a></div></div>
 <a href="#kontak">Kontak</a></nav>
 <div class="nav-actions">
   <button id="hbtn" aria-label="Cari dalam situs" title="Cari dalam situs (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
   <a class="btn-kta" href="#daftar">Daftar KTA</a>
   <button id="theme" aria-label="Ganti tema terang atau gelap">â˜¾</button>
-  <button id="mb" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nv">Menu</button>
+  <button id="mb" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nv"><span class="mb-icon" aria-hidden="true"><i></i><i></i><i></i></span><span class="mb-label">Menu</span></button>
 </div>
 </div>
 </header>
@@ -98,11 +98,16 @@
 </div></section>
 
 <section id="banom" class="ho"><div class="wrap">
-<div class="sh2"><div><span class="sec-kicker">Sayap Organisasi</span><h2>Badan Otonom NU</h2></div><a class="va" href="#banom">Lihat profil lengkap &rarr;</a></div>
+<div class="sh2"><div><span class="sec-kicker">Sayap Organisasi</span><h2>Badan Otonom NU</h2></div></div>
 <div id="banomgrid"></div>
 </div></section>
 
-<section id="kegiatan" class="ho"><div class="wrap"><div class="sh2"><div><span class="sec-kicker">Dokumentasi Resmi</span><h2>Kegiatan Pilihan</h2></div><a class="va" href="#galeri">Lihat semua &rarr;</a></div><div class="kc" id="kc"></div></div></section>
+<section id="kegiatan" class="ho"><div class="wrap"><div class="sh2"><div><span class="sec-kicker">Dokumentasi Resmi</span><h2>Kegiatan Pilihan</h2></div><a class="va" href="#galeri">Lihat semua &rarr;</a></div><div class="kc" id="kc"></div><div id="homeVideo"></div></div></section>
+
+<section id="agenda-home" class="ho" aria-labelledby="agenda-home-title"><div class="wrap">
+<div class="sh2"><div class="agenda-home-head"><span class="sec-kicker">Kalender Jam'iyyah</span><h2 id="agenda-home-title">Agenda MWCNU</h2><p class="agenda-home-lead">Jadwal kegiatan dan pertemuan warga Nahdliyin.</p></div><a class="va" href="#agenda">Lihat semua &rarr;</a></div>
+<div class="agenda-home-content" id="homeAgenda" aria-live="polite"></div>
+</div></section>
 
 <section id="beranda-berita" class="ho" aria-labelledby="bb-title"><div class="wrap">
 <div class="sh2"><div class="kt-head"><h2 id="bb-title" class="kt2">Berita Terbaru</h2><p class="ktlead">Ringkasan kabar terpilih dari MWCNU Pondok Aren.</p></div><a class="va" href="#berita">Semua kabar &rarr;</a></div>
@@ -113,18 +118,18 @@
 
 
 
-<section id="program" class="vw" hidden><div class="wrap">
-<h2>Program unggulan</h2>
-<p class="lead">Lima jalur khidmat MWCNU bersama ranting dan badan otonom. Pilih satu untuk melihat rinciannya.</p>
+<section id="program" class="vw" hidden><div class="wrap program-page">
+<div class="program-hero"><div><span class="sec-kicker">Arah khidmat</span><h2>Program Khidmat</h2><p class="lead">Lima jalur pengabdian MWCNU Pondok Aren bersama ranting dan badan otonom. Pilih program untuk melihat fokus dan kegiatan utamanya.</p></div><span class="program-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8m0-12.8L5.6 18.4"/></svg></span></div>
 <div class="pg"><div class="pl" id="pl" role="tablist" aria-label="Daftar program"></div><div class="pd" id="pd" role="tabpanel" aria-live="polite"></div></div>
+<p class="program-note"><span aria-hidden="true">✦</span> Pelaksanaan program menyesuaikan kebutuhan warga dan koordinasi dengan Pengurus Ranting NU.</p>
 </div></section>
 
 <section id="struktur" class="alt vw" hidden><div class="wrap">
-<h2>Susunan pengurus</h2>
-<div class="skb"><span data-cms="identitas.sk1">SK PCNU Kota Tangerang Selatan No. 12/PC.01/A.II.01.03/1208/06/2025</span><span data-cms="identitas.sk2">Ditetapkan 28 Mei 2025</span><span data-cms="identitas.sk3">Berlaku sampai 28 Mei 2030</span></div>
+<div class="struktur-head"><span class="struktur-kicker">Profil organisasi <i aria-hidden="true"></i> Masa khidmat 2025–2030</span><h2>Susunan pengurus</h2><p>Kenali jajaran pengurus MWCNU Pondok Aren yang mengemban amanah dan menggerakkan khidmat organisasi.</p></div>
+<div class="skb"><span data-cms="identitas.sk1">SK PCNU Kota Tangerang Selatan No. 12/PC.01/A.II.01.03/1208/06/2025</span><span data-cms="identitas.sk2">Ditetapkan 28 Mei 2025</span><span data-cms="identitas.sk3">Berlaku sampai 28 Mei 2030</span></div> 
 <div class="core" id="core"></div>
-<div class="sh2 jl"><h2 style="font-size:1.35rem">Susunan lengkap</h2></div>
-<div class="srow"><div class="tabs" role="tablist" id="tabs"></div><input class="search" id="sq" type="search" placeholder="Cari nama pengurus" aria-label="Cari nama pengurus" style="margin:0;max-width:280px"></div>
+<div class="struktur-directory-head"><span>Direktori pengurus</span><p>Pilih bagian organisasi atau cari nama untuk menemukan pengurus.</p></div>
+<div class="srow"><div class="tabs" role="tablist" id="tabs" aria-label="Bagian organisasi"></div><label class="struktur-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input class="search" id="sq" type="search" placeholder="Cari nama pengurus" aria-label="Cari nama pengurus" style="margin:0;max-width:280px"></label></div>
 <div class="panel" id="panel" role="tabpanel"></div>
 </div></section>
 
@@ -204,14 +209,14 @@
 <div class="binfo"><h3>Ketua</h3><p>Informasi akan diisi</p><h3>Kontak</h3><p>Hubungi sekretariat MWCNU: 0851-6103-3689</p><h3>Kegiatan</h3><p>Program tadarus, kajian Islam, pemberdayaan, dan pengabdian sosial perempuan.</p></div></div>
 </div></section>
 
-<section id="majelis" class="vw" hidden><div class="wrap"><h2>Majelis Taklim</h2><a class="back" href="#top">&larr; Kembali ke beranda</a>
-<p class="pg-lead">Wadah pengajian dan pembinaan keagamaan warga Nahdliyin di Kecamatan Pondok Aren. Temukan majelis taklim di ranting Anda, undang ustadz untuk kegiatan, atau daftarkan majelis Anda ke MWCNU.</p>
+<section id="majelis" class="vw" hidden><div class="wrap"><div class="vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>
+<div class="pg-head pg-service-head"><span class="sec-kicker">Khidmat keilmuan</span><h1>Majelis Taklim</h1><p class="lead">Ruang belajar, beribadah, dan merawat kebersamaan warga Nahdliyin di 11 kelurahan Pondok Aren.</p><div class="pg-head-actions"><a class="btn" href="#mt-dir">Temukan majelis</a><a class="btn o2" href="#mt-undang">Undang penceramah</a></div></div>
 <div class="mt-fs"><button type="button" class="mt-f" data-go="mt-dir"><b>Direktori &amp; jadwal</b><small>Cari majelis taklim per ranting</small></button><button type="button" class="mt-f" data-go="mt-undang"><b>Undang ustadz</b><small>Ajukan penceramah untuk kegiatan</small></button><button type="button" class="mt-f" data-go="mt-daftar"><b>Daftarkan majelis</b><small>Masukkan majelis Anda ke direktori</small></button><a class="mt-f" href="#agenda"><b>Agenda MWCNU</b><small>Lailatul Ijtima' dan kegiatan lain</small></a><a class="mt-f" href="#galeri"><b>Kajian di TVNU</b><small>Tonton video kegiatan dan kajian</small></a></div>
 <h3 class="mt-h" id="mt-dir">Direktori &amp; jadwal majelis taklim <small id="mt-n"></small></h3>
 <div class="mt-bar"><select id="mt-ranting" aria-label="Filter ranting"></select><input type="search" id="mt-q" placeholder="Cari nama majelis, ustadz, atau tempat" aria-label="Cari majelis"></div>
 <div class="mt-list" id="mt-list"></div>
-<div class="rq" id="mt-undang"><div class="rq-l"><span class="sm-k"><i></i>Formulir</span><h3>Undang ustadz / penceramah</h3><p>Ajukan permintaan penceramah untuk pengajian, peringatan hari besar, haul, atau acara keagamaan lain di ranting Anda.</p><ol class="stp"><li>Isi data pada formulir</li><li>Tekan tombol kirim, WhatsApp terbuka dengan pesan yang sudah tersusun</li><li>Pesan diterima sekretariat MWCNU Pondok Aren</li></ol></div><div class="rq-r"><label class="fld"><span>Nama pengundang *</span><input type="text" name="nama" placeholder="Nama Anda" required autocomplete="off"></label><label class="fld"><span>Nomor HP / WhatsApp *</span><input type="tel" name="hp" placeholder="08xx-xxxx-xxxx" required autocomplete="off"></label><label class="fld"><span>Ranting / kelurahan *</span><select name="ranting" data-rt required></select></label><label class="fld"><span>Jenis acara *</span><select name="acara" required><option value="">Pilih jenis acara</option><option>Pengajian rutin</option><option>Peringatan hari besar Islam</option><option>Maulid</option><option>Haul</option><option>Tahlil / Yasin</option><option>Lainnya</option></select></label><label class="fld"><span>Tanggal rencana *</span><input type="date" name="tgl" placeholder="" required autocomplete="off"></label><label class="fld"><span>Tempat / alamat acara *</span><input type="text" name="tempat" placeholder="Masjid / musholla / alamat" required autocomplete="off"></label><label class="fld"><span>Tema yang diinginkan</span><input type="text" name="tema" placeholder="Opsional" autocomplete="off"></label><label class="fld"><span>Catatan</span><input type="text" name="cat" placeholder="Opsional" autocomplete="off"></label><button type="button" class="btn wa">Kirim permintaan lewat WhatsApp</button><p class="fm-msg" role="status"></p><p class="fm-note">Data hanya dikirim lewat WhatsApp ke sekretariat dan tidak disimpan di situs ini.</p></div></div><div style="height:26px"></div><div class="rq" id="mt-daftar"><div class="rq-l"><span class="sm-k"><i></i>Formulir</span><h3>Daftarkan majelis taklim</h3><p>Pengasuh atau pengurus ranting dapat mendaftarkan majelis taklim agar tercatat di MWCNU Pondok Aren.</p><ol class="stp"><li>Isi data pada formulir</li><li>Tekan tombol kirim, WhatsApp terbuka dengan pesan yang sudah tersusun</li><li>Pesan diterima sekretariat MWCNU Pondok Aren</li></ol></div><div class="rq-r"><label class="fld"><span>Nama majelis taklim *</span><input type="text" name="nama" placeholder="Nama majelis" required autocomplete="off"></label><label class="fld"><span>Pengasuh / ustadz *</span><input type="text" name="asuh" placeholder="Nama pengasuh" required autocomplete="off"></label><label class="fld"><span>Ranting / kelurahan *</span><select name="ranting" data-rt required></select></label><label class="fld"><span>Alamat / tempat pengajian *</span><input type="text" name="tempat" placeholder="Masjid / musholla / alamat" required autocomplete="off"></label><label class="fld"><span>Hari pengajian *</span><select name="hari" required><option value="">Pilih hari</option><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Ahad</option><option>Beberapa hari dalam sepekan</option></select></label><label class="fld"><span>Jam</span><input type="time" name="jam" placeholder="" autocomplete="off"></label><label class="fld"><span>Perkiraan jumlah jamaah</span><input type="number" name="jml" placeholder="Opsional" autocomplete="off"></label><label class="fld"><span>Nomor HP kontak *</span><input type="tel" name="hp" placeholder="08xx-xxxx-xxxx" required autocomplete="off"></label><label class="fld"><span>Catatan</span><input type="text" name="cat" placeholder="Opsional" autocomplete="off"></label><button type="button" class="btn wa">Kirim pendaftaran lewat WhatsApp</button><p class="fm-msg" role="status"></p><p class="fm-note">Data hanya dikirim lewat WhatsApp ke sekretariat dan tidak disimpan di situs ini.</p></div></div></div></section><section id="konsultasi" class="vw" hidden><div class="wrap"><h2>Konsultasi Agama</h2><a class="back" href="#top">&larr; Kembali ke beranda</a>
-<p class="pg-lead">Tanyakan persoalan keagamaan Anda kepada MWCNU Pondok Aren. Pertanyaan dikirim lewat WhatsApp ke sekretariat, dan Anda boleh memilih tampil sebagai Hamba Allah.</p>
+<div class="rq" id="mt-undang"><div class="rq-l"><span class="sm-k"><i></i>Formulir</span><h3>Undang ustadz / penceramah</h3><p>Ajukan permintaan penceramah untuk pengajian, peringatan hari besar, haul, atau acara keagamaan lain di ranting Anda.</p><ol class="stp"><li>Isi data pada formulir</li><li>Tekan tombol kirim, WhatsApp terbuka dengan pesan yang sudah tersusun</li><li>Pesan diterima sekretariat MWCNU Pondok Aren</li></ol></div><div class="rq-r"><label class="fld"><span>Nama pengundang *</span><input type="text" name="nama" placeholder="Nama Anda" required autocomplete="off"></label><label class="fld"><span>Nomor HP / WhatsApp *</span><input type="tel" name="hp" placeholder="08xx-xxxx-xxxx" required autocomplete="off"></label><label class="fld"><span>Ranting / kelurahan *</span><select name="ranting" data-rt required></select></label><label class="fld"><span>Jenis acara *</span><select name="acara" required><option value="">Pilih jenis acara</option><option>Pengajian rutin</option><option>Peringatan hari besar Islam</option><option>Maulid</option><option>Haul</option><option>Tahlil / Yasin</option><option>Lainnya</option></select></label><label class="fld"><span>Tanggal rencana *</span><input type="date" name="tgl" placeholder="" required autocomplete="off"></label><label class="fld"><span>Tempat / alamat acara *</span><input type="text" name="tempat" placeholder="Masjid / musholla / alamat" required autocomplete="off"></label><label class="fld"><span>Tema yang diinginkan</span><input type="text" name="tema" placeholder="Opsional" autocomplete="off"></label><label class="fld"><span>Catatan</span><input type="text" name="cat" placeholder="Opsional" autocomplete="off"></label><button type="button" class="btn wa">Kirim permintaan lewat WhatsApp</button><p class="fm-msg" role="status"></p><p class="fm-note">Data hanya dikirim lewat WhatsApp ke sekretariat dan tidak disimpan di situs ini.</p></div></div><div style="height:26px"></div><div class="rq" id="mt-daftar"><div class="rq-l"><span class="sm-k"><i></i>Formulir</span><h3>Daftarkan majelis taklim</h3><p>Pengasuh atau pengurus ranting dapat mendaftarkan majelis taklim agar tercatat di MWCNU Pondok Aren.</p><ol class="stp"><li>Isi data pada formulir</li><li>Tekan tombol kirim, WhatsApp terbuka dengan pesan yang sudah tersusun</li><li>Pesan diterima sekretariat MWCNU Pondok Aren</li></ol></div><div class="rq-r"><label class="fld"><span>Nama majelis taklim *</span><input type="text" name="nama" placeholder="Nama majelis" required autocomplete="off"></label><label class="fld"><span>Pengasuh / ustadz *</span><input type="text" name="asuh" placeholder="Nama pengasuh" required autocomplete="off"></label><label class="fld"><span>Ranting / kelurahan *</span><select name="ranting" data-rt required></select></label><label class="fld"><span>Alamat / tempat pengajian *</span><input type="text" name="tempat" placeholder="Masjid / musholla / alamat" required autocomplete="off"></label><label class="fld"><span>Hari pengajian *</span><select name="hari" required><option value="">Pilih hari</option><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Ahad</option><option>Beberapa hari dalam sepekan</option></select></label><label class="fld"><span>Jam</span><input type="time" name="jam" placeholder="" autocomplete="off"></label><label class="fld"><span>Perkiraan jumlah jamaah</span><input type="number" name="jml" placeholder="Opsional" autocomplete="off"></label><label class="fld"><span>Nomor HP kontak *</span><input type="tel" name="hp" placeholder="08xx-xxxx-xxxx" required autocomplete="off"></label><label class="fld"><span>Catatan</span><input type="text" name="cat" placeholder="Opsional" autocomplete="off"></label><button type="button" class="btn wa">Kirim pendaftaran lewat WhatsApp</button><p class="fm-msg" role="status"></p><p class="fm-note">Data hanya dikirim lewat WhatsApp ke sekretariat dan tidak disimpan di situs ini.</p></div></div></div></section><section id="konsultasi" class="vw" hidden><div class="wrap"><div class="vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>
+<div class="pg-head pg-service-head"><span class="sec-kicker">Tanya &amp; bimbingan</span><h1>Konsultasi Agama</h1><p class="lead">Sampaikan pertanyaan keagamaan kepada MWCNU Pondok Aren. Pertanyaan dikirim lewat WhatsApp ke sekretariat; Anda boleh bertanya sebagai Hamba Allah.</p><div class="pg-head-actions"><a class="btn" href="#ka-form">Ajukan pertanyaan</a><a class="btn o2" href="#ka-dir">Lihat tanya jawab</a></div></div>
 <h3 class="mt-h">Pilih topik pertanyaan</h3>
 <div class="mt-fs" id="ka-cats"></div>
 <h3 class="mt-h" id="ka-dir">Tanya jawab pilihan <small id="ka-n"></small></h3>
@@ -226,8 +231,21 @@
 <label class="fld"><span>Nomor HP / WhatsApp *</span><input type="tel" id="ka-hp" placeholder="08xx-xxxx-xxxx" required autocomplete="off"></label>
 <label class="chk"><input type="checkbox" id="ka-pub"> Saya bersedia jika pertanyaan dan jawabannya ditampilkan di Tanya Jawab (tanpa nama)</label>
 <button type="button" class="btn wa" id="ka-send">Kirim pertanyaan lewat WhatsApp</button><p class="fm-msg" id="ka-msg" role="status"></p><p class="fm-note">Data hanya dikirim lewat WhatsApp ke sekretariat dan tidak disimpan di situs ini.</p></div></div>
-<div class="chips" style="margin-top:26px"><div class="rc"><b>Tulis dengan jelas</b><small>Sertakan konteks yang cukup, tetapi hindari data pribadi yang sensitif seperti nomor identitas.</small></div><div class="rc"><b>Boleh tanpa nama</b><small>Anda dapat memilih tampil sebagai Hamba Allah.</small></div><div class="rc"><b>Persoalan kompleks</b><small>Persoalan seperti waris atau sengketa umumnya perlu ditindaklanjuti dengan pertemuan langsung dan dokumen pendukung.</small></div></div>
-</div></section><section id="daftar" class="vw" hidden><div class="wrap" id="kartu-app"><h2>Kartu Anggota MWCNU Pondok Aren</h2><a class="back" href="#top">&larr; Kembali ke beranda</a>
+<div class="chips ka-guidance" style="margin-top:26px"><div class="rc"><b>Jelaskan konteks</b><small>Sertakan informasi yang cukup; hindari membagikan data sensitif.</small></div><div class="rc"><b>Privasi Anda</b><small>Pertanyaan boleh disampaikan sebagai Hamba Allah. Data hanya dibagikan lewat WhatsApp.</small></div><div class="rc"><b>Masalah khusus</b><small>Persoalan waris atau sengketa mungkin memerlukan konsultasi langsung dan dokumen pendukung.</small></div></div>
+</div></section>
+<section id="kontak" class="vw" hidden><div class="wrap">
+<div class="vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>
+<div class="pg-head pg-service-head"><span class="sec-kicker">Kami siap membantu</span><h1>Hubungi MWCNU Pondok Aren</h1><p class="lead">Untuk informasi kegiatan, layanan, kerja sama, atau menyampaikan kabar dari ranting, silakan hubungi sekretariat.</p></div>
+<div class="contact-layout">
+<div class="contact-main">
+<a class="contact-card contact-primary" href="https://wa.me/6285161033689" target="_blank" rel="noopener"><span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.5 11.7a8.5 8.5 0 0 1-12.6 7.4L3 20l.9-4.7a8.5 8.5 0 1 1 16.6-3.6Z"/><path d="M8.6 8.2c.5 2.8 2.4 4.7 5.2 5.3l1.2-1.2 2 .9c.3.1.4.4.3.7-.3 1-1.1 1.5-2.1 1.5-3.9-.2-7.8-4.1-8-8 0-1 .6-1.8 1.5-2.1.3-.1.6 0 .7.3l.9 2-1.7.6Z"/></svg></span><span class="contact-card-copy"><small>WHATSAPP SEKRETARIAT</small><b>0851-6103-3689</b><span>Chat untuk pertanyaan dan koordinasi umum</span></span><span class="contact-arrow" aria-hidden="true">↗</span></a>
+<a class="contact-card" href="mailto:mwcnu.pdaren@gmail.com"><span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg></span><span class="contact-card-copy"><small>EMAIL</small><b>mwcnu.pdaren@gmail.com</b><span>Untuk surat dan komunikasi tertulis</span></span><span class="contact-arrow" aria-hidden="true">↗</span></a>
+<div class="contact-address"><span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div><small>ALAMAT SEKRETARIAT</small><p>Jl. Garuda Raya No. 107A, Kel. Jurangmangu Timur, Kec. Pondok Aren, Kota Tangerang Selatan, Banten.</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Jl.+Garuda+Raya+No.+107A+Jurangmangu+Timur+Pondok+Aren+Tangerang+Selatan" target="_blank" rel="noopener">Buka di Google Maps <span aria-hidden="true">↗</span></a></div></div>
+</div>
+<aside class="contact-aside"><span class="contact-aside-kicker">TERHUBUNG DENGAN KAMI</span><h2>Ikuti kabar dan kegiatan MWCNU.</h2><p>Temukan informasi terbaru melalui kanal resmi MWCNU Pondok Aren.</p><div class="contact-social"><a href="https://www.youtube.com/@TVNUPondokAren" target="_blank" rel="noopener">YouTube <span>↗</span></a><a href="https://www.instagram.com/mwcnupondokaren/" target="_blank" rel="noopener">Instagram <span>↗</span></a><a href="https://web.facebook.com/mwcnupdaren" target="_blank" rel="noopener">Facebook <span>↗</span></a><a href="https://www.tiktok.com/@mwcnupdaren" target="_blank" rel="noopener">TikTok <span>↗</span></a></div></aside>
+</div>
+</div></section>
+<section id="daftar" class="vw" hidden><div class="wrap" id="kartu-app"><h2>Kartu Anggota MWCNU Pondok Aren</h2><a class="back" href="#top">&larr; Kembali ke beranda</a>
 <p class="pg-lead">Buat pratinjau kartu anggota dan unduh sebagai PDF siap cetak (ukuran kartu 85,6 &times; 54 mm) atau gambar untuk disimpan di HP. Nomor dan QR dibuat di perangkat Anda; nomor ini belum tercatat atau diverifikasi oleh MWCNU, dan belum dapat digunakan sebagai bukti keanggotaan atau absensi.</p>
 <div class="kt-auth" id="kAuth"><div class="kt-auth-l"><span class="sm-k"><i></i>Masuk dulu</span><h3>Masuk untuk membuat Kartu Anggota</h3><p>Untuk melindungi data Anda, pembuatan Kartu Anggota wajib masuk. Jika Anda belum punya profil, profil akan <b>dibuatkan sekaligus</b> saat Anda daftar — tidak perlu langkah tambahan.</p></div><form class="kt-auth-f" id="kAuthF"><div class="kt-tabs"><button type="button" id="kTabIn" class="on">Masuk</button><button type="button" id="kTabUp">Buat akun &amp; profil</button></div><label class="fld"><span>Email *</span><input type="email" id="a-email" autocomplete="email" placeholder="contoh: nama@email.com"></label><label class="fld"><span>Kata sandi *</span><input type="password" id="a-pass" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label class="fld" data-reg><span>Nama lengkap *</span><input type="text" id="a-nama" autocomplete="name" placeholder="Nama sesuai KTP"></label><label class="fld" data-reg><span>Nomor HP / WhatsApp *</span><input type="tel" id="a-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label><button type="submit" class="btn" id="kAuthBtn">Masuk</button><p class="fm-msg" id="kAuthMsg" role="status"></p><p class="fm-note">Kata sandi &amp; profil tersimpan aman melalui Supabase Auth. Jika server belum tersedia, profil tersimpan di perangkat ini dulu.</p></form></div>
 <div class="kt-bar" id="kBar" hidden><span class="sm-k"><i></i>Profil</span><div class="kt-bar-t"><b id="kWho">—</b><small id="kProfState">—</small></div><button type="button" class="kt-b" id="kOut">Keluar</button></div>
@@ -271,7 +289,7 @@
 <div class="lbm"><button id="lbp" aria-label="Foto sebelumnya">&lsaquo;</button><img id="lbi" alt=""><button id="lbn" aria-label="Foto berikutnya">&rsaquo;</button></div>
 <div class="lbf"><b id="lbt"></b><small id="lbe"></small></div></dialog>
 
-<footer id="kontak"><div class="wrap">
+<footer id="site-footer"><div class="wrap">
 <div class="fcta"><div><h2>Undang pengurus atau kirim kabar kegiatan</h2><p>Sekretariat MWCNU melayani lewat WhatsApp dan email.</p></div>
 <div class="fbtn"><a class="btn" href="https://wa.me/6285161033689" target="_blank" rel="noopener">Kirim pesan WhatsApp</a><a class="btn o" href="mailto:mwcnu.pdaren@gmail.com">Kirim email</a></div></div>
 <div class="fgrid">
@@ -295,7 +313,7 @@
 
 <script src="/js/vendor/qrcode.js?v=20"></script>
 <script src="/js/config.js?v=20"></script>
-<script src="/js/content.js?v=20"></script>
+<script src="/js/content.js?v=25"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
 <div class="gs-panel" role="document">

@@ -12,6 +12,10 @@ node_modules/
 mwcnu-pondok-aren/
 baseline/
 qa.mjs
+qa-*.mjs
+serve-qa.js
+seed-browser-cache.js
+program-*.png
 baseline-*.png
 baseline-design*.png
 baseline-audit*.png

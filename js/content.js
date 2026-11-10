@@ -119,13 +119,14 @@
   function go(d) {
     if (done) return; done = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=24';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=29';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }
   if (!validConfig()) return go(null);
   var cache = null; try { cache = JSON.parse(localStorage.getItem('mwc_data') || 'null'); } catch (e) {}
   var timer = setTimeout(function () { go(cache); }, 3000);
+  if (window.MWC_CFG_FALLBACK) return go(cache);
   var H = { apikey: C.supabaseKey, Authorization: 'Bearer ' + C.supabaseKey };
   function q(path) { return fetch(C.supabaseUrl + '/rest/v1/' + path, { headers: H, cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }); }
   Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc'), q('site_settings?select=key,value')]).then(function (r) {
