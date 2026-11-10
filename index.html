@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0C3B2B">
 <meta property="og:title" content="MWCNU Pondok Aren"><meta property="og:description" content="Portal resmi MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=21">
+<link rel="stylesheet" href="/css/style.css?v=22">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -98,7 +98,7 @@
 </div></section>
 
 <section id="banom" class="ho"><div class="wrap">
-<div class="sh2"><div><span class="sec-kicker">Sayap Organisasi</span><h2>Badan Otonom NU</h2></div></div>
+<div class="sh2"><div><span class="sec-kicker">Sayap Organisasi</span><h2>Badan Otonom NU</h2></div><a class="va" href="#banom">Jelajahi semua &rarr;</a></div>
 <div id="banomgrid"></div>
 </div></section>
 
@@ -122,6 +122,20 @@
 <div class="program-hero"><div><span class="sec-kicker">Arah khidmat</span><h2>Program Khidmat</h2><p class="lead">Lima jalur pengabdian MWCNU Pondok Aren bersama ranting dan badan otonom. Pilih program untuk melihat fokus dan kegiatan utamanya.</p></div><span class="program-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8m0-12.8L5.6 18.4"/></svg></span></div>
 <div class="pg"><div class="pl" id="pl" role="tablist" aria-label="Daftar program"></div><div class="pd" id="pd" role="tabpanel" aria-live="polite"></div></div>
 <p class="program-note"><span aria-hidden="true">✦</span> Pelaksanaan program menyesuaikan kebutuhan warga dan koordinasi dengan Pengurus Ranting NU.</p>
+</div></section>
+
+<section id="banom-page" class="vw" hidden><div class="wrap">
+<div class="vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>
+<div class="pg-head pg-service-head bp-head"><span class="sec-kicker">Sayap organisasi</span><h1>Badan Otonom NU</h1><p class="lead">Badan otonom adalah sayap Nahdlatul Ulama yang bergerak di bidang kepemudaan, perempuan, pelajar, dan seni bela diri. Kenali arah khidmat dan kegiatan masing-masing di Kecamatan Pondok Aren.</p><div class="pg-head-actions"><a class="btn" href="#bp-dir">Jelajahi badan otonom</a><a class="btn o2" href="#kontak">Hubungi sekretariat</a></div></div>
+<div class="bp-stats" id="bpStats"></div>
+<div class="bp-toolbar" id="bp-dir">
+<label class="bp-search" for="bpq"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="bpq" type="search" placeholder="Cari badan otonom, ketua, atau kegiatan" autocomplete="off" aria-label="Cari badan otonom"><kbd>/</kbd></label>
+<div class="bp-chips" id="bpChips" role="tablist" aria-label="Filter bidang gerak"></div>
+</div>
+<p class="bp-count" id="bpCount" role="status"></p>
+<div class="bp-grid" id="bpGrid" aria-live="polite"></div>
+<div class="bp-empty" id="bpEmpty" hidden><b>Belum ada yang cocok</b><span>Coba kata kunci lain atau pilih bidang gerak yang berbeda.</span><button type="button" class="btn o2" id="bpReset">Tampilkan semua</button></div>
+<p class="bp-note"><span aria-hidden="true">✦</span> Data badan otonom dikelola melalui CMS MWCNU Pondok Aren. Untuk mengusulkan kegiatan bersama, hubungi sekretariat.</p>
 </div></section>
 
 <section id="struktur" class="alt vw" hidden><div class="wrap">
@@ -285,6 +299,7 @@
 </main>
 
 <dialog id="dlg" aria-label="Detail"><button class="x" id="dlgX" aria-label="Tutup">Tutup</button><div id="dlgBody"></div></dialog>
+<dialog id="bpDlg" class="bp-dlg" aria-labelledby="bpDlgTitle"><button class="x" id="bpDlgX" aria-label="Tutup profil">Tutup</button><div id="bpDlgBody"></div></dialog>
 <dialog id="lb" aria-label="Penampil foto"><div class="lbt"><span id="lbc"></span><button class="x2" id="lbx">Tutup</button></div>
 <div class="lbm"><button id="lbp" aria-label="Foto sebelumnya">&lsaquo;</button><img id="lbi" alt=""><button id="lbn" aria-label="Foto berikutnya">&rsaquo;</button></div>
 <div class="lbf"><b id="lbt"></b><small id="lbe"></small></div></dialog>
@@ -313,7 +328,7 @@
 
 <script src="/js/vendor/qrcode.js?v=20"></script>
 <script src="/js/config.js?v=20"></script>
-<script src="/js/content.js?v=25"></script>
+<script src="/js/content.js?v=26"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
 <div class="gs-panel" role="document">

@@ -12,6 +12,7 @@ function fd(iso) { var p = String(iso || '').split('-'); return p.length == 3 &&
 var RT = ['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
 var TOPIK = ['Ibadah','Akidah','Akhlak & tasawuf','Muamalah','Keluarga','Waris & wasiat','Amaliyah NU','Lainnya'];
 var HARI = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad','Beberapa hari dalam sepekan'];
+var BIDANG = ['Kepemudaan','Perempuan','Pelajar','Seni Bela Diri','Sosial & Dakwah','Lainnya'];
 var LINKS = ['#layanan','#ambulans','#zis','#majelis','#konsultasi','#daftar','#berita','#agenda','#galeri','#ranting','#banom','#struktur','#video','#program'];
 var IKON = ['ambulans','zakat','majelis','konsultasi','beasiswa','kesehatan','info','kalender','buku','hati','telepon','lokasi'];
 var HALAMAN = ['sejarah','visi','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
@@ -48,8 +49,15 @@ var COLS = {
   T('bagian','Bagian',{t:'select',o:['Mustasyar','Syuriyah','Tanfidziyah','Badan otonom'],req:1}), T('jabatan','Jabatan',{req:1,h:'Contoh: Rois, Wakil Rois, Ketua, Sekretaris'}), T('nama','Nama dan gelar',{req:1})] },
  ranting: { l: 'Ranting (PRNU)', g: 'Organisasi', e: 'admin', ti: function (d) { return d.kelurahan; }, su: function (d) { return d.ketua || ''; }, F: [
   T('kelurahan','Kelurahan',{t:'select',o:RT,req:1}), T('ketua','Ketua PRNU',{req:1})] },
- banom: { l: 'Badan Otonom', g: 'Organisasi', e: 'admin', ti: function (d) { return d.nama; }, su: function (d) { return d.nama_lengkap || ''; }, F: [
-  T('nama','Nama singkat',{req:1}), T('nama_lengkap','Nama lengkap'), T('deskripsi','Deskripsi',{t:'area'}), T('monogram','Monogram',{h:'2 atau 3 huruf, contoh: GA'}), T('warna','Warna',{t:'color'})] },
+ banom: { l: 'Badan Otonom', g: 'Organisasi', e: 'admin', ti: function (d) { return d.nama; }, su: function (d) { return [d.bidang, d.nama_lengkap].filter(Boolean).join(' · '); }, F: [
+  T('nama','Nama singkat',{req:1}), T('nama_lengkap','Nama lengkap'), T('bidang','Bidang gerak',{t:'select',o:BIDANG}),
+  T('deskripsi','Deskripsi',{t:'area',h:'Tampil pada kartu dan halaman profil badan otonom.'}),
+  T('logo','Logo',{t:'image',f:'banom',max:900,h:'Unggah logo resmi (PNG transparan disarankan). Bila kosong, situs memakai inisial nama.'}),
+  T('warna','Warna aksen',{t:'color'}),
+  T('ketua','Ketua',{h:'Opsional. Contoh: Nama Ketua PC GP Ansor Pondok Aren.'}),
+  T('kontak','Kontak pengurus',{h:'Opsional. Nomor WhatsApp atau email pengurus.'}),
+  T('kegiatan','Kegiatan utama',{t:'area',h:'Satu baris satu kegiatan. Tampil di halaman profil.'}),
+  T('tautan','Tautan resmi',{dl:LINKS,h:'Opsional. Halaman internal (contoh #kontak) atau alamat lengkap https://…'})] },
  halaman: { l: 'Halaman Statis', g: 'Organisasi', e: 'admin', ti: function (d) { return d.judul || d.slug; }, su: function (d) { return 'Halaman: ' + (d.slug || ''); }, F: [
   T('slug','Halaman',{t:'select',o:HALAMAN,req:1,h:'Memilih halaman yang isinya diganti. Satu halaman satu entri.'}), T('judul','Judul halaman'), T('foto','Foto sampul (opsional)',{t:'image',f:'halaman'}),
   T('isi','Isi halaman',{t:'rich',req:1,h:'Format: "## Judul bagian", "- butir daftar", **tebal**, paragraf dipisah baris kosong.'})] }
@@ -258,7 +266,7 @@ async function viewList(key, q, flt, pub) {
   var shown = list.filter(function (x) { return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || (pub === 'published' ? x.published : !x.published)); });
   var movable = !c.ord && !q && !pub;
   var rows = shown.map(function (x, i) {
-    var writable = isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase(), media = safeMediaURL(x.data.foto), title = c.ti(x.data) || '(tanpa judul)';
+    var writable = isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase(), media = safeMediaURL(x.data.foto || x.data.logo), title = c.ti(x.data) || '(tanpa judul)';
     var thumb = media ? '<img class="row-thumb" src="' + esc(media) + '" alt="" loading="lazy">' : '';
     var more = '<details class="row-menu"><summary class="act" aria-label="Aksi lainnya" title="Aksi lainnya">•••</summary><div class="row-menu-items">' + (movable ? '<button class="act" data-mv="-1" data-id="' + x.id + '" title="Naikkan urutan">Naikkan</button><button class="act" data-mv="1" data-id="' + x.id + '" title="Turunkan urutan">Turunkan</button>' : '') + '<button class="act" data-dup="' + x.id + '">Salin sebagai draf</button><button class="act d" data-del="' + x.id + '">Hapus</button></div></details>';
     return '<tr><td class="t"><span class="row-title">' + thumb + '<span><b>' + esc(title) + '</b><small>' + esc(c.su(x.data)) + '</small></span></span></td><td class="hm"><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></td><td class="a">' + (writable ? '<a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a><button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button>' + more : '<span class="chip">Hanya baca</span>') + '</td></tr>';

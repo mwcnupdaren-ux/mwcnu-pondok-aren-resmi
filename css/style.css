@@ -6282,3 +6282,96 @@ html.js-rv #konsultasi #ka-cats,html.js-rv #konsultasi #ka-cats .mt-f{opacity:1!
 #program .program-note{max-width:76ch}
 @media(max-width:820px){#program .pl{overscroll-behavior-x:contain}#program .program-hero{align-items:flex-start}#program .pg{align-items:start}}
 @media(prefers-reduced-motion:reduce){#program .pl button,#program .program-tab-arrow{transition:none!important;transform:none!important}#program .pd.sw>*{animation:none!important}}
+
+/* ===== Halaman Badan Otonom (route #banom) ===== */
+#banom-page{padding:96px 0 88px!important}
+#banom-page .bp-head{position:relative;margin:0 0 26px!important}
+#banom-page .bp-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 24px}
+#banom-page .bp-stat{display:flex;flex-direction:column;gap:3px;background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+#banom-page .bp-stat b{font:700 1.5rem/1.1 var(--fh);color:var(--ink);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+#banom-page .bp-stat small{color:var(--mut);font-size:.76rem;font-weight:600;letter-spacing:.01em}
+#banom-page .bp-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px;scroll-margin-top:calc(var(--top-h,38px) + 96px)}
+#banom-page .bp-search{display:flex;align-items:center;gap:10px;flex:1 1 300px;min-width:0;background:var(--surf);border:1px solid var(--line);border-radius:999px;padding:10px 16px;transition:border-color .2s,box-shadow .2s}
+#banom-page .bp-search:focus-within{border-color:var(--g2);box-shadow:0 0 0 4px color-mix(in srgb,var(--g2) 12%,transparent)}
+#banom-page .bp-search svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;color:var(--mut)}
+#banom-page .bp-search input{flex:1 1 auto;min-width:0;border:0;background:none;font:inherit;color:var(--ink);outline:none;padding:4px 0}
+#banom-page .bp-search input::placeholder{color:var(--mut)}
+#banom-page .bp-search kbd{flex:none;font:700 .68rem/1 var(--fz);color:var(--mut);border:1px solid var(--line);border-radius:7px;padding:3px 7px}
+#banom-page .bp-chips{display:flex;flex-wrap:wrap;gap:8px}
+#banom-page .bp-chip{border:1px solid var(--line);background:var(--surf);color:var(--mut);border-radius:999px;padding:9px 15px;font:600 .78rem/1 var(--fz);cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+#banom-page .bp-chip:hover{border-color:color-mix(in srgb,var(--g2) 45%,var(--line));color:var(--ink)}
+#banom-page .bp-chip.on{background:var(--g2);border-color:var(--g2);color:#fff}
+#banom-page .bp-chip:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 40%,transparent);outline-offset:2px}
+#banom-page .bp-count{margin:0 0 16px;color:var(--mut);font-size:.78rem;font-weight:600}
+#banom-page .bp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+#banom-page .bp-card{--bc:#17352A;display:flex;flex-direction:column;gap:9px;width:100%;text-align:left;font:inherit;color:inherit;background:var(--surf);border:1px solid var(--line);border-radius:24px;padding:22px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+#banom-page .bp-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--bc) 42%,var(--line));box-shadow:0 24px 48px -32px var(--bc)}
+#banom-page .bp-card:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 45%,transparent);outline-offset:3px}
+#banom-page .bp-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#banom-page .bp-logo{--bc:#17352A;display:grid;place-items:center;width:64px;height:64px;flex:none;border-radius:18px;background:color-mix(in srgb,var(--bc) 12%,var(--surf));color:var(--bc);overflow:hidden}
+#banom-page .bp-logo img{width:100%;height:100%;object-fit:contain;padding:8px;display:block}
+#banom-page .bp-logo b{font:800 1.15rem/1 var(--fh);letter-spacing:.02em}
+#banom-page .bp-bidang{display:inline-block;font:700 .6rem/1 var(--fz);letter-spacing:.13em;text-transform:uppercase;color:var(--bc);background:color-mix(in srgb,var(--bc) 10%,var(--surf));border-radius:999px;padding:6px 10px;white-space:nowrap}
+#banom-page .bp-name{font:700 1.12rem/1.25 var(--fh);color:var(--ink);letter-spacing:-.02em;margin-top:2px}
+#banom-page .bp-full{color:var(--mut);font-size:.79rem;line-height:1.45}
+#banom-page .bp-desc{color:var(--mut);font-size:.86rem;line-height:1.65}
+#banom-page .bp-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:13px;border-top:1px solid var(--line)}
+#banom-page .bp-foot .bp-count{margin:0;font-size:.74rem}
+#banom-page .bp-go{display:inline-flex;align-items:center;gap:6px;color:var(--bc);font:700 .78rem/1 var(--fz)}
+#banom-page .bp-empty{display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:var(--surf);border:1px dashed var(--line);border-radius:22px;padding:26px}
+#banom-page .bp-empty[hidden]{display:none!important}
+#banom-page .bp-empty b{font:700 1rem/1.3 var(--fh);color:var(--ink)}
+#banom-page .bp-empty span{color:var(--mut);font-size:.86rem;line-height:1.6}
+#banom-page .bp-empty .btn{margin-top:10px}
+#banom-page .bp-note{display:flex;gap:8px;align-items:flex-start;margin:28px 0 0;color:var(--mut);font-size:.8rem;line-height:1.7;max-width:78ch}
+#banom-page .bp-note span{color:var(--gold)}
+
+/* Home teaser: logo gambar menggantikan monogram */
+#banom .bnic{overflow:hidden}
+#banom .bnic img{width:100%;height:100%;object-fit:contain;padding:7px;display:block;border-radius:inherit}
+
+/* Dialog profil badan otonom */
+.bp-dlg{position:relative;width:min(660px,94vw)!important;max-height:88vh;overflow:auto;padding:0!important;border-radius:26px!important}
+.bp-dlg>.x{position:absolute;top:14px;right:14px;z-index:3;float:none;margin:0}
+.bp-profile{--bc:#17352A;padding:30px}
+.bp-profile-head{display:flex;align-items:center;gap:16px;padding-right:64px}
+.bp-profile-id{min-width:0}
+.bp-profile .bp-logo-lg{width:84px!important;height:84px!important;border-radius:22px!important}
+.bp-profile .bp-logo-lg img{padding:10px}
+.bp-profile .bp-logo-lg b{font-size:1.5rem}
+.bp-profile h2{margin:7px 0 4px;font:700 clamp(1.35rem,3.4vw,1.85rem)/1.15 var(--fh);letter-spacing:-.03em;color:var(--ink)}
+.bp-profile-full{margin:0;color:var(--mut);font-size:.83rem;line-height:1.5}
+.bp-profile-desc{margin:20px 0;color:var(--mut);font-size:.92rem;line-height:1.75}
+.bp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:0 0 20px}
+.bp-facts>div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.bp-facts dt{font:700 .6rem/1.2 var(--fz);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.bp-facts dd{margin:5px 0 0;color:var(--ink);font-weight:600;font-size:.88rem;line-height:1.45;overflow-wrap:anywhere}
+.bp-keg h3{margin:0 0 10px;font:700 .95rem/1.3 var(--fh);color:var(--ink)}
+.bp-keg ul{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0 0 24px;padding:0}
+.bp-keg li{background:color-mix(in srgb,var(--bc) 10%,var(--surf));color:var(--bc);border-radius:999px;padding:7px 12px;font-size:.77rem;font-weight:600;line-height:1.35}
+.bp-profile-actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}
+.bp-profile-actions .btn{margin:0;text-decoration:none}
+.bp-profile-actions .btn.o2{background:var(--surf)!important}
+:root[data-theme="dark"] .bp-dlg{background:var(--surf);color:var(--ink)}
+:root[data-theme="dark"] .bp-facts>div{background:var(--bg-alt,var(--bg))}
+
+@media(max-width:900px){
+  #banom-page .bp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #banom-page .bp-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+}
+@media(max-width:640px){
+  #banom-page{padding:72px 0 104px!important}
+  #banom-page .bp-search{flex:1 1 100%}
+  #banom-page .bp-chips{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+  #banom-page .bp-chip{flex:none}
+  #banom-page .bp-grid{grid-template-columns:1fr}
+  #banom-page .bp-card{padding:20px}
+  .bp-profile{padding:22px 20px}
+  .bp-profile-head{flex-direction:row;align-items:center;gap:14px;padding-right:56px}
+  .bp-profile .bp-logo-lg{width:64px!important;height:64px!important;border-radius:18px!important}
+  .bp-profile-actions .btn{flex:1 1 100%;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){
+  #banom-page .bp-card,#banom-page .bp-chip{transition:none!important}
+  #banom-page .bp-card:hover{transform:none!important}
+}

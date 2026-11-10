@@ -154,8 +154,8 @@ document.getElementById('sb').onclick=function(){var r=document.getElementById('
 if(r){q.value=r;draw();go('#ranting')}else if(sv.indexOf('|')>-1){var pp=sv.split('|');drawG(pp[1]);go(pp[0])}else go(sv)};
 document.getElementById('rq').onkeydown=function(e){if(e.key=='Enter')document.getElementById('sb').click()};
 document.getElementById('nb').onclick=function(){var t=document.getElementById('nm').value.trim();window.open('https://wa.me/6285161033689'+(t?'?text='+encodeURIComponent(t):''),'_blank','noopener')};
-var VW=['program','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
-var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
+var VW=['program','banom-page','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
+var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
 [].forEach.call(document.querySelectorAll('.sl'),function(e,i){e.style.backgroundImage='url('+PH[HS[i%HS.length]]+')'});
 var LSV=MW.md('layanan',function(x){return x.tampil===false?null:{title:x.judul,desc:x.deskripsi||'',icon:ICONS[x.ikon]||ICONS.info,link:x.tautan||'#layanan'}},[
 {title:'Ambulans 24/7',desc:'Layanan ambulans gratis untuk warga NU Pondok Aren',icon:'<path d="M10 10H6"/><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14"/><path d="M8 8v4"/><path d="M9 18h6"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',link:'#ambulans'},
@@ -171,29 +171,83 @@ var LSV_HIDDEN=[
 function layananCard(l){return '<a class="lycard" href="'+esc(safeURL(l.link))+'"><span class="lyic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+l.icon+'</svg></span><span><b>'+esc(l.title)+'</b><small>'+esc(l.desc)+'</small></span></a>'}
 
 // Badan Otonom NU
-var BANOM=MW.md('banom',function(x){return{name:x.nama,full:x.nama_lengkap||'',desc:x.deskripsi||'',logo:x.monogram||'',color:x.warna||'#17352A'}},[
-{name:'GP Ansor',full:'Gerakan Pemuda Ansor',desc:'Organisasi kepemudaan untuk pemberdayaan, keamanan, dan pengabdian masyarakat',logo:'GA',color:'#1B7A4A'},
-{name:'Fatayat NU',full:'Fatayat Nahdlatul Ulama',desc:'Organisasi perempuan muda untuk dakwah dan pemberdayaan keluarga',logo:'FN',color:'#C2185B'},
-{name:'IPNU',full:'Ikatan Pelajar Nahdlatul Ulama',desc:'Organisasi pelajar putra untuk pembinaan karakter dan kepemimpinan',logo:'IP',color:'#1565C0'},
-{name:'IPPNU',full:'Ikatan Pelajar Putri Nahdlatul Ulama',desc:'Organisasi pelajar putri untuk dakwah, pendidikan, dan pengembangan diri',logo:'PP',color:'#7B1FA2'},
-{name:'Pagar Nusa',full:'Pencak Silat Nahdlatul Ulama Pagar Nusa',desc:'Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.',logo:'PN',color:'#D8A62B'}
+var BANOM=MW.md('banom',function(x){return{
+  name:x.nama||'Badan Otonom',full:x.nama_lengkap||'',desc:x.deskripsi||'',
+  bidang:x.bidang||'',logo:imgURL(x.logo)||'',initial:String(x.monogram||'').trim(),
+  color:x.warna||'#17352A',ketua:x.ketua||'',kontak:x.kontak||'',
+  kegiatan:MW.lines(x.kegiatan),link:safeURL(x.tautan||'')
+}},[
+{name:'GP Ansor',full:'Gerakan Pemuda Ansor',bidang:'Kepemudaan',desc:'Organisasi kepemudaan untuk pemberdayaan, keamanan, dan pengabdian masyarakat',initial:'GA',color:'#1B7A4A',ketua:'',kontak:'',kegiatan:['Pengajian dan kaderisasi pemuda','Pengamanan kegiatan jam\'iyyah','Pengabdian sosial masyarakat'],link:''},
+{name:'Fatayat NU',full:'Fatayat Nahdlatul Ulama',bidang:'Perempuan',desc:'Organisasi perempuan muda untuk dakwah dan pemberdayaan keluarga',initial:'FN',color:'#C2185B',ketua:'',kontak:'',kegiatan:['Dakwah dan pengajian keluarga','Pemberdayaan ekonomi perempuan','Pendidikan dan kesehatan ibu'],link:''},
+{name:'IPNU',full:'Ikatan Pelajar Nahdlatul Ulama',bidang:'Pelajar',desc:'Organisasi pelajar putra untuk pembinaan karakter dan kepemimpinan',initial:'IP',color:'#1565C0',ketua:'',kontak:'',kegiatan:['Kaderisasi pelajar NU','Kajian keislaman dan kebangsaan','Bakti sosial pelajar'],link:''},
+{name:'IPPNU',full:'Ikatan Pelajar Putri Nahdlatul Ulama',bidang:'Pelajar',desc:'Organisasi pelajar putri untuk dakwah, pendidikan, dan pengembangan diri',initial:'PP',color:'#7B1FA2',ketua:'',kontak:'',kegiatan:['Kaderisasi pelajar putri','Kajian dan literasi','Pengembangan minat dan bakat'],link:''},
+{name:'Pagar Nusa',full:'Pencak Silat Nahdlatul Ulama Pagar Nusa',bidang:'Seni Bela Diri',desc:'Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.',initial:'PN',color:'#D8A62B',ketua:'',kontak:'',kegiatan:['Latihan pencak silat','Pembinaan karakter kader','Penampilan pada kegiatan NU'],link:''}
 ]);
-if(!BANOM.some(function(b){return b.name.toLowerCase()==='pagar nusa'}))BANOM.push({name:'Pagar Nusa',full:'Pencak Silat Nahdlatul Ulama Pagar Nusa',desc:'Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.',logo:'PN',color:'#D8A62B'});
-var bnmg=document.getElementById('banomgrid');if(bnmg){var h='';BANOM.forEach(function(b){var color=/^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#17352A';h+='<div class="bncard" role="group" aria-label="'+esc(b.name)+'" style="--bc:'+color+'"><span class="bnic" aria-hidden="true">'+esc(b.logo)+'</span><span class="bn-copy"><b>'+esc(b.name)+'</b><small>'+esc(b.desc)+'</small></span></div>'});put(bnmg,h);if('IntersectionObserver' in window){var _bio=new IntersectionObserver(function(en,ob){if(en.some(function(e){return e.isIntersecting})){[].forEach.call(bnmg.querySelectorAll('.bncard'),function(c,i){c.classList.add('bn-anim');c.style.animationDelay=(i*90)+'ms'});_bio.disconnect()}},{threshold:.18});_bio.observe(bnmg)}}
+if(!MW.managed('banom')&&!BANOM.some(function(b){return b.name.toLowerCase()==='pagar nusa'}))BANOM.push({name:'Pagar Nusa',full:'Pencak Silat Nahdlatul Ulama Pagar Nusa',bidang:'Seni Bela Diri',desc:'Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.',initial:'PN',color:'#D8A62B',ketua:'',kontak:'',kegiatan:['Latihan pencak silat','Pembinaan karakter kader','Penampilan pada kegiatan NU'],link:''});
+BANOM.forEach(function(b){if(!b.bidang)b.bidang='Lainnya';if(!b.kegiatan)b.kegiatan=[]});
+
+/* ---------- Badan Otonom: halaman interaktif (route #banom) ---------- */
+var BP={q:'',bidang:'Semua',lastFocus:null};
+function bpColor(b){return /^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#17352A'}
+function bpInitial(b){if(b.initial)return b.initial;var w=String(b.name||'').replace(/[^A-Za-z0-9 ]/g,' ').split(/\s+/).filter(Boolean);return((w[0]||'?')[0]+(w[1]?w[1][0]:'')).toUpperCase()}
+function bpSlug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
+function bpLogo(b,cls){var c=bpColor(b);return '<span class="'+cls+'" style="--bc:'+c+'">'+(b.logo?'<img src="'+esc(b.logo)+'" alt="Logo '+esc(b.name)+'" loading="lazy">':'<b aria-hidden="true">'+esc(bpInitial(b))+'</b>')+'</span>'}
+function bpMatch(b,q){if(!q)return true;return [b.name,b.full,b.desc,b.bidang,b.ketua,b.kontak].concat(b.kegiatan||[]).join(' ').toLowerCase().indexOf(q)>-1}
+function bpList(){var q=BP.q.trim().toLowerCase();return BANOM.filter(function(b){return (BP.bidang==='Semua'||b.bidang===BP.bidang)&&bpMatch(b,q)})}
+function bpStats(){var box=document.getElementById('bpStats');if(!box)return;var seen={};BANOM.forEach(function(b){seen[b.bidang]=1});var keg=BANOM.reduce(function(n,b){return n+(b.kegiatan?b.kegiatan.length:0)},0);put(box,[[String(BANOM.length),'Badan otonom'],[String(Object.keys(seen).length),'Bidang gerak'],[String(keg),'Kegiatan tercatat'],['2025–2030','Masa khidmat']].map(function(d){return '<div class="bp-stat"><b>'+esc(d[0])+'</b><small>'+esc(d[1])+'</small></div>'}).join(''))}
+function bpChips(){var box=document.getElementById('bpChips');if(!box)return;var seen={},list=['Semua'];BANOM.forEach(function(b){if(!seen[b.bidang]){seen[b.bidang]=1;list.push(b.bidang)}});put(box,list.map(function(k){var on=BP.bidang===k;return '<button type="button" class="bp-chip'+(on?' on':'')+'" role="tab" aria-selected="'+on+'" data-bidang="'+esc(k)+'">'+esc(k)+'</button>'}).join(''))}
+function bpCard(b){var i=BANOM.indexOf(b),keg=b.kegiatan||[];return '<button type="button" class="bp-card" data-i="'+i+'" style="--bc:'+bpColor(b)+'" aria-label="Buka profil '+esc(b.name)+'"><span class="bp-card-top">'+bpLogo(b,'bp-logo')+'<span class="bp-bidang">'+esc(b.bidang)+'</span></span><b class="bp-name">'+esc(b.name)+'</b>'+(b.full?'<small class="bp-full">'+esc(b.full)+'</small>':'')+'<span class="bp-desc">'+esc(b.desc)+'</span><span class="bp-foot"><span class="bp-count">'+(keg.length?keg.length+' kegiatan':'Profil singkat')+'</span><span class="bp-go">Lihat profil <span aria-hidden="true">→</span></span></span></button>'}
+function bpDraw(){var grid=document.getElementById('bpGrid');if(!grid)return;var list=bpList();put(grid,list.map(bpCard).join(''));var empty=document.getElementById('bpEmpty');if(empty)empty.hidden=!!list.length;var n=document.getElementById('bpCount');if(n)n.textContent=list.length+' dari '+BANOM.length+' badan otonom'}
+function bpOpen(i){
+  var b=BANOM[i];if(!b)return;
+  var dlg=document.getElementById('bpDlg'),body=document.getElementById('bpDlgBody');if(!dlg||!body)return;
+  var keg=b.kegiatan||[],facts='';
+  if(b.ketua)facts+='<div><dt>Ketua</dt><dd>'+esc(b.ketua)+'</dd></div>';
+  if(b.kontak)facts+='<div><dt>Kontak</dt><dd>'+esc(b.kontak)+'</dd></div>';
+  facts+='<div><dt>Bidang</dt><dd>'+esc(b.bidang)+'</dd></div>';
+  var wa='https://wa.me/6285161033689?text='+encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang "+b.name+" MWCNU Pondok Aren.");
+  var link=b.link&&b.link!='#'?'<a class="btn o2" href="'+esc(b.link)+'"'+(b.link.charAt(0)=='#'?'':' target="_blank" rel="noopener"')+'>Tautan resmi</a>':'';
+  put(body,'<div class="bp-profile" style="--bc:'+bpColor(b)+'">'
+    +'<div class="bp-profile-head">'+bpLogo(b,'bp-logo bp-logo-lg')+'<div class="bp-profile-id"><span class="bp-bidang">'+esc(b.bidang)+'</span><h2 id="bpDlgTitle">'+esc(b.name)+'</h2><p class="bp-profile-full">'+esc(b.full||b.desc)+'</p></div></div>'
+    +'<p class="bp-profile-desc">'+esc(b.desc)+'</p>'
+    +'<dl class="bp-facts">'+facts+'</dl>'
+    +(keg.length?'<div class="bp-keg"><h3>Fokus kegiatan</h3><ul>'+keg.map(function(k){return '<li>'+esc(k)+'</li>'}).join('')+'</ul></div>':'')
+    +'<div class="bp-profile-actions"><a class="btn wa" href="'+esc(wa)+'" target="_blank" rel="noopener">Tanya lewat WhatsApp</a><a class="btn o2" href="#kontak" data-bpclose>Hubungi sekretariat</a>'+link+'</div>'
+    +'</div>');
+  BP.lastFocus=document.activeElement;
+  if(!dlg.open)dlg.showModal();
+  dlg.scrollTop=0;
+  var x=document.getElementById('bpDlgX');if(x&&x.focus)try{x.focus()}catch(e){}
+}
+function bpClose(){var dlg=document.getElementById('bpDlg');if(dlg&&dlg.open)dlg.close();if(/^#\/?banom\//.test(location.hash)){try{history.replaceState(null,'',location.pathname+location.search+'#banom')}catch(e){location.hash='#banom'}}if(BP.lastFocus&&BP.lastFocus.focus)try{BP.lastFocus.focus()}catch(e){}}
+(function(){var page=document.getElementById('banom-page');if(!page)return;var q=document.getElementById('bpq'),grid=document.getElementById('bpGrid'),chips=document.getElementById('bpChips'),dlg=document.getElementById('bpDlg');
+if(q)q.addEventListener('input',function(){BP.q=q.value;bpDraw()});
+if(chips)chips.addEventListener('click',function(e){var b=e.target.closest('[data-bidang]');if(!b)return;BP.bidang=b.getAttribute('data-bidang');bpChips();bpDraw()});
+if(grid)grid.addEventListener('click',function(e){var b=e.target.closest('.bp-card');if(!b)return;var i=+b.getAttribute('data-i'),slug=bpSlug(BANOM[i]&&BANOM[i].name);if(slug&&location.hash!='#banom/'+slug)location.hash='#banom/'+slug;else bpOpen(i)});
+var rs=document.getElementById('bpReset');if(rs)rs.onclick=function(){BP.q='';BP.bidang='Semua';if(q)q.value='';bpChips();bpDraw()};
+if(dlg){var x=document.getElementById('bpDlgX');if(x)x.onclick=function(){bpClose()};dlg.addEventListener('click',function(e){if(e.target===dlg)bpClose()});dlg.addEventListener('click',function(e){if(e.target.closest('[data-bpclose]')){e.preventDefault();bpClose();location.hash='#kontak'}});dlg.addEventListener('close',function(){if(/^#\/?banom\//.test(location.hash)){try{history.replaceState(null,'',location.pathname+location.search+'#banom')}catch(e){}}})}
+document.addEventListener('keydown',function(e){if(e.key!='/'||e.ctrlKey||e.metaKey||e.altKey)return;var t=e.target;if(t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;if(!q||page.hidden)return;e.preventDefault();q.focus()});
+bpStats();bpChips();bpDraw()})();
+
+var bnmg=document.getElementById('banomgrid');if(bnmg){var h='';BANOM.forEach(function(b){h+='<div class="bncard" role="group" aria-label="'+esc(b.name)+'" style="--bc:'+bpColor(b)+'"><span class="bnic" aria-hidden="true">'+(b.logo?'<img src="'+esc(b.logo)+'" alt="" loading="lazy">':esc(bpInitial(b)))+'</span><span class="bn-copy"><b>'+esc(b.name)+'</b><small>'+esc(b.desc)+'</small></span></div>'});put(bnmg,h);if('IntersectionObserver' in window){var _bio=new IntersectionObserver(function(en,ob){if(en.some(function(e){return e.isIntersecting})){[].forEach.call(bnmg.querySelectorAll('.bncard'),function(c,i){c.classList.add('bn-anim');c.style.animationDelay=(i*90)+'ms'});_bio.disconnect()}},{threshold:.18});_bio.observe(bnmg)}}
 var lys=document.getElementById('lyscroll');if(lys)put(lys,LSV.map(layananCard).join(''));
 var KG=['program','berita','agenda','galeri'],programDD=document.querySelector('#nav-program')&&document.querySelector('#nav-program').closest('.dd');
 function closeDD(){[].forEach.call(document.querySelectorAll('#nv .dd.open'),function(x){x.classList.remove('open');x.querySelector('.ddb').setAttribute('aria-expanded','false')})}
 function mark(c){[].forEach.call(document.querySelectorAll('#nv a'),function(a){a.classList.toggle('on',a.getAttribute('href')=='#'+c)});if(programDD)programDD.classList.toggle('on',KG.indexOf(c)>=0)}
-function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null;
+function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null,bslug='';
+if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/);if(pm)h='banom'+(pm[1]?'/'+pm[1]:'')}
+var bm=h.match(/^\/?banom(?:\/([^\/]+))?\/?$/);if(bm){bslug=bm[1]||'';h='banom-page'}
+var bpd=document.getElementById('bpDlg');if(bpd&&bpd.open&&h!='banom-page')bpd.close();
 var target=h&&document.getElementById(h),parent=target&&target.closest('.vw');if(parent&&target!==parent){if(parent.hidden){anchorTarget=target;h=parent.id}else{target.scrollIntoView({behavior:'smooth',block:'start'});mark(parent.id);closeDD();return}}
-if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');if(ft)ft.hidden=true;mark('kontak');closeDD();window.scrollTo(0,0);return}}
+if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');if(ft)ft.hidden=true;mark('kontak');closeDD();window.scrollTo(0,0);return}}
 if(h=='video'){h='galeri';m='Video'}else if(h=='galeri')m='Foto';
 var mm=h.match(/^berita\/(\d+)$/);if(mm)h='baca';
 var v=VW.indexOf(h)>=0?h:'';
 var footer=document.getElementById('site-footer');if(footer)footer.hidden=!!v;
 VW.forEach(function(id){document.getElementById(id).hidden=id!=v});
 [].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=!!v});document.body.classList.toggle('inview',!!v);
-if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':(v||'top'));closeDD()}
+if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':(v=='banom-page'?'banom':(v||'top')));closeDD();
+if(v=='banom-page'){var bi=-1;if(bslug)BANOM.forEach(function(b,i){if(bpSlug(b.name)===bslug)bi=i});if(bi>=0)bpOpen(bi)}}
 addEventListener('hashchange',route);route();
 // Dialog, berita, galeri
 var dlg=document.getElementById('dlg'),db=document.getElementById('dlgBody');

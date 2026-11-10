@@ -8,6 +8,14 @@
     {
       "source": "/admin",
       "destination": "/admin/index.html"
+    },
+    {
+      "source": "/banom",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/banom/:slug",
+      "destination": "/index.html"
     }
   ],
   "headers": [

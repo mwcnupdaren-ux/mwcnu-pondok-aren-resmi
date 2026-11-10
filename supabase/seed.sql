@@ -117,15 +117,15 @@ end if; end $$;
 
 do $$ begin if not exists (select 1 from public.content_items where type = 'banom') then
   insert into public.content_items (type, data, sort) values
-    ('banom', $mwc${"nama": "GP Ansor", "nama_lengkap": "Gerakan Pemuda Ansor", "deskripsi": "Organisasi kepemudaan untuk pemberdayaan, keamanan, dan pengabdian masyarakat", "monogram": "GA", "warna": "#1B7A4A"}$mwc$::jsonb, 10),
-    ('banom', $mwc${"nama": "Fatayat NU", "nama_lengkap": "Fatayat Nahdlatul Ulama", "deskripsi": "Organisasi perempuan muda untuk dakwah dan pemberdayaan keluarga", "monogram": "FN", "warna": "#C2185B"}$mwc$::jsonb, 20),
-    ('banom', $mwc${"nama": "IPNU", "nama_lengkap": "Ikatan Pelajar Nahdlatul Ulama", "deskripsi": "Organisasi pelajar putra untuk pembinaan karakter dan kepemimpinan", "monogram": "IP", "warna": "#1565C0"}$mwc$::jsonb, 30),
-    ('banom', $mwc${"nama": "IPPNU", "nama_lengkap": "Ikatan Pelajar Putri Nahdlatul Ulama", "deskripsi": "Organisasi pelajar putri untuk dakwah, pendidikan, dan pengembangan diri", "monogram": "PP", "warna": "#7B1FA2"}$mwc$::jsonb, 40);
+    ('banom', $mwc${"nama": "GP Ansor", "nama_lengkap": "Gerakan Pemuda Ansor", "bidang": "Kepemudaan", "deskripsi": "Organisasi kepemudaan untuk pemberdayaan, keamanan, dan pengabdian masyarakat", "monogram": "GA", "warna": "#1B7A4A", "kegiatan": "Pengajian dan kaderisasi pemuda\nPengamanan kegiatan jam'iyyah\nPengabdian sosial masyarakat"}$mwc$::jsonb, 10),
+    ('banom', $mwc${"nama": "Fatayat NU", "nama_lengkap": "Fatayat Nahdlatul Ulama", "bidang": "Perempuan", "deskripsi": "Organisasi perempuan muda untuk dakwah dan pemberdayaan keluarga", "monogram": "FN", "warna": "#C2185B", "kegiatan": "Dakwah dan pengajian keluarga\nPemberdayaan ekonomi perempuan\nPendidikan dan kesehatan ibu"}$mwc$::jsonb, 20),
+    ('banom', $mwc${"nama": "IPNU", "nama_lengkap": "Ikatan Pelajar Nahdlatul Ulama", "bidang": "Pelajar", "deskripsi": "Organisasi pelajar putra untuk pembinaan karakter dan kepemimpinan", "monogram": "IP", "warna": "#1565C0", "kegiatan": "Kaderisasi pelajar NU\nKajian keislaman dan kebangsaan\nBakti sosial pelajar"}$mwc$::jsonb, 30),
+    ('banom', $mwc${"nama": "IPPNU", "nama_lengkap": "Ikatan Pelajar Putri Nahdlatul Ulama", "bidang": "Pelajar", "deskripsi": "Organisasi pelajar putri untuk dakwah, pendidikan, dan pengembangan diri", "monogram": "PP", "warna": "#7B1FA2", "kegiatan": "Kaderisasi pelajar putri\nKajian dan literasi\nPengembangan minat dan bakat"}$mwc$::jsonb, 40);
 end if; end $$;
 
 -- Tambahkan Pagar Nusa meski data banom lama sudah terisi (aman diulang).
 insert into public.content_items (type, data, sort)
-select 'banom', $mwc${"nama": "Pagar Nusa", "nama_lengkap": "Pencak Silat Nahdlatul Ulama Pagar Nusa", "deskripsi": "Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.", "monogram": "PN", "warna": "#D8A62B"}$mwc$::jsonb, 50
+select 'banom', $mwc${"nama": "Pagar Nusa", "nama_lengkap": "Pencak Silat Nahdlatul Ulama Pagar Nusa", "bidang": "Seni Bela Diri", "deskripsi": "Badan otonom NU yang mewadahi pencak silat serta pembinaan karakter dan pengabdian kader.", "monogram": "PN", "warna": "#D8A62B", "kegiatan": "Latihan pencak silat\nPembinaan karakter kader\nPenampilan pada kegiatan NU"}$mwc$::jsonb, 50
 where not exists (
   select 1 from public.content_items where type = 'banom' and lower(data ->> 'nama') = 'pagar nusa'
 );
