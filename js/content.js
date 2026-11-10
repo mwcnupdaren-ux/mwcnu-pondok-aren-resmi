@@ -103,7 +103,7 @@
       if (note && z.acuan) note.textContent = 'Acuan: harga jual emas ' + z.acuan + '. Ubah sesuai harga terbaru. Nisab zakat = 85 gram emas.';
     }
     M.raw('halaman').forEach(function (h) {
-      var sec = h.slug && document.getElementById(h.slug); if (!sec) return;
+      var sec = h.slug && document.getElementById(h.slug); if (!sec || sec.hasAttribute('data-cms-off')) return;
       var wrap = sec.querySelector('.wrap'), back = wrap && wrap.querySelector('.back'); if (!wrap || !back) return;
       if (h.judul) { var t = wrap.querySelector('h2'); if (t) t.textContent = h.judul; }
       while (back.nextSibling) wrap.removeChild(back.nextSibling);
@@ -119,7 +119,7 @@
   function go(d) {
     if (rendered) return; rendered = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=35';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=36';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }

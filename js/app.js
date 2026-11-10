@@ -5,7 +5,7 @@ var MW=window.MWC||{md:function(t,f,d){return d},set:function(){return null},grp
 function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
 function safeURL(s){s=String(s||'').trim();if(s.charAt(0)=='#'||(s.charAt(0)=='/'&&s.charAt(1)!='/'))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'||u.protocol=='http:'||u.protocol=='mailto:'||u.protocol=='tel:')return u.href}catch(e){}return '#'}
 function imgURL(s){s=String(s||'').trim();if(/^\/(?!\/)[^\\"'<>]*$/.test(s))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'&&u.origin!==location.origin)return u.href}catch(e){}return ''}
-function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI OL OPTION P PATH POLYGON POLYLINE RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}[].forEach.call(e.attributes,function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
+function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI MARK OL OPTION P PATH POLYGON POLYLINE RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}[].forEach.call(e.attributes,function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
 function put(el,html){if(el)el.innerHTML=cleanHTML(html)}
 function fill(id,h){put(document.getElementById(id),h)}
 function ph(u){if(!u)return null;u=imgURL(u);if(!u)return null;var i=PH.indexOf(u);if(i<0){PH.push(u);i=PH.length-1}return i}
@@ -48,7 +48,8 @@ var T=MW.grp({'Mustasyar':L('Mustasyar',['Dr. K.H. Syuhada, M.A.','Drs. K.H. Sya
 'Badan otonom':[['Pemuda','GP Ansor'],['Perempuan muda','Fatayat NU'],['Pelajar putra','IPNU'],['Pelajar putri','IPPNU']]});
 var TOP={'Rois':1,'Katib':1,'Ketua':1,'Sekretaris':1,'Bendahara':1};
 function ini(n){var w=n.split(',')[0].split(/\s+/).filter(function(x){return x&&!/^(dr|drs|k|kh|h|ust)\.?$/i.test(x)&&!/^\(hc\)$/i.test(x)&&!/^([a-z]\.)+$/i.test(x)});return ((w[0]||'?')[0]+(w[1]?w[1][0]:'')).toUpperCase()}
-function card(n,role,top){return '<div class="person'+(top?' top':'')+'"><span class="av">'+ini(n)+'</span><span><b>'+n+'</b>'+(role?'<small>'+role+'</small>':'')+'</span></div>'}
+function hl(s,q){s=esc(s);if(!q)return s;try{return s.replace(new RegExp('('+String(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>')}catch(e){return s}}
+function card(n,role,top,q,meta){return '<button type="button" class="person'+(top?' top':'')+'" data-p="'+esc(n)+'" data-r="'+esc(meta||role||'')+'"><span class="av" aria-hidden="true">'+ini(n)+'</span><span><b>'+hl(n,q)+'</b>'+(role?'<small>'+esc(role)+'</small>':'')+'</span></button>'}
 function ft(k,r){var x=T[k].filter(function(p){return p[0]==r})[0];return x?x[1]:''}
 function LC(r,n){return '<div class="lc"><span class="av">'+ini(n)+'</span><span><small>'+r+'</small><b>'+n+'</b></span></div>'}
 var kph=document.querySelector('.pt img'),kn=ft('Tanfidziyah','Ketua');
@@ -57,12 +58,35 @@ var tb=document.getElementById('tabs'),pn=document.getElementById('panel'),sq=do
 function marks(k){[].forEach.call(tb.children,function(b){b.setAttribute('aria-selected',b.dataset.k==k)})}
 function show(k){curT=k;sq.value='';var g=[],h='';
 T[k].forEach(function(p){var l=g[g.length-1];if(l&&l[0]==p[0])l[1].push(p[1]);else g.push([p[0],[p[1]]])});
-g.forEach(function(x){h+='<div class="grp"><h3>'+x[0]+'<em>'+x[1].length+'</em></h3><div class="gl">'+x[1].map(function(n){return card(n,'',TOP[x[0]])}).join('')+'</div></div>'});
+g.forEach(function(x){h+='<div class="grp"><h3>'+esc(x[0])+'<em>'+x[1].length+'</em></h3><div class="gl">'+x[1].map(function(n){return card(n,'',TOP[x[0]],'',x[0]+', '+k)}).join('')+'</div></div>'});
 put(pn,h);marks(k)}
 Object.keys(T).forEach(function(k){var b=document.createElement('button');b.dataset.k=k;put(b,esc(k)+'<small>'+T[k].length+'</small>');b.setAttribute('role','tab');b.onclick=function(){show(k)};tb.appendChild(b)});
 sq.oninput=function(){var v=sq.value.trim().toLowerCase();if(!v){show(curT);return}
-var r=[];Object.keys(T).forEach(function(k){T[k].forEach(function(p){if(p[1].toLowerCase().indexOf(v)>-1)r.push(card(p[1],p[0]+', '+k,TOP[p[0]]))})});
-put(pn,r.length?'<div class="gl">'+r.join('')+'</div>':'<p class="empty">Nama tidak ditemukan.</p>');marks('')};
+var r=[];Object.keys(T).forEach(function(k){T[k].forEach(function(p){if(p[1].toLowerCase().indexOf(v)>-1)r.push(card(p[1],p[0]+', '+k,TOP[p[0]],v))})});
+put(pn,r.length?'<p class="sres" aria-live="polite">'+r.length+' pengurus cocok dengan &ldquo;'+esc(sq.value.trim())+'&rdquo;</p><div class="gl">'+r.join('')+'</div>':'<div class="empty-sk"><b>Tidak ada hasil</b><p>Tidak ada pengurus yang cocok dengan &ldquo;'+esc(sq.value.trim())+'&rdquo;. Periksa ejaan atau cari bagian lain.</p><button type="button" class="btn o2" data-reset>Reset pencarian</button></div>');marks('')};
+sq.addEventListener('keydown',function(e){if(e.key=='Escape'&&sq.value){sq.value='';show(curT)}});
+pn.addEventListener('click',function(e){
+var rs=e.target.closest('[data-reset]');if(rs){sq.value='';show(curT);try{sq.focus()}catch(x){}return}
+var b=e.target.closest('.person');if(!b)return;personOpen(b.getAttribute('data-p')||'',b.getAttribute('data-r')||'')});
+function personOpen(name,role){
+if(!name)return;
+var p=String(role).split(', '),jab=p[0]||'',bag=p.slice(1).join(', ');
+var h='<div class="pd"><span class="av" aria-hidden="true">'+ini(name)+'</span><div class="pd-id">'+(bag?'<span class="pd-kick">'+esc(bag)+'</span>':'')+'<h3>'+esc(name)+'</h3>'+(jab?'<p class="pd-role">'+esc(jab)+'</p>':'')+'</div></div>';
+h+='<div class="pd-act"><button type="button" class="btn o2" data-copy="'+esc(name)+'">Salin nama</button><a class="btn" href="#kontak" data-close>Hubungi sekretariat</a></div>';
+h+='<p class="pd-note">Pengurus MWCNU Pondok Aren, masa khidmat 2025 sampai 2030. Data dapat diperbarui melalui sekretariat.</p>';
+openD(h)}
+function skStats(){
+var el=document.getElementById('skStats');if(!el)return;
+var tot=0;Object.keys(T).forEach(function(k){tot+=T[k].length});
+var rant=(MW.raw('ranting')||[]).length||11;
+var rows=[['Pengurus',tot],['Syuriyah',T['Syuriyah'].length],['Tanfidziyah',T['Tanfidziyah'].length],['Ranting NU',rant]];
+put(el,rows.map(function(x){return '<div class="sk-stat"><b>'+x[1]+' &nbsp;'+x[0]+'</b><small>'+x[1]+'</small></div>'}).join(''))}
+document.addEventListener('keydown',function(e){
+if(e.key!='/'||e.ctrlKey||e.metaKey||e.altKey)return;
+var t=e.target||{};if(t.tagName&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;if(t.isContentEditable)return;
+var s=document.getElementById('struktur');if(!s||s.hidden)return;
+e.preventDefault();try{sq.focus()}catch(x){}});
+skStats();
 show('Tanfidziyah');
 // Agenda
 var AG=MW.md('agenda',function(x){return{d:x.tanggal,t:x.judul,k:x.kategori||'',loc:x.lokasi||''}},[{d:"2026-09-15",t:"Lailatul Ijtima' di PRNU Pondok Karya",k:"Lailatul Ijtima'",loc:"Masjid Baiturrahim, Pondok Karya"},
@@ -238,21 +262,135 @@ var lys=document.getElementById('lyscroll');if(lys)put(lys,LSV.map(layananCard).
 var KG=['program','berita','agenda','galeri'],programDD=document.querySelector('#nav-program')&&document.querySelector('#nav-program').closest('.dd');
 function closeDD(){[].forEach.call(document.querySelectorAll('#nv .dd.open'),function(x){x.classList.remove('open');x.querySelector('.ddb').setAttribute('aria-expanded','false')})}
 function mark(c){[].forEach.call(document.querySelectorAll('#nv a'),function(a){a.classList.toggle('on',a.getAttribute('href')=='#'+c)});if(programDD)programDD.classList.toggle('on',KG.indexOf(c)>=0)}
+/* ── Halaman profil: Sejarah & Visi (interaktif) ───────────────── */
+function pgInline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}
+function pgParse(txt){
+var secs=[],cur=null,ul=null;
+String(txt||'').split(/\r?\n/).forEach(function(raw){
+var l=raw.trim();if(!l)return;
+if(/^#{1,3}\s+/.test(l)){cur={t:l.replace(/^#{1,3}\s+/,''),b:[]};secs.push(cur);ul=null;return}
+if(!cur){cur={t:'',b:[]};secs.push(cur)}
+if(/^[-*]\s+/.test(l)){var it=l.replace(/^[-*]\s+/,'');if(!ul){ul={u:[]};cur.b.push(ul)}ul.u.push(it);return}
+ul=null;cur.b.push({p:l})});
+return secs.filter(function(s){return s.t||s.b.length})}
+function pgBlocks(b){return (b||[]).map(function(x){if(x.u)return '<ul>'+x.u.map(function(i){return '<li>'+pgInline(i)+'</li>'}).join('')+'</ul>';return '<p>'+pgInline(x.p)+'</p>'}).join('')}
+var PG_DEF={sejarah:[
+{t:'Sejarah Singkat',b:[{p:'MWCNU Pondok Aren adalah Majelis Wakil Cabang Nahdlatul Ulama di Kecamatan Pondok Aren, Kota Tangerang Selatan.'},{p:'Sebagai kepanjangan tangan PCNU Kota Tangerang Selatan, MWCNU menghimpun pengurus ranting, badan otonom, dan lembaga di tingkat kecamatan.'}]},
+{t:'Khidmat',b:[{p:'MWCNU bertugas membina ranting di 11 kelurahan dan badan otonom NU di tingkat kecamatan.'},{p:'Khidmat dijalankan melalui dakwah dan pengajian Aswaja, pendidikan, layanan jam\'iyyah, serta pemberdayaan ekonomi umat.'}]}
+],visi:[
+{t:'Visi',b:[{p:'Terwujudnya masyarakat muslim Pondok Aren yang beriman, berilmu, dan berakhlak Aswaja An-Nahdliyah.'}]},
+{t:'Misi',b:[{u:['Membina ranting dan badan otonom','Menguatkan dakwah dan pendidikan','Memberdayakan ekonomi umat']}]}
+]};
+function pgDoc(slug){
+var row=null;(MW.raw('halaman')||[]).forEach(function(h){if(h&&h.slug==slug)row=h});
+var secs=row?pgParse(row.isi):[];
+if(!secs.length)secs=PG_DEF[slug]||[];
+return {judul:(row&&row.judul)||'',foto:(row&&MW.safeImage?MW.safeImage(row.foto):'')||'',secs:secs}}
+function pgToc(toc,items,page){
+if(!toc)return;
+put(toc,'<b class="pgtoc-h">Isi halaman</b>'+items.map(function(it,i){return '<a class="pgtoc-i" href="#'+page+'" data-toc="'+it.id+'"><em>'+('0'+(i+1)).slice(-2)+'</em><span>'+esc(it.t)+'</span></a>'}).join(''))}
+var PGW=[],PGWon=0;
+function pgWatch(root,toc,prog){
+if(!root)return;
+var e={root:root,toc:toc,prog:prog},i,rep=0;
+for(i=0;i<PGW.length;i++)if(PGW[i].root===root){PGW[i]=e;rep=1;break}
+if(!rep)PGW.push(e);
+if(!PGWon){PGWon=1;addEventListener('scroll',pgScroll,{passive:true});addEventListener('resize',pgScroll)}
+pgScroll()}
+function pgScroll(){
+if(!PGW.length)return;
+var hd=document.querySelector('header'),off=(hd?hd.offsetHeight:0)+24;
+PGW.forEach(function(w){
+var sec=w.root.closest('.vw');if(sec&&sec.hidden)return;
+var r=w.root.getBoundingClientRect();if(!r.height)return;
+if(w.prog){var p=(off-r.top)/r.height;w.prog.style.width=(Math.max(0,Math.min(1,p))*100).toFixed(1)+'%'}
+var act='';[].forEach.call(w.root.querySelectorAll('[data-sec]'),function(n){if(n.getBoundingClientRect().top-off<=14)act=n.id});
+if(w.toc)[].forEach.call(w.toc.querySelectorAll('[data-toc]'),function(a){var on=a.getAttribute('data-toc')==act;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')})})}
+function pgAcc(e){
+var b=e.target.closest('[data-acc]');if(!b)return;
+var open=b.getAttribute('aria-expanded')=='true',p=b.nextElementSibling;
+b.setAttribute('aria-expanded',open?'false':'true');
+if(p)p.hidden=open}
+function pgMilestones(){
+var it=[
+['28 Mei 2025','Kepengurusan masa khidmat 2025&ndash;2030 ditetapkan','SK PCNU Kota Tangerang Selatan No. 12/PC.01/A.II.01.03/1208/06/2025 menetapkan susunan pengurus MWCNU Pondok Aren untuk masa khidmat 2025 sampai 2030.'],
+['7 Juli 2025','QRIS, langkah maju dari Koin NU','MWCNU Pondok Aren meluncurkan QRIS sebagai lanjutan program Koin NU agar infak jamaah lebih mudah dan tercatat rapi.'],
+['26 April 2026','Halal Bi Halal keluarga besar NU','Silaturahmi pengurus, ranting, dan badan otonom di Omah Singgah NU Alfath dengan tema membumikan dakwah, menguatkan ranting, dan menjaga tradisi.']
+];
+return '<div class="tms" id="sj-jejak" data-sec><h2>Jejak langkah terbaru</h2><p class="tms-sub">Dirangkum dari arsip kegiatan dan dokumen organisasi MWCNU Pondok Aren.</p><div class="tms-l">'+it.map(function(x){
+return '<div class="tms-i"><button type="button" class="tms-b" data-acc aria-expanded="false"><span class="tms-d">'+x[0]+'</span><span class="tms-t">'+x[1]+'</span><i aria-hidden="true"></i></button><div class="tms-p" hidden><p>'+x[2]+'</p></div></div>'}).join('')+'</div></div>'}
+function pgRenderSejarah(){
+var body=document.getElementById('sjBody');if(!body)return;
+var doc=pgDoc('sejarah'),toc=document.getElementById('sjToc'),prog=document.getElementById('sjProg');
+var ttl=document.querySelector('#sejarah .pgtitle');if(ttl&&doc.judul)ttl.textContent=doc.judul;
+var st=document.getElementById('sjStats');
+if(st)put(st,'<div><b>'+((MW.raw('ranting')||[]).length||11)+'</b><small>Ranting NU</small></div><div><b>'+((T['Badan otonom']||[]).length||4)+'</b><small>Badan otonom</small></div><div><b>2025&ndash;2030</b><small>Masa khidmat</small></div>');
+var items=doc.secs.map(function(s,i){return {id:'sj-s'+(i+1),t:s.t||('Bagian '+(i+1))}});
+var h='';
+if(doc.foto)h+='<figure class="pgfig"><img src="'+esc(doc.foto)+'" alt="'+esc(doc.judul||'Dokumentasi MWCNU Pondok Aren')+'" loading="lazy"></figure>';
+h+=doc.secs.map(function(s,i){return '<article class="tli" id="'+items[i].id+'" data-sec><span class="tlnum" aria-hidden="true">'+('0'+(i+1)).slice(-2)+'</span><div class="tlx"><h2>'+esc(items[i].t)+'</h2>'+pgBlocks(s.b)+'</div></article>'}).join('');
+h+=pgMilestones();
+put(body,h);
+items.push({id:'sj-jejak',t:'Jejak langkah terbaru'});
+pgToc(toc,items,'sejarah');
+pgWatch(body,toc,prog);
+if(!body.dataset.acc){body.dataset.acc='1';body.addEventListener('click',pgAcc)}}
+function pgMisi(b){
+var out='',n=0;
+(b||[]).forEach(function(x){
+if(x.u){out+='<div class="misi">'+x.u.map(function(t){n++;return '<div class="misi-i"><span class="misi-n" aria-hidden="true">'+('0'+n).slice(-2)+'</span><p>'+pgInline(t)+'</p></div>'}).join('')+'</div>'}
+else out+='<p class="vlead">'+pgInline(x.p)+'</p>'});
+return out}
+function pgPrinciples(){
+var P=[['Tawassuth','Moderat','Mengambil jalan tengah: tidak berlebihan dan tidak mengurangi, baik dalam beragama maupun bermasyarakat.'],
+['I\'tidal','Adil dan lurus','Menempatkan segala sesuatu pada tempatnya serta konsisten pada kebenaran.'],
+['Tasamuh','Toleran','Menghargai perbedaan pandangan dan budaya tanpa kehilangan identitas Ahlussunnah wal Jama\'ah.'],
+['Tawazun','Seimbang','Menyeimbangkan dalil naqli dan aqli, serta urusan dunia dan akhirat.']];
+return '<div class="vblock vprinc" id="vs-prinsip" data-sec><h2>Prinsip Aswaja An-Nahdliyah</h2><p class="vlead">Empat prinsip yang menjadi pegangan warga Nahdliyin dalam bersikap dan berkhidmat.</p><div class="prin">'+P.map(function(p){
+return '<div class="prin-i"><button type="button" class="prin-b" data-acc aria-expanded="false"><span class="prin-ic" aria-hidden="true">'+p[0].charAt(0)+'</span><span class="prin-t"><b>'+p[0]+'</b><small>'+p[1]+'</small></span><i aria-hidden="true"></i></button><div class="prin-p" hidden><p>'+p[2]+'</p></div></div>'}).join('')+'</div></div>'}
+function pgRenderVisi(){
+var body=document.getElementById('vsBody');if(!body)return;
+var doc=pgDoc('visi'),toc=document.getElementById('vsToc');
+var ttl=document.querySelector('#visi .pgtitle');if(ttl&&doc.judul)ttl.textContent=doc.judul;
+var items=[],h='';
+if(doc.foto)h+='<figure class="pgfig"><img src="'+esc(doc.foto)+'" alt="'+esc(doc.judul||'MWCNU Pondok Aren')+'" loading="lazy"></figure>';
+doc.secs.forEach(function(s,i){
+var id='vs-s'+(i+1),t=s.t||('Bagian '+(i+1));
+items.push({id:id,t:t});
+if(/^visi\b/i.test(t)&&!s.b.some(function(x){return x.u})){
+h+='<div class="vquote" id="'+id+'" data-sec><span class="vq-k">Visi</span><p>'+pgInline(s.b.map(function(x){return x.p||''}).join(' '))+'</p></div>'}
+else if(/^misi\b/i.test(t)){h+='<div class="vblock" id="'+id+'" data-sec><h2>'+esc(t)+'</h2>'+pgMisi(s.b)+'</div>'}
+else{h+='<div class="vblock" id="'+id+'" data-sec><h2>'+esc(t)+'</h2>'+pgBlocks(s.b)+'</div>'}});
+h+=pgPrinciples();
+put(body,h);
+items.push({id:'vs-prinsip',t:'Prinsip Aswaja'});
+pgToc(toc,items,'visi');
+pgWatch(body,toc,null);
+if(!body.dataset.acc){body.dataset.acc='1';body.addEventListener('click',pgAcc)}}
+document.addEventListener('click',function(e){
+var a=e.target.closest('[data-toc]');if(!a)return;
+e.preventDefault();
+var t=document.getElementById(a.getAttribute('data-toc'));if(!t)return;
+var hd=document.querySelector('header'),off=(hd?hd.offsetHeight:0)+24;
+scrollTo({top:t.getBoundingClientRect().top+scrollY-off,behavior:'smooth'})});
 var SITE_TITLE=document.title;
 function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null,bIndex=-1;
 if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/);if(pm)h='banom'+(pm[1]?'/'+pm[1]:'')}
 var bm=h.match(/^\/?banom(?:\/([^\/]+))?\/?$/);
 if(bm){var bslug=bm[1]||'';if(bslug)BANOM.forEach(function(b,i){if(bpSlug(b.name)===bslug)bIndex=i});h=bIndex>=0?'banom-profile':'banom-page'}
 var target=h&&document.getElementById(h),parent=target&&target.closest('.vw');if(parent&&target!==parent){if(parent.hidden){anchorTarget=target;h=parent.id}else{target.scrollIntoView({behavior:'smooth',block:'start'});mark(parent.id);closeDD();return}}
-if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');if(ft)ft.hidden=true;mark('kontak');closeDD();window.scrollTo(0,0);return}}
+if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');mark('kontak');closeDD();window.scrollTo(0,0);return}}
 if(h=='video'){h='galeri';m='Video'}else if(h=='galeri')m='Foto';
 var mm=h.match(/^berita\/(\d+)$/);if(mm)h='baca';
 var v=VW.indexOf(h)>=0?h:'';
-var footer=document.getElementById('site-footer');if(footer)footer.hidden=!!v;
+var footer=document.getElementById('site-footer');if(footer)footer.hidden=false;
 VW.forEach(function(id){document.getElementById(id).hidden=id!=v});
 [].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=!!v});document.body.classList.toggle('inview',!!v);
 if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':((v=='banom-page'||v=='banom-profile')?'banom':(v||'top')));closeDD();
 if(v=='banom-profile')bpRender(bIndex);
+if(v=='sejarah')pgRenderSejarah();
+if(v=='visi')pgRenderVisi();
+if(v=='struktur')skStats();
 if(v!='baca'&&v!='banom-profile'&&document.title!==SITE_TITLE){try{document.title=SITE_TITLE}catch(e){}}}
 addEventListener('hashchange',route);route();
 // Dialog, berita, galeri
@@ -260,6 +398,11 @@ var dlg=document.getElementById('dlg'),db=document.getElementById('dlgBody');
 function openD(h){put(db,h);if(!dlg.open)dlg.showModal();dlg.scrollTop=0}
 document.getElementById('dlgX').onclick=function(){dlg.close()};
 dlg.onclick=function(e){if(e.target==dlg)dlg.close()};
+db.addEventListener('click',function(e){
+var c=e.target.closest('[data-close]');if(c)dlg.close();
+var cp=e.target.closest('[data-copy]');
+if(cp){var t=cp.getAttribute('data-copy')||'',done=function(){cp.textContent='Nama tersalin';setTimeout(function(){cp.textContent='Salin nama'},1800)};
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,done);else done()}});
 function act(el,f){el.tabIndex=0;el.setAttribute('role','button');el.onclick=f;el.onkeydown=function(e){if(e.key=='Enter'||e.key==' '){e.preventDefault();f()}}}
 var N=MW.md('berita',function(x){return[x.kategori||'Berita',x.judul,MW.tgl(x.tanggal),x.ringkasan||'',ph(x.foto),'',{lead:x.lead||'',cap:x.caption||'',tag:x.tag||'',author:x.penulis||'',featured:!!x.featured,metaT:x.meta_judul||'',metaD:x.meta_desc||'',fontA:x.font_artikel||'',drop:!!x.dropcap_art,p:MW.paras(x.isi),info:MW.kv(x.info),ph:(x.foto_tambahan||[]).map(ph).filter(function(i){return i!=null}),vid:MW.lines(x.video).map(function(l){var id=MW.yt(l);if(!/^[\w-]{11}$/.test(id))return -1;for(var i=0;i<V.length;i++)if(V[i][0]==id)return i;return -1}).filter(function(i){return i>=0})}]},[["Berita","Halal Bi Halal Keluarga Besar NU Pondok Aren Angkat Tema Membumikan Dakwah dan Menguatkan Ranting","26 April 2026","Silaturahmi keluarga besar NU Kecamatan Pondok Aren di Omah Singgah NU Alfath.",4,"",{lead:"Keluarga Besar Nahdlatul Ulama Kecamatan Pondok Aren menggelar Halal Bi Halal bertema Membumikan Dakwah, Menguatkan Ranting dan Menjaga Tradisi.",cap:"Halal Bi Halal Keluarga Besar NU Kecamatan Pondok Aren di Omah Singgah NU Alfath. (Dokumentasi MWCNU Pondok Aren)",p:["Keluarga Besar Nahdlatul Ulama Kecamatan Pondok Aren menggelar Halal Bi Halal di Omah Singgah NU Alfath pada 8 Dzulqa'dah 1447 H atau bertepatan dengan 26 April 2026 M. Kegiatan ini mengusung tema Membumikan Dakwah, Menguatkan Ranting dan Menjaga Tradisi.","Spanduk kegiatan memuat identitas pengurus ranting NU dari sebelas kelurahan di Pondok Aren.","Rangkaian kegiatan didokumentasikan oleh Media Center NU Pondok Aren dan tayang di kanal TVNU Pondok Aren, termasuk laporan ketua panitia mengenai target pembentukan anak ranting NU se-Pondok Aren."],info:[["Tanggal","8 Dzulqa'dah 1447 H / 26 April 2026 M"],["Tempat","Omah Singgah NU Alfath"],["Tema","Membumikan Dakwah, Menguatkan Ranting dan Menjaga Tradisi"]],ph:[4,5,6,7],vid:[2]}],
 ["Berita","MWCNU Pondok Aren Gelar Lailatul Ijtima' dan Tawaqufan di Pondok Kacang Barat","7 Februari 2026","Pengajian malam bersama pengurus MWCNU dan ranting di Majelis Taklim Annur.",1,"",{lead:"Pengajian malam bersama pengurus MWCNU Pondok Aren dan ranting digelar di Majelis Taklim Annur, Pondok Kacang Barat.",cap:"Lailatul Ijtima' dan Tawaqufan di Majelis Taklim Annur, Pondok Kacang Barat. (Dokumentasi MWCNU Pondok Aren)",p:["Majelis Wakil Cabang Nahdlatul Ulama (MWCNU) Pondok Aren bersama Pengurus Ranting NU (PRNU) Pondok Kacang Barat menggelar Lailatul Ijtima' dan Tawaqufan pada 7 Februari 2026 di Majelis Taklim Annur, Jl. Wisma Tajur RT 02 RW 010 No. 20, Kelurahan Pondok Kacang Barat.","Kegiatan berlangsung pukul 19.45 sampai 23.00 WIB dengan rangkaian acara pembukaan, yasin dan tahlil, pengajian Aswaja, doa penutup, dan ramah tamah.","Dokumentasi kegiatan tersedia di galeri foto laman ini."],info:[["Tanggal","7 Februari 2026"],["Waktu","19.45 sampai 23.00 WIB"],["Tempat","Majelis Taklim Annur, Jl. Wisma Tajur RT 02 RW 010 No. 20, Kel. Pondok Kacang Barat"]],list:["Pembukaan","Yasin dan tahlil","Pengajian Aswaja","Doa penutup","Ramah tamah"],ph:[0,1,2,3]}],
