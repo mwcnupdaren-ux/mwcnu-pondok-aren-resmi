@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0C3B2B">
 <meta property="og:title" content="MWCNU Pondok Aren"><meta property="og:description" content="Portal resmi MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=22">
+<link rel="stylesheet" href="/css/style.css?v=27">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -49,7 +49,7 @@
 <div class="nav-actions">
   <button id="hbtn" aria-label="Cari dalam situs" title="Cari dalam situs (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
   <a class="btn-kta" href="#daftar">Daftar KTA</a>
-  <button id="theme" aria-label="Ganti tema terang atau gelap">â˜¾</button>
+  <button id="theme" aria-label="Ganti tema terang atau gelap">☾</button>
   <button id="mb" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nv"><span class="mb-icon" aria-hidden="true"><i></i><i></i><i></i></span><span class="mb-label">Menu</span></button>
 </div>
 </div>
@@ -136,6 +136,11 @@
 <div class="bp-grid" id="bpGrid" aria-live="polite"></div>
 <div class="bp-empty" id="bpEmpty" hidden><b>Belum ada yang cocok</b><span>Coba kata kunci lain atau pilih bidang gerak yang berbeda.</span><button type="button" class="btn o2" id="bpReset">Tampilkan semua</button></div>
 <p class="bp-note"><span aria-hidden="true">✦</span> Data badan otonom dikelola melalui CMS MWCNU Pondok Aren. Untuk mengusulkan kegiatan bersama, hubungi sekretariat.</p>
+</div></section>
+
+<section id="banom-profile" class="vw" hidden><div class="wrap">
+<div class="vb"><a class="back" href="#banom">&larr; Semua badan otonom</a></div>
+<div id="bpProfile"></div>
 </div></section>
 
 <section id="struktur" class="alt vw" hidden><div class="wrap">
@@ -269,7 +274,7 @@
 <div class="kt-crop" id="k-crop" hidden><label>Perbesar<input type="range" id="k-zoom" min="1" max="3" step="0.02" value="1"></label><label>Geser kiri-kanan<input type="range" id="k-px" min="0" max="1" step="0.01" value="0.5"></label><label>Geser atas-bawah<input type="range" id="k-py" min="0" max="1" step="0.01" value="0.35"></label></div></div>
 <label class="fld"><span>Nama lengkap (beserta gelar jika ada) *</span><input type="text" id="k-nama" autocomplete="off"></label>
 <div class="kt-r2"><label class="fld"><span>Jenis kelamin *</span><select id="k-jk"><option value="">Pilih</option><option>Laki-laki</option><option>Perempuan</option></select></label>
-<label class="fld"><span>Wadah Khidmah *</span><select id="k-wadah"><option value="">Pilih</option><option>MWCNU</option><option>Jamaâ€™ah</option><option>GP Ansor</option><option>Fatayat NU</option><option>IPNU</option><option>IPPNU</option></select></label></div>
+<label class="fld"><span>Wadah Khidmah *</span><select id="k-wadah"><option value="">Pilih</option><option>MWCNU</option><option>Jama’ah</option><option>GP Ansor</option><option>Fatayat NU</option><option>IPNU</option><option>IPPNU</option></select></label></div>
 <div class="kt-r2"><label class="fld"><span>Tempat lahir *</span><input type="text" id="k-tmp" autocomplete="off"></label>
 <label class="fld"><span>Tanggal lahir *</span><input type="date" id="k-tgl"></label></div>
 <label class="fld"><span>Alamat (jalan, RT/RW) *</span><textarea id="k-alamat" rows="2" maxlength="140" placeholder="Contoh: Jl. Garuda Raya No. 10 RT 02/RW 05"></textarea></label>
@@ -288,7 +293,12 @@
 <p class="fm-note">Nomor induk dibuat secara acak di perangkat dan belum terdaftar/terverifikasi sebagai anggota. Data yang dikirim melalui WhatsApp mencakup data diri, tanggal lahir, alamat, nomor HP, dan pekerjaan bila diisi. Pastikan Anda bersedia membagikannya kepada sekretariat.</p></div>
 </div></div></section>
 
-<section id="baca" class="vw" hidden><div class="wrap"><article class="ar" id="arBody"></article></div></section>
+<section id="baca" class="vw" hidden><div class="wrap">
+<div class="ar-grid">
+<article class="ar" id="arBody"></article>
+<aside class="nside ar-side" id="arSide" aria-label="Berita terkait dan populer"></aside>
+</div>
+</div></section>
 
 <section id="ranting" class="vw" hidden><div class="wrap">
 <h2>Ranting di kelurahan</h2>
@@ -299,7 +309,6 @@
 </main>
 
 <dialog id="dlg" aria-label="Detail"><button class="x" id="dlgX" aria-label="Tutup">Tutup</button><div id="dlgBody"></div></dialog>
-<dialog id="bpDlg" class="bp-dlg" aria-labelledby="bpDlgTitle"><button class="x" id="bpDlgX" aria-label="Tutup profil">Tutup</button><div id="bpDlgBody"></div></dialog>
 <dialog id="lb" aria-label="Penampil foto"><div class="lbt"><span id="lbc"></span><button class="x2" id="lbx">Tutup</button></div>
 <div class="lbm"><button id="lbp" aria-label="Foto sebelumnya">&lsaquo;</button><img id="lbi" alt=""><button id="lbn" aria-label="Foto berikutnya">&rsaquo;</button></div>
 <div class="lbf"><b id="lbt"></b><small id="lbe"></small></div></dialog>
@@ -323,7 +332,7 @@
 <a href="https://www.tiktok.com/@mwcnupdaren" target="_blank" rel="noopener" aria-label="TikTok MWCNU Pondok Aren" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.6 6.7a4.8 4.8 0 0 1-3.8-4.2V2h-3.4v13.7a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.4a6.3 6.3 0 1 0 5.4 6.2V8.9a8.2 8.2 0 0 0 4.8 1.5V7z"/></svg></a>
 </div></div>
 </div>
-<div class="copy"><span>Â© <span id="yr"></span> MWCNU Pondok Aren. Masa khidmat 2025 sampai 2030.</span><a href="#top">Kembali ke atas</a></div>
+<div class="copy"><span>© <span id="yr"></span> MWCNU Pondok Aren. Masa khidmat 2025 sampai 2030.</span><a href="#top">Kembali ke atas</a></div>
 </div></footer>
 
 <script src="/js/vendor/qrcode.js?v=20"></script>

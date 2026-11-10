@@ -5,7 +5,7 @@ var MW=window.MWC||{md:function(t,f,d){return d},set:function(){return null},grp
 function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
 function safeURL(s){s=String(s||'').trim();if(s.charAt(0)=='#'||(s.charAt(0)=='/'&&s.charAt(1)!='/'))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'||u.protocol=='http:'||u.protocol=='mailto:'||u.protocol=='tel:')return u.href}catch(e){}return '#'}
 function imgURL(s){s=String(s||'').trim();if(/^\/(?!\/)[^\\"'<>]*$/.test(s))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'&&u.origin!==location.origin)return u.href}catch(e){}return ''}
-function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI OL OPTION P PATH POLYGON RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}[].forEach.call(e.attributes,function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
+function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI OL OPTION P PATH POLYGON POLYLINE RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}[].forEach.call(e.attributes,function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
 function put(el,html){if(el)el.innerHTML=cleanHTML(html)}
 function fill(id,h){put(document.getElementById(id),h)}
 function ph(u){if(!u)return null;u=imgURL(u);if(!u)return null;var i=PH.indexOf(u);if(i<0){PH.push(u);i=PH.length-1}return i}
@@ -154,8 +154,8 @@ document.getElementById('sb').onclick=function(){var r=document.getElementById('
 if(r){q.value=r;draw();go('#ranting')}else if(sv.indexOf('|')>-1){var pp=sv.split('|');drawG(pp[1]);go(pp[0])}else go(sv)};
 document.getElementById('rq').onkeydown=function(e){if(e.key=='Enter')document.getElementById('sb').click()};
 document.getElementById('nb').onclick=function(){var t=document.getElementById('nm').value.trim();window.open('https://wa.me/6285161033689'+(t?'?text='+encodeURIComponent(t):''),'_blank','noopener')};
-var VW=['program','banom-page','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
-var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
+var VW=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
+var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','banom-profile','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
 [].forEach.call(document.querySelectorAll('.sl'),function(e,i){e.style.backgroundImage='url('+PH[HS[i%HS.length]]+')'});
 var LSV=MW.md('layanan',function(x){return x.tampil===false?null:{title:x.judul,desc:x.deskripsi||'',icon:ICONS[x.ikon]||ICONS.info,link:x.tautan||'#layanan'}},[
 {title:'Ambulans 24/7',desc:'Layanan ambulans gratis untuk warga NU Pondok Aren',icon:'<path d="M10 10H6"/><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14"/><path d="M8 8v4"/><path d="M9 18h6"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',link:'#ambulans'},
@@ -187,7 +187,7 @@ if(!MW.managed('banom')&&!BANOM.some(function(b){return b.name.toLowerCase()==='
 BANOM.forEach(function(b){if(!b.bidang)b.bidang='Lainnya';if(!b.kegiatan)b.kegiatan=[]});
 
 /* ---------- Badan Otonom: halaman interaktif (route #banom) ---------- */
-var BP={q:'',bidang:'Semua',lastFocus:null};
+var BP={q:'',bidang:'Semua'};
 function bpColor(b){return /^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#17352A'}
 function bpInitial(b){if(b.initial)return b.initial;var w=String(b.name||'').replace(/[^A-Za-z0-9 ]/g,' ').split(/\s+/).filter(Boolean);return((w[0]||'?')[0]+(w[1]?w[1][0]:'')).toUpperCase()}
 function bpSlug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
@@ -198,56 +198,62 @@ function bpStats(){var box=document.getElementById('bpStats');if(!box)return;var
 function bpChips(){var box=document.getElementById('bpChips');if(!box)return;var seen={},list=['Semua'];BANOM.forEach(function(b){if(!seen[b.bidang]){seen[b.bidang]=1;list.push(b.bidang)}});put(box,list.map(function(k){var on=BP.bidang===k;return '<button type="button" class="bp-chip'+(on?' on':'')+'" role="tab" aria-selected="'+on+'" data-bidang="'+esc(k)+'">'+esc(k)+'</button>'}).join(''))}
 function bpCard(b){var i=BANOM.indexOf(b),keg=b.kegiatan||[];return '<button type="button" class="bp-card" data-i="'+i+'" style="--bc:'+bpColor(b)+'" aria-label="Buka profil '+esc(b.name)+'"><span class="bp-card-top">'+bpLogo(b,'bp-logo')+'<span class="bp-bidang">'+esc(b.bidang)+'</span></span><b class="bp-name">'+esc(b.name)+'</b>'+(b.full?'<small class="bp-full">'+esc(b.full)+'</small>':'')+'<span class="bp-desc">'+esc(b.desc)+'</span><span class="bp-foot"><span class="bp-count">'+(keg.length?keg.length+' kegiatan':'Profil singkat')+'</span><span class="bp-go">Lihat profil <span aria-hidden="true">→</span></span></span></button>'}
 function bpDraw(){var grid=document.getElementById('bpGrid');if(!grid)return;var list=bpList();put(grid,list.map(bpCard).join(''));var empty=document.getElementById('bpEmpty');if(empty)empty.hidden=!!list.length;var n=document.getElementById('bpCount');if(n)n.textContent=list.length+' dari '+BANOM.length+' badan otonom'}
-function bpOpen(i){
-  var b=BANOM[i];if(!b)return;
-  var dlg=document.getElementById('bpDlg'),body=document.getElementById('bpDlgBody');if(!dlg||!body)return;
+function bpContactWA(b){
+  var d=String(b.kontak||'').replace(/\D/g,'');
+  if(d.length<9)return '';
+  if(d.indexOf('62')!==0)d='62'+d.replace(/^0+/,'');
+  return 'https://wa.me/'+d+'?text='+encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang "+b.name+" MWCNU Pondok Aren.");
+}
+function bpRender(i){
+  var b=BANOM[i],box=document.getElementById('bpProfile');if(!b||!box)return;
   var keg=b.kegiatan||[],facts='';
   if(b.ketua)facts+='<div><dt>Ketua</dt><dd>'+esc(b.ketua)+'</dd></div>';
   if(b.kontak)facts+='<div><dt>Kontak</dt><dd>'+esc(b.kontak)+'</dd></div>';
   facts+='<div><dt>Bidang</dt><dd>'+esc(b.bidang)+'</dd></div>';
   var wa='https://wa.me/6285161033689?text='+encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang "+b.name+" MWCNU Pondok Aren.");
+  var kontak=bpContactWA(b);
   var link=b.link&&b.link!='#'?'<a class="btn o2" href="'+esc(b.link)+'"'+(b.link.charAt(0)=='#'?'':' target="_blank" rel="noopener"')+'>Tautan resmi</a>':'';
-  put(body,'<div class="bp-profile" style="--bc:'+bpColor(b)+'">'
-    +'<div class="bp-profile-head">'+bpLogo(b,'bp-logo bp-logo-lg')+'<div class="bp-profile-id"><span class="bp-bidang">'+esc(b.bidang)+'</span><h2 id="bpDlgTitle">'+esc(b.name)+'</h2><p class="bp-profile-full">'+esc(b.full||b.desc)+'</p></div></div>'
-    +'<p class="bp-profile-desc">'+esc(b.desc)+'</p>'
+  var others=BANOM.map(function(x,k){return{k:k,b:x}}).filter(function(o){return o.k!==i}).slice(0,4);
+  put(box,'<article class="bp-prof" style="--bc:'+bpColor(b)+'">'
+    +'<div class="bp-prof-head">'+bpLogo(b,'bp-logo bp-logo-lg')+'<div class="bp-prof-id"><span class="bp-bidang">'+esc(b.bidang)+'</span><h1 class="bp-prof-name">'+esc(b.name)+'</h1>'+(b.full?'<p class="bp-prof-full">'+esc(b.full)+'</p>':'')+'</div></div>'
+    +'<p class="bp-prof-desc">'+esc(b.desc)+'</p>'
     +'<dl class="bp-facts">'+facts+'</dl>'
-    +(keg.length?'<div class="bp-keg"><h3>Fokus kegiatan</h3><ul>'+keg.map(function(k){return '<li>'+esc(k)+'</li>'}).join('')+'</ul></div>':'')
-    +'<div class="bp-profile-actions"><a class="btn wa" href="'+esc(wa)+'" target="_blank" rel="noopener">Tanya lewat WhatsApp</a><a class="btn o2" href="#kontak" data-bpclose>Hubungi sekretariat</a>'+link+'</div>'
-    +'</div>');
-  BP.lastFocus=document.activeElement;
-  if(!dlg.open)dlg.showModal();
-  dlg.scrollTop=0;
-  var x=document.getElementById('bpDlgX');if(x&&x.focus)try{x.focus()}catch(e){}
+    +'<div class="bp-prof-actions"><a class="btn" href="'+esc(wa)+'" target="_blank" rel="noopener">Tanya lewat WhatsApp</a>'+(kontak?'<a class="btn o2" href="'+esc(kontak)+'" target="_blank" rel="noopener">Chat pengurus</a>':'')+link+'<a class="btn o2" href="#kontak">Sekretariat</a></div>'
+    +(keg.length?'<div class="bp-keg"><h2>Fokus kegiatan</h2><ol class="bp-keg-list">'+keg.map(function(k,n){return '<li><span class="bp-keg-n" aria-hidden="true">'+('0'+(n+1)).slice(-2)+'</span><p>'+esc(k)+'</p></li>'}).join('')+'</ol></div>':'')
+    +'</article>'
+    +(others.length?'<div class="bp-others"><h2>Badan otonom lainnya</h2><div class="bp-others-grid">'+others.map(function(o){return '<a class="bp-other" href="#banom/'+bpSlug(o.b.name)+'" style="--bc:'+bpColor(o.b)+'">'+bpLogo(o.b,'bp-logo')+'<span><b>'+esc(o.b.name)+'</b><small>'+esc(o.b.bidang)+'</small></span></a>'}).join('')+'</div></div>':''));
+  try{document.title=b.name+' | Badan Otonom MWCNU Pondok Aren'}catch(e){}
+  window.scrollTo(0,0);
 }
-function bpClose(){var dlg=document.getElementById('bpDlg');if(dlg&&dlg.open)dlg.close();if(/^#\/?banom\//.test(location.hash)){try{history.replaceState(null,'',location.pathname+location.search+'#banom')}catch(e){location.hash='#banom'}}if(BP.lastFocus&&BP.lastFocus.focus)try{BP.lastFocus.focus()}catch(e){}}
-(function(){var page=document.getElementById('banom-page');if(!page)return;var q=document.getElementById('bpq'),grid=document.getElementById('bpGrid'),chips=document.getElementById('bpChips'),dlg=document.getElementById('bpDlg');
+(function(){var page=document.getElementById('banom-page');if(!page)return;var q=document.getElementById('bpq'),grid=document.getElementById('bpGrid'),chips=document.getElementById('bpChips');
 if(q)q.addEventListener('input',function(){BP.q=q.value;bpDraw()});
 if(chips)chips.addEventListener('click',function(e){var b=e.target.closest('[data-bidang]');if(!b)return;BP.bidang=b.getAttribute('data-bidang');bpChips();bpDraw()});
-if(grid)grid.addEventListener('click',function(e){var b=e.target.closest('.bp-card');if(!b)return;var i=+b.getAttribute('data-i'),slug=bpSlug(BANOM[i]&&BANOM[i].name);if(slug&&location.hash!='#banom/'+slug)location.hash='#banom/'+slug;else bpOpen(i)});
+if(grid)grid.addEventListener('click',function(e){var b=e.target.closest('.bp-card');if(!b)return;var i=+b.getAttribute('data-i'),slug=bpSlug(BANOM[i]&&BANOM[i].name);location.hash=slug?'#banom/'+slug:'#banom'});
 var rs=document.getElementById('bpReset');if(rs)rs.onclick=function(){BP.q='';BP.bidang='Semua';if(q)q.value='';bpChips();bpDraw()};
-if(dlg){var x=document.getElementById('bpDlgX');if(x)x.onclick=function(){bpClose()};dlg.addEventListener('click',function(e){if(e.target===dlg)bpClose()});dlg.addEventListener('click',function(e){if(e.target.closest('[data-bpclose]')){e.preventDefault();bpClose();location.hash='#kontak'}});dlg.addEventListener('close',function(){if(/^#\/?banom\//.test(location.hash)){try{history.replaceState(null,'',location.pathname+location.search+'#banom')}catch(e){}}})}
 document.addEventListener('keydown',function(e){if(e.key!='/'||e.ctrlKey||e.metaKey||e.altKey)return;var t=e.target;if(t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;if(!q||page.hidden)return;e.preventDefault();q.focus()});
 bpStats();bpChips();bpDraw()})();
 
-var bnmg=document.getElementById('banomgrid');if(bnmg){var h='';BANOM.forEach(function(b){h+='<div class="bncard" role="group" aria-label="'+esc(b.name)+'" style="--bc:'+bpColor(b)+'"><span class="bnic" aria-hidden="true">'+(b.logo?'<img src="'+esc(b.logo)+'" alt="" loading="lazy">':esc(bpInitial(b)))+'</span><span class="bn-copy"><b>'+esc(b.name)+'</b><small>'+esc(b.desc)+'</small></span></div>'});put(bnmg,h);if('IntersectionObserver' in window){var _bio=new IntersectionObserver(function(en,ob){if(en.some(function(e){return e.isIntersecting})){[].forEach.call(bnmg.querySelectorAll('.bncard'),function(c,i){c.classList.add('bn-anim');c.style.animationDelay=(i*90)+'ms'});_bio.disconnect()}},{threshold:.18});_bio.observe(bnmg)}}
+var bnmg=document.getElementById('banomgrid');if(bnmg){var h='';BANOM.forEach(function(b){h+='<a class="bncard" href="#banom/'+bpSlug(b.name)+'" aria-label="Lihat profil '+esc(b.name)+'" style="--bc:'+bpColor(b)+'"><span class="bnic" aria-hidden="true">'+(b.logo?'<img src="'+esc(b.logo)+'" alt="" loading="lazy">':esc(bpInitial(b)))+'</span><span class="bn-copy"><b>'+esc(b.name)+'</b><small>'+esc(b.desc)+'</small></span></a>'});put(bnmg,h);if('IntersectionObserver' in window){var _bio=new IntersectionObserver(function(en,ob){if(en.some(function(e){return e.isIntersecting})){[].forEach.call(bnmg.querySelectorAll('.bncard'),function(c,i){c.classList.add('bn-anim');c.style.animationDelay=(i*90)+'ms'});_bio.disconnect()}},{threshold:.18});_bio.observe(bnmg)}}
 var lys=document.getElementById('lyscroll');if(lys)put(lys,LSV.map(layananCard).join(''));
 var KG=['program','berita','agenda','galeri'],programDD=document.querySelector('#nav-program')&&document.querySelector('#nav-program').closest('.dd');
 function closeDD(){[].forEach.call(document.querySelectorAll('#nv .dd.open'),function(x){x.classList.remove('open');x.querySelector('.ddb').setAttribute('aria-expanded','false')})}
 function mark(c){[].forEach.call(document.querySelectorAll('#nv a'),function(a){a.classList.toggle('on',a.getAttribute('href')=='#'+c)});if(programDD)programDD.classList.toggle('on',KG.indexOf(c)>=0)}
-function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null,bslug='';
+var SITE_TITLE=document.title;
+function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null,bIndex=-1;
 if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/);if(pm)h='banom'+(pm[1]?'/'+pm[1]:'')}
-var bm=h.match(/^\/?banom(?:\/([^\/]+))?\/?$/);if(bm){bslug=bm[1]||'';h='banom-page'}
-var bpd=document.getElementById('bpDlg');if(bpd&&bpd.open&&h!='banom-page')bpd.close();
+var bm=h.match(/^\/?banom(?:\/([^\/]+))?\/?$/);
+if(bm){var bslug=bm[1]||'';if(bslug)BANOM.forEach(function(b,i){if(bpSlug(b.name)===bslug)bIndex=i});h=bIndex>=0?'banom-profile':'banom-page'}
 var target=h&&document.getElementById(h),parent=target&&target.closest('.vw');if(parent&&target!==parent){if(parent.hidden){anchorTarget=target;h=parent.id}else{target.scrollIntoView({behavior:'smooth',block:'start'});mark(parent.id);closeDD();return}}
-if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');if(ft)ft.hidden=true;mark('kontak');closeDD();window.scrollTo(0,0);return}}
+if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');if(ft)ft.hidden=true;mark('kontak');closeDD();window.scrollTo(0,0);return}}
 if(h=='video'){h='galeri';m='Video'}else if(h=='galeri')m='Foto';
 var mm=h.match(/^berita\/(\d+)$/);if(mm)h='baca';
 var v=VW.indexOf(h)>=0?h:'';
 var footer=document.getElementById('site-footer');if(footer)footer.hidden=!!v;
 VW.forEach(function(id){document.getElementById(id).hidden=id!=v});
 [].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=!!v});document.body.classList.toggle('inview',!!v);
-if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':(v=='banom-page'?'banom':(v||'top')));closeDD();
-if(v=='banom-page'){var bi=-1;if(bslug)BANOM.forEach(function(b,i){if(bpSlug(b.name)===bslug)bi=i});if(bi>=0)bpOpen(bi)}}
+if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':((v=='banom-page'||v=='banom-profile')?'banom':(v||'top')));closeDD();
+if(v=='banom-profile')bpRender(bIndex);
+if(v!='baca'&&v!='banom-profile'&&document.title!==SITE_TITLE){try{document.title=SITE_TITLE}catch(e){}}}
 addEventListener('hashchange',route);route();
 // Dialog, berita, galeri
 var dlg=document.getElementById('dlg'),db=document.getElementById('dlgBody');
@@ -261,19 +267,38 @@ var N=MW.md('berita',function(x){return[x.kategori||'Berita',x.judul,MW.tgl(x.ta
 ["Laporan","Turba MWCNU Pondok Aren di PRNU Jurangmangu Timur","5 September 2024","Kunjungan pengurus MWCNU ke ranting dalam kegiatan Turba.",null,"",{lead:"Pengurus MWCNU Pondok Aren mengunjungi ranting dalam kegiatan Turba.",p:["Majelis Wakil Cabang Nahdlatul Ulama (MWCNU) Pondok Aren melaksanakan Turba di Pengurus Ranting NU (PRNU) Jurangmangu Timur.","Dokumentasi kegiatan tayang di kanal TVNU Pondok Aren pada 5 September 2024."],vid:[5]}]],MW.byDate);
 var nt=document.getElementById('ntabs'),ng=document.getElementById('newsGrid'),cats=['Semua','Berita','Laporan','Literasi'],curN=[],curCat='Semua';
 function nImg(src,alt,cls){return '<img'+(cls?' class="'+esc(cls)+'"':'')+' loading="lazy" src="'+esc(safeURL(src))+'" alt="'+esc(alt)+'">'}
+function nsItem(n,num,plain){return '<a class="nsitem'+(plain?' plain':'')+'" href="#berita/'+N.indexOf(n)+'">'+(plain?'':'<span class="nsnum">'+('0'+(num+1)).slice(-2)+'</span>')+(n[4]==null?'<span class="nsph"></span>':'<img class="nsth" loading="lazy" src="'+PH[n[4]]+'" alt="">')+'<span class="nst"><b>'+esc(n[1])+'</b><em>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</em></span></a>'}
 function renderArticle(i){if(!N)return;var n=N[i];if(!n){location.hash='#berita';return}
 var x=n[6]||{},ps=x.p||[],w=(n[1]+' '+(x.lead||'')+' '+ps.join(' ')).split(/\s+/).length,rt=Math.max(1,Math.round(w/180));
 var hero=n[4]==null?'<div class="ah ah0"><span></span></div>':'<figure class="af">'+nImg(PH[n[4]],n[1],'ah')+(x.cap?'<figcaption>'+esc(x.cap)+'</figcaption>':'')+'</figure>';
+var rel=N.filter(function(m,k){return k!=i}).slice(0,3),relSame=N.filter(function(m,k){return k!=i&&m[0]==n[0]}),lead=relSame[0]||rel[0];
 var h='<div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a><span>/</span><span>'+esc(n[0])+'</span></div><div class="kick">'+esc(n[0])+'</div><h1 class="at">'+esc(n[1])+'</h1><p class="al">'+esc(x.lead||n[3])+'</p><div class="by"><span class="byav">M</span><span><b>'+(x.author?esc(x.author):'Redaksi MWCNU Pondok Aren')+'</b><small>'+n[2]+' &nbsp;|&nbsp; '+rt+' menit baca</small></span></div>'+(x.tag?'<div class="ntags ntags-lg">'+x.tag.split(',').map(function(t){return t.trim()}).filter(Boolean).slice(0,6).map(function(t){return '<span class="ntag">'+esc(t)+'</span>'}).join('')+'</div>':'')+hero+'<div class="abody'+(x.fontA==='Serif'?' art-serif':x.fontA==='Sans'?' art-sans':'')+(x.drop?' art-drop':'')+'">';
-ps.forEach(function(t,k){h+='<p>'+(k==0?'<strong class="dl">PONDOK AREN</strong> &ndash; ':'')+esc(t)+'</p>'});
-if(x.info)h+='<div class="ai"><h3>Sekilas kegiatan</h3><dl>'+x.info.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>';
-if(x.list)h+='<h3>Rangkaian acara</h3><ol class="alist">'+x.list.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ol>';
-if(x.ph)h+='<h3>Foto kegiatan</h3><div class="aph">'+x.ph.filter(function(k){return PH[k]}).map(function(k){return nImg(PH[k],'Foto kegiatan','')}).join('')+'</div>';
-if(x.vid)h+='<h3>Tonton di TVNU Pondok Aren</h3>'+x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).map(function(k){return '<a class="avid" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+encodeURIComponent(V[k][0])+'"><span class="play sm"></span><span><b>'+esc(V[k][1])+'</b><small>'+esc(V[k][2])+', TVNU Pondok Aren</small></span></a>'}).join('');
+ps.forEach(function(t,k){
+  if(k==0){
+    var body=String(t).replace(/^\s*PONDOK AREN\s*[\u2013\u2014-]\s*/i,'');
+    h+='<div class="adl"><strong class="dl">Pondok Aren</strong></div><p>'+esc(body)+'</p>';
+  } else h+='<p>'+esc(t)+'</p>';
+  if(k==0&&lead)h+='<div class="readalso"><b>Baca juga:</b> <a href="#berita/'+N.indexOf(lead)+'">'+esc(lead[1])+'</a></div>';
+});
+if(x.info&&x.info.length)h+='<div class="ai"><h3>Sekilas kegiatan</h3><dl>'+x.info.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>';
+if(x.list&&x.list.length)h+='<h3>Rangkaian acara</h3><ol class="alist">'+x.list.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ol>';
+if(x.ph&&x.ph.filter(function(k){return PH[k]}).length)h+='<h3>Foto kegiatan</h3><div class="aph">'+x.ph.filter(function(k){return PH[k]}).map(function(k){return nImg(PH[k],'Foto kegiatan','')}).join('')+'</div>';
+if(x.vid&&x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).length)h+='<h3>Tonton di TVNU Pondok Aren</h3>'+x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).map(function(k){return '<a class="avid" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+encodeURIComponent(V[k][0])+'"><span class="play sm"></span><span><b>'+esc(V[k][1])+'</b><small>'+esc(V[k][2])+', TVNU Pondok Aren</small></span></a>'}).join('');
 h+='</div><div class="ashare"><b>Bagikan</b><a class="x" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(n[1]+' '+location.href)+'">WhatsApp</a><button class="x" id="cpl">Salin tautan</button></div>';
-var rel=N.filter(function(m,k){return k!=i}).slice(0,3);
 if(rel.length)h+='<h3 class="rh">Berita lainnya</h3><div class="rel">'+rel.map(function(m){return '<a class="rcard" href="#berita/'+N.indexOf(m)+'"><small>'+esc(m[0])+', '+esc(m[2])+'</small><b>'+esc(m[1])+'</b></a>'}).join('')+'</div>';
 put(document.getElementById('arBody'),h);
+var side=document.getElementById('arSide');
+if(side){
+  var base=['Berita','Laporan','Literasi'],seen={},s='';
+  var ncat=base.map(function(c){return [c,N.filter(function(v){return v[0]==c}).length]}).filter(function(c){return c[1]>0});
+  N.forEach(function(v){if(base.indexOf(v[0])<0&&!seen[v[0]]){seen[v[0]]=1;ncat.push([v[0],N.filter(function(m){return m[0]==v[0]}).length])}});
+  if(relSame.length)s+='<h3 class="ns-h">Berita terkait</h3>'+relSame.slice(0,3).map(function(v){return nsItem(v,0,true)}).join('');
+  s+='<h3 class="ns-h'+(relSame.length?' ns-h2':'')+'">Berita populer</h3>'+N.slice(0,5).map(function(v,k){return nsItem(v,k,false)}).join('');
+  if(ncat.length)s+='<h3 class="ns-h ns-h2">Kategori</h3><div class="ncat">'+ncat.map(function(c){return '<button type="button" class="ncatb" data-cat="'+esc(c[0])+'"><span>'+esc(c[0])+'</span><small>'+c[1]+'</small></button>'}).join('')+'</div>';
+  s+='<div class="nsub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><b>Berita pilihan, setiap pagi.</b><p>Ringkasan kabar penting langsung ke WhatsApp Anda.</p></div><a href="https://wa.me/6285161033689?text=Assalamu%27alaikum%2C%20saya%20ingin%20berlangganan%20kabar%20MWCNU%20Pondok%20Aren" target="_blank" rel="noopener">Daftar</a></div>';
+  put(side,s);
+  [].forEach.call(side.querySelectorAll('[data-cat]'),function(b){b.onclick=function(){location.hash='#berita';drawN(b.getAttribute('data-cat'))}});
+}
 try{document.title=(x.metaT||n[1])+' | MWCNU Pondok Aren';var md=document.querySelector('meta[name="description"]');if(md)md.setAttribute('content',x.metaD||n[3]||'')}catch(e){}
 var cp=document.getElementById('cpl');cp.onclick=function(){var u=location.href;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){cp.textContent='Tautan tersalin'},function(){cp.textContent='Salin dari bilah alamat'})}}
 function drawN(c){curCat=c;ng.textContent='';

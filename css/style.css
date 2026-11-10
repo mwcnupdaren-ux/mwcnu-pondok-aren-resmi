@@ -6284,7 +6284,7 @@ html.js-rv #konsultasi #ka-cats,html.js-rv #konsultasi #ka-cats .mt-f{opacity:1!
 @media(prefers-reduced-motion:reduce){#program .pl button,#program .program-tab-arrow{transition:none!important;transform:none!important}#program .pd.sw>*{animation:none!important}}
 
 /* ===== Halaman Badan Otonom (route #banom) ===== */
-#banom-page{padding:96px 0 88px!important}
+#banom-page{padding:136px 0 88px!important}
 #banom-page .bp-head{position:relative;margin:0 0 26px!important}
 #banom-page .bp-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 24px}
 #banom-page .bp-stat{display:flex;flex-direction:column;gap:3px;background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
@@ -6330,48 +6330,92 @@ html.js-rv #konsultasi #ka-cats,html.js-rv #konsultasi #ka-cats .mt-f{opacity:1!
 #banom .bnic{overflow:hidden}
 #banom .bnic img{width:100%;height:100%;object-fit:contain;padding:7px;display:block;border-radius:inherit}
 
-/* Dialog profil badan otonom */
-.bp-dlg{position:relative;width:min(660px,94vw)!important;max-height:88vh;overflow:auto;padding:0!important;border-radius:26px!important}
-.bp-dlg>.x{position:absolute;top:14px;right:14px;z-index:3;float:none;margin:0}
-.bp-profile{--bc:#17352A;padding:30px}
-.bp-profile-head{display:flex;align-items:center;gap:16px;padding-right:64px}
-.bp-profile-id{min-width:0}
-.bp-profile .bp-logo-lg{width:84px!important;height:84px!important;border-radius:22px!important}
-.bp-profile .bp-logo-lg img{padding:10px}
-.bp-profile .bp-logo-lg b{font-size:1.5rem}
-.bp-profile h2{margin:7px 0 4px;font:700 clamp(1.35rem,3.4vw,1.85rem)/1.15 var(--fh);letter-spacing:-.03em;color:var(--ink)}
-.bp-profile-full{margin:0;color:var(--mut);font-size:.83rem;line-height:1.5}
-.bp-profile-desc{margin:20px 0;color:var(--mut);font-size:.92rem;line-height:1.75}
-.bp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:0 0 20px}
-.bp-facts>div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
-.bp-facts dt{font:700 .6rem/1.2 var(--fz);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
-.bp-facts dd{margin:5px 0 0;color:var(--ink);font-weight:600;font-size:.88rem;line-height:1.45;overflow-wrap:anywhere}
-.bp-keg h3{margin:0 0 10px;font:700 .95rem/1.3 var(--fh);color:var(--ink)}
-.bp-keg ul{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0 0 24px;padding:0}
-.bp-keg li{background:color-mix(in srgb,var(--bc) 10%,var(--surf));color:var(--bc);border-radius:999px;padding:7px 12px;font-size:.77rem;font-weight:600;line-height:1.35}
-.bp-profile-actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}
-.bp-profile-actions .btn{margin:0;text-decoration:none}
-.bp-profile-actions .btn.o2{background:var(--surf)!important}
-:root[data-theme="dark"] .bp-dlg{background:var(--surf);color:var(--ink)}
-:root[data-theme="dark"] .bp-facts>div{background:var(--bg-alt,var(--bg))}
+/* Halaman profil badan otonom (bukan popup) */
+#banom-profile{padding:136px 0 88px!important}
+#banom-profile .bp-prof{--bc:#17352A;background:var(--surf);border:1px solid var(--line);border-radius:28px;padding:clamp(22px,3vw,34px);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+#banom-profile .bp-prof-head{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+#banom-profile .bp-prof-id{flex:1 1 320px;min-width:0}
+#banom-profile .bp-logo{display:grid;place-items:center;width:64px;height:64px;flex:none;border-radius:18px;background:color-mix(in srgb,var(--bc) 12%,var(--surf));color:var(--bc);overflow:hidden}
+#banom-profile .bp-logo img{width:100%;height:100%;object-fit:contain;padding:8px;display:block}
+#banom-profile .bp-logo b{font:800 1.15rem/1 var(--fh);letter-spacing:.02em}
+#banom-profile .bp-logo-lg{width:96px;height:96px;border-radius:26px}
+#banom-profile .bp-logo-lg img{padding:12px}
+#banom-profile .bp-logo-lg b{font-size:1.7rem}
+#banom-profile .bp-bidang{display:inline-block;font:700 .62rem/1 var(--fz);letter-spacing:.13em;text-transform:uppercase;color:var(--bc);background:color-mix(in srgb,var(--bc) 10%,var(--surf));border-radius:999px;padding:6px 11px}
+#banom-profile .bp-prof-name{font:700 clamp(1.65rem,3.4vw,2.5rem)/1.12 var(--fh);letter-spacing:-.03em;margin:10px 0 6px;color:var(--ink)}
+#banom-profile .bp-prof-full{margin:0;color:var(--mut);font-size:.9rem;line-height:1.55}
+#banom-profile .bp-prof-desc{margin:24px 0;color:var(--mut);font-size:1rem;line-height:1.8;max-width:78ch}
+#banom-profile .bp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 24px}
+#banom-profile .bp-facts>div{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+#banom-profile .bp-facts dt{font:700 .6rem/1.2 var(--fz);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+#banom-profile .bp-facts dd{margin:5px 0 0;color:var(--ink);font-weight:600;font-size:.9rem;line-height:1.45;overflow-wrap:anywhere}
+#banom-profile .bp-prof-actions{display:flex;flex-wrap:wrap;gap:10px;margin:0}
+#banom-profile .bp-prof-actions .btn{margin:0;text-decoration:none}
+#banom-profile .bp-prof-actions .btn.o2{background:var(--surf)!important}
+#banom-profile .bp-keg{margin-top:30px;padding-top:26px;border-top:1px solid var(--line)}
+#banom-profile .bp-keg h2{font-family:var(--fh)!important;font-weight:700!important;font-size:1.2rem!important;line-height:1.3!important;margin:0 0 16px;color:var(--ink);letter-spacing:-.02em}
+#banom-profile .bp-keg-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));align-items:start;gap:12px;list-style:none;margin:0;padding:0}
+#banom-profile .bp-keg-list li{display:flex;gap:14px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+#banom-profile .bp-keg-n{flex:none;font:700 .8rem/1 var(--fh);letter-spacing:.05em;color:var(--bc);background:color-mix(in srgb,var(--bc) 12%,var(--surf));border-radius:10px;padding:8px 10px}
+#banom-profile .bp-keg-list p{margin:0;color:var(--ink);font-size:.94rem;line-height:1.7}
+#banom-profile .bp-others{margin-top:36px}
+#banom-profile .bp-others h2{font-family:var(--fh)!important;font-weight:700!important;font-size:1.15rem!important;line-height:1.3!important;margin:0 0 14px;color:var(--ink);letter-spacing:-.02em}
+#banom-profile .bp-others-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+#banom-profile .bp-other{--bc:#17352A;display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:18px;text-decoration:none;transition:border-color .2s,transform .2s}
+#banom-profile .bp-other:hover{border-color:color-mix(in srgb,var(--bc) 45%,var(--line));transform:translateY(-2px)}
+#banom-profile .bp-other .bp-logo{width:44px;height:44px;border-radius:13px}
+#banom-profile .bp-other .bp-logo img{padding:6px}
+#banom-profile .bp-other b{display:block;color:var(--ink);font:700 .92rem/1.3 var(--fh)}
+#banom-profile .bp-other small{display:block;margin-top:2px;color:var(--mut);font-size:.75rem}
+:root[data-theme="dark"] #banom-profile .bp-facts>div,
+:root[data-theme="dark"] #banom-profile .bp-keg-list li{background:var(--bg-alt,var(--bg))}
 
 @media(max-width:900px){
   #banom-page .bp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   #banom-page .bp-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 }
 @media(max-width:640px){
-  #banom-page{padding:72px 0 104px!important}
+  #banom-page{padding:104px 0 104px!important}
   #banom-page .bp-search{flex:1 1 100%}
   #banom-page .bp-chips{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
   #banom-page .bp-chip{flex:none}
   #banom-page .bp-grid{grid-template-columns:1fr}
   #banom-page .bp-card{padding:20px}
-  .bp-profile{padding:22px 20px}
-  .bp-profile-head{flex-direction:row;align-items:center;gap:14px;padding-right:56px}
-  .bp-profile .bp-logo-lg{width:64px!important;height:64px!important;border-radius:18px!important}
-  .bp-profile-actions .btn{flex:1 1 100%;justify-content:center}
+  #banom-profile{padding:104px 0 104px!important}
+  #banom-profile .bp-prof{padding:22px 20px;border-radius:22px}
+  #banom-profile .bp-prof-head{gap:14px}
+  #banom-profile .bp-logo-lg{width:72px;height:72px;border-radius:20px}
+  #banom-profile .bp-logo-lg b{font-size:1.3rem}
+  #banom-profile .bp-prof-actions .btn{flex:1 1 100%;justify-content:center}
+  #banom-profile .bp-keg-list li{flex-direction:column;gap:8px}
+  #banom-profile .bp-others-grid{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){
   #banom-page .bp-card,#banom-page .bp-chip{transition:none!important}
   #banom-page .bp-card:hover{transform:none!important}
 }
+
+/* ===== Halaman baca berita: artikel + sidebar portal ===== */
+#baca .wrap{max-width:1120px!important}
+#baca .ar-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:44px;align-items:start}
+#baca .ar{max-width:none!important;margin:0;min-width:0}
+#baca .ar-side{position:sticky;top:calc(var(--top-h,38px) + 80px);padding:6px 18px 16px!important}
+#baca .ar-side .ns-h:first-child{margin-top:8px!important}
+#baca .ar-side .nsitem.plain{grid-template-columns:56px minmax(0,1fr)!important}
+.readalso{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:2px 0 22px;padding:12px 16px;border-left:3px solid var(--g2);border-radius:0 12px 12px 0;background:var(--acc-soft,var(--bg))}
+.readalso b{font:700 .72rem/1 var(--fz);letter-spacing:.08em;text-transform:uppercase;color:var(--g2)}
+.readalso a{color:var(--ink);font-weight:600;line-height:1.5;text-decoration:none}
+.readalso a:hover{text-decoration:underline}
+@media(max-width:1024px){
+  #baca .ar-grid{grid-template-columns:1fr;gap:30px}
+  #baca .ar-side{position:static;order:2}
+}
+@media(max-width:640px){
+  #baca .ar-side{padding:4px 16px 14px!important}
+  .readalso{padding:10px 14px}
+}
+
+/* Dateline artikel sebagai label kecil di atas paragraf pertama */
+#baca .abody .adl{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+#baca .abody .adl::after{content:"";flex:1;height:1px;background:var(--line)}
+#baca .abody .adl .dl{font:700 .72rem var(--fz)!important;letter-spacing:.16em!important;color:var(--g2)!important;text-transform:uppercase}
