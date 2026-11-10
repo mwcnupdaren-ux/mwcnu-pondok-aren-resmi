@@ -175,7 +175,7 @@ var BANOM=MW.md('banom',function(x){return{
   name:x.nama||'Badan Otonom',full:x.nama_lengkap||'',desc:x.deskripsi||'',
   bidang:x.bidang||'',logo:imgURL(x.logo)||'',initial:String(x.monogram||'').trim(),
   color:x.warna||'#17352A',ketua:x.ketua||'',kontak:x.kontak||'',
-  kegiatan:MW.lines(x.kegiatan),link:safeURL(x.tautan||'')
+  kegiatan:MW.lines(x.kegiatan).map(function(l){return l.replace(/^(?:[•·*–—-]|\d+[.)])\s*/,'')}).filter(Boolean),link:safeURL(x.tautan||'')
 }},[
 {name:'GP Ansor',full:'Gerakan Pemuda Ansor',bidang:'Kepemudaan',desc:'Organisasi kepemudaan untuk pemberdayaan, keamanan, dan pengabdian masyarakat',initial:'GA',color:'#1B7A4A',ketua:'',kontak:'',kegiatan:['Pengajian dan kaderisasi pemuda','Pengamanan kegiatan jam\'iyyah','Pengabdian sosial masyarakat'],link:''},
 {name:'Fatayat NU',full:'Fatayat Nahdlatul Ulama',bidang:'Perempuan',desc:'Organisasi perempuan muda untuk dakwah dan pemberdayaan keluarga',initial:'FN',color:'#C2185B',ketua:'',kontak:'',kegiatan:['Dakwah dan pengajian keluarga','Pemberdayaan ekonomi perempuan','Pendidikan dan kesehatan ibu'],link:''},

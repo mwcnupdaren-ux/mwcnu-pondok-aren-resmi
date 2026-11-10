@@ -5,4 +5,6 @@ window.MWC_CFG = {
   supabaseUrl: 'https://wvfcifqolohfipvepxss.supabase.co',   // https://<project-ref>.supabase.co
   supabaseKey: 'sb_publishable_ZFDHQDhZfHmKeH7elEOv7g_UV83GXR7'    // anon JWT lama atau sb_publishable_...; bukan service_role
 };
-window.MWC_CFG_FALLBACK = true;
+/* false = publik selalu mengambil konten terbaru dari Supabase (wajib agar CMS tampil).
+   true hanya untuk uji luring: situs memakai cache localStorage dan tidak menghubungi Supabase. */
+window.MWC_CFG_FALLBACK = false;

@@ -115,26 +115,34 @@
   };
 
   function validConfig() { try { var u = new URL(String(C.supabaseUrl || '')); return u.protocol === 'https:' && /^[a-z0-9-]+\.supabase\.co$/i.test(u.hostname) && /^((sb_publishable_[A-Za-z0-9_-]+)|(eyJ[A-Za-z0-9._-]+))$/.test(String(C.supabaseKey || '')); } catch (e) { return false; } }
-  var done = false;
+  var rendered = false;
   function go(d) {
-    if (done) return; done = true; M.D = d || null;
+    if (rendered) return; rendered = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=30';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=31';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }
   if (!validConfig()) return go(null);
   var cache = null; try { cache = JSON.parse(localStorage.getItem('mwc_data') || 'null'); } catch (e) {}
-  var timer = setTimeout(function () { go(cache); }, 3000);
   if (window.MWC_CFG_FALLBACK) return go(cache);
   var H = { apikey: C.supabaseKey, Authorization: 'Bearer ' + C.supabaseKey };
   function q(path) { return fetch(C.supabaseUrl + '/rest/v1/' + path, { headers: H, cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }); }
-  Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc'), q('site_settings?select=key,value')]).then(function (r) {
-    if (done) return;
+  /* Penanda sekali pakai: mencegah halaman memuat ulang berulang saat data CMS berubah. */
+  function syncFlag(v) { try { if (v) sessionStorage.setItem('mwc_sync', '1'); else sessionStorage.removeItem('mwc_sync'); } catch (e) {} }
+  function synced() { try { return sessionStorage.getItem('mwc_sync') === '1'; } catch (e) { return true; } }
+  /* Cache dipakai lebih dulu agar halaman langsung terisi; data terbaru menyusul. */
+  var timer = setTimeout(function () { go(cache); }, cache ? 0 : 3000);
+  Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc,id.asc'), q('site_settings?select=key,value&order=key.asc')]).then(function (r) {
     var d = { items: {}, set: {} };
     r[0].forEach(function (x) { (d.items[x.type] = d.items[x.type] || []).push(x.data); });
     r[1].forEach(function (x) { d.set[x.key] = x.value; });
-    try { localStorage.setItem('mwc_data', JSON.stringify(d)); } catch (e) {}
-    clearTimeout(timer); go(d);
+    var next = JSON.stringify(d), prev = null;
+    try { prev = localStorage.getItem('mwc_data'); localStorage.setItem('mwc_data', next); } catch (e) {}
+    clearTimeout(timer);
+    if (!rendered) { syncFlag(false); go(d); return; } /* belum tampil: langsung pakai data terbaru */
+    if (prev === next) { syncFlag(false); return; } /* sudah sama dengan cache */
+    if (synced()) { syncFlag(false); return; }      /* sudah pernah dimuat ulang pada kunjungan ini */
+    syncFlag(true); location.reload();              /* tampilkan perubahan CMS yang baru disimpan */
   }).catch(function () { clearTimeout(timer); go(cache); });
 })();
