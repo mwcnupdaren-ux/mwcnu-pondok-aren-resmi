@@ -6602,6 +6602,14 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
 .pr-qr{display:flex;gap:12px;align-items:center;justify-items:start}
 .pr-qr canvas{border-radius:10px;background:#fff;border:1px solid var(--bd,var(--line,#E3E7E1));flex:none}
 .pr-qr small{color:var(--mut);max-width:180px}
+.pr-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin:-4px 0 14px;scrollbar-width:none}
+.pr-tabs::-webkit-scrollbar{display:none}
+.pr-tabs button{flex:none;padding:9px 18px;border-radius:999px;border:1px solid var(--bd,var(--line,#E3E7E1));background:var(--surf,#fff);color:var(--mut);font:700 .8rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.pr-tabs button:hover{color:var(--g2,#2F6B4F)}
+.pr-tabs button.on{background:var(--g1,#0F3B2C);border-color:var(--g1,#0F3B2C);color:#fff}
+.pr-pane{display:none}
+.pr-pane.on{display:block}
+.pr-pane .pr-grid{margin-top:0}
 @media(max-width:760px){
   .pr-grid{grid-template-columns:1fr}
   .pr-dl>div{grid-template-columns:1fr;gap:2px}

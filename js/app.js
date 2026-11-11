@@ -587,7 +587,7 @@ function toggleAuth(){var s=sesGet(),ok=!!(s&&s.user),p=profGet();
 var nl=$('nav-pr');if(nl)nl.hidden=!(ok&&s&&!/^local-/.test(String(s.user.id||'')));
 $('kAuth').hidden=ok;$('kBar').hidden=!ok;$('kGate').hidden=!ok;
 if(ok){$('kWho').textContent=p&&p.nama?p.nama:(s.user.email||'Pengguna');$('kProfState').textContent=p&&p.nia?('Nomor induk '+p.nia+' · '+(p.status==='verified'?'terverifikasi':p.status==='rejected'?'ditolak':'menunggu verifikasi')):(p&&p.nama?'Profil sudah dibuat — nomor induk diterbitkan setelah pengurus memverifikasi.':'Profil belum dibuat — akan dibuatkan saat Anda menyimpan kartu.');applyProf();draw()}}
-function finishLogin(user,token,extra,rt){sesSet({access_token:token||'',refresh_token:rt||'',user:{id:user.id,email:user.email||''}});
+function finishLogin(user,token,extra,rt){sesSet({access_token:token||'',refresh_token:rt||'',user:{id:user.id,email:user.email||'',email_confirmed_at:user.email_confirmed_at||''}});
 if(extra&&(extra.nama||extra.hp)){var p=profGet()||{};profSave({nama:extra.nama||p.nama||'',hp:extra.hp||p.hp||'',email:user.email||p.email||''}).catch(function(){})}
 if(!profGet())profSave({nama:(extra&&extra.nama)||'',hp:(extra&&extra.hp)||'',email:user.email||''}).catch(function(){});
 authMsg('');toggleAuth()}
@@ -774,8 +774,10 @@ if(p.ranting){var rt=$('pr-rt');if(rt&&!rt.options.length)fillRT();if(rt)rt.valu
 function fillRT(){var rt=$('pr-rt');if(!rt||rt.options.length)return;var o=document.createElement('option');o.value='';o.textContent='Pilih kelurahan';rt.appendChild(o);PRT.forEach(function(n){var q=document.createElement('option');q.value=n;q.textContent=n;rt.appendChild(q)})}
 function renderRO(p){var rows=[['Nama',p.nama],['Email',p.email],['Nomor HP',p.hp],['Jenis kelamin',p.jk],['Tempat, tanggal lahir',p.tempat_lahir?p.tempat_lahir+', '+ptgl(p.tanggal_lahir):''],['Alamat',p.alamat],['Asal wilayah',(p.tingkat||'')==='PRNU'?('PRNU '+(p.ranting||'')):((p.tingkat||'')==='MWCNU'?'MWCNU Kec. Pondok Aren':'')],['Wadah khidmah',p.wadah],['Pekerjaan',p.pekerjaan]]
 $('pr-ro-dl').innerHTML=rows.filter(function(r){return r[1]}).map(function(r){return '<div><dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd></div>'}).join('')}
-function render(){var s=login();$('pr-anon').hidden=!!s;$('pr-main').hidden=!s
+function render(){var s=login();var wasHidden=$('pr-main').hidden;$('pr-anon').hidden=!!s;$('pr-main').hidden=!s
 var nl=$('nav-pr');if(nl)nl.hidden=!s;if(!s)return
+/* Tab kembali ke Ringkasan hanya saat halaman baru dibuka (form di tab lain tidak ter-reset saat render ulang). */
+if(wasHidden)prTab('pr-ring')
 var x=stRow(),p=x.p,email=s.user.email||p.email||''
 $('pr-name').textContent=p.nama||email.split('@')[0];$('pr-email').textContent=email
 $('pr-ava').textContent=((p.nama||email||'?').trim()[0]||'?').toUpperCase()
@@ -785,9 +787,23 @@ var ch=$('pr-status');ch.textContent=x.hasNia?(x.ver?'Terverifikasi':x.rej?'Dito
 ch.className='pr-chip '+(x.hasNia&&x.ver?'ok':x.hasNia&&x.rej?'bad':'wait')
 $('pr-terbit').textContent=p.issued_at?ptgl(p.issued_at):'—'
 $('pr-nia-note').textContent=x.hasNia?(x.ver?'Kartu Anda sah sebagai bukti keanggotaan aktif.':x.rej?'Pendaftaran ditolak. Hubungi sekretariat untuk informasi lebih lanjut.':'Kartu menunggu verifikasi pengurus ranting/sekretariat.'):'Nomor induk diterbitkan otomatis setelah pengurus memverifikasi data Anda.'
-$('pr-copy-qr').hidden=!(x.hasNia&&x.ver);drawQR()
+$('pr-copy-qr').hidden=!(x.hasNia&&x.ver);$('pr-copy-qr2').hidden=!(x.hasNia&&x.ver);drawQR()
 var ed=editable();$('pr-form').hidden=!ed;$('pr-ro').hidden=ed;if(ed)fillForm(p);else renderRO(p)
-loadStaff()}
+loadStaff();loadConf()}
+/* Status konfirmasi email: HANYA dari data autentikasi server (email_confirmed_at).
+   Sesi lama yang belum menyimpan field ini diambil sekali lewat /auth/v1/user. */
+function drawConf(){var s=login();if(!s)return;var ok=!!s.user.email_confirmed_at
+var el=$('pr-confirm');if(el)el.hidden=!ok
+$('pr-em-mail').textContent=s.user.email||'—'
+$('pr-emstat').textContent=ok?'Terkonfirmasi':'Belum terkonfirmasi'}
+function loadConf(){var s=login();if(!s||s.user.email_confirmed_at){drawConf();return}
+var C=authCfg();if(!C.url)return
+rfetch(C.url+'/auth/v1/user').then(function(r){return r.ok?r.json():null}).then(function(u){
+if(u&&u.email_confirmed_at){s.user.email_confirmed_at=u.email_confirmed_at;sesSet(s);drawConf()}}).catch(function(){})}
+/* Navigasi tab: tanpa reload; state form di tiap pane dipertahankan. */
+function prTab(id){var ts=$('pr-tabs');if(!ts)return;[].forEach.call(ts.querySelectorAll('button'),function(b){var on=b.getAttribute('data-tab')===id;b.classList[on?'add':'remove']('on');b.setAttribute('aria-selected',on?'true':'false')});
+[].forEach.call(document.querySelectorAll('.pr-pane'),function(pn){pn.classList.toggle('on',pn.id===id)})}
+var tsEl=$('pr-tabs');if(tsEl)tsEl.addEventListener('click',function(e){var b=e.target.closest('button[data-tab]');if(!b)return;prTab(b.getAttribute('data-tab'))})
 function loadStaff(){var s=login(),el=$('pr-staff');if(!el)return;if(!s){el.hidden=true;return}
 var C=authCfg();if(!C.url){el.hidden=true;return}
 rfetch(C.url+'/rest/v1/staff?email=eq.'+encodeURIComponent(s.user.email||'')+'&select=email,role,nama,prnu')
@@ -830,9 +846,12 @@ fetch(C.url+'/auth/v1/recover',{method:'POST',headers:{apikey:C.key,'Content-Typ
 .then(function(){pwmsg('Jika email terdaftar, tautan reset sudah dikirim ke email Anda.')})
 .catch(function(){pwmsg('Gagal mengirim. Periksa koneksi lalu coba lagi.',1)})})
 $('pr-out').addEventListener('click',function(){var k=profKey();sesSet(null);try{if(k)localStorage.removeItem('mwc_profile_'+k)}catch(e){}toggleAuth();render();location.hash='#top'})
-$('pr-copy-qr').addEventListener('click',function(){var x=stRow();if(!x.hasNia)return
+function copyQR(btn){var x=stRow();if(!x.hasNia)return
 var url=location.origin+'/v/'+encodeURIComponent(x.p.nia)
-if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){pmsg('Tautan verifikasi disalin: '+url)},function(){window.prompt('Salin tautan ini:',url)})}else window.prompt('Salin tautan ini:',url)})
+function done(){if(!btn)return;var t=btn.textContent;btn.textContent='Tautan disalin ✓';setTimeout(function(){btn.textContent=t},2200)}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done,function(){window.prompt('Salin tautan ini:',url)})}else window.prompt('Salin tautan ini:',url)}
+$('pr-copy-qr').addEventListener('click',function(){copyQR(this)})
+var cqr2=$('pr-copy-qr2');if(cqr2)cqr2.addEventListener('click',function(){copyQR(this)})
 function waText(aks){var x=stRow(),p=x.p,s=login()||{}
 return 'Assalamualaikum, saya ingin '+aks+' data akun saya di MWCNU Pondok Aren.\n\nNama: '+(p.nama||'-')+'\nEmail: '+(s.user&&s.user.email||'-')+'\nNomor induk: '+(x.hasNia?p.nia:'(belum terbit)')+'\n\nMohon petunjuk langkah selanjutnya. Terima kasih.'}
 $('pr-wa-fix').addEventListener('click',function(){window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(waText('meminta perbaikan')),'_blank','noopener')})

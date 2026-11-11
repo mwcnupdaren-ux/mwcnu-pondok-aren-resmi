@@ -1,4 +1,4 @@
-﻿/* Pemuat konten CMS: mengambil data dari Supabase lalu menjalankan js/app.js.
+/* Pemuat konten CMS: mengambil data dari Supabase lalu menjalankan js/app.js.
    Jika Supabase belum diisi / gagal / lambat, situs memakai data bawaan di app.js. */
 (function () {
   var C = window.MWC_CFG || {};
@@ -75,7 +75,7 @@
     [].forEach.call(document.querySelectorAll('[data-cms-src]'), function (e) {
       var v = M.safeImage(get(e.getAttribute('data-cms-src'))); if (v) e.setAttribute('src', v);
     });
-    /* Tipografi global (Pengaturan → Tipografi & Bacaan) */
+    /* Tipografi global (Pengaturan ? Tipografi & Bacaan) */
     var tg = S.tipografi || {}, fam = function (n) { return n === 'Serif' ? "Georgia,'Times New Roman',serif" : n === 'Plus Jakarta Sans' ? "'Plus Jakarta Sans',system-ui,sans-serif" : "'Inter',system-ui,sans-serif"; };
     var root = document.documentElement;
     if (tg.font_judul) root.style.setProperty('--art-judul', fam(tg.font_judul));
@@ -119,7 +119,7 @@
   function go(d) {
     if (rendered) return; rendered = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=37';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=38';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }
