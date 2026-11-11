@@ -6571,3 +6571,40 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
   .pgbar i,.pgtoc-i,.misi-i,.tms-b i::after,.prin-b i,.pgcard-l a::after{transition:none!important}
   .misi-i:hover,button.person:hover{transform:none!important}
 }
+
+/* ---------- Halaman Profil pemilik akun (KTA) ---------- */
+.pr-anon{display:grid;place-items:center;padding:56px 0}
+.pr-lock{max-width:560px;text-align:center;display:grid;gap:10px;justify-items:center;background:var(--surf);border:1px solid var(--bd,var(--line,#E3E7E1));border-radius:26px;box-shadow:var(--sh);padding:38px 30px}
+.pr-lock p{color:var(--mut);margin:0}
+.pr-head{display:flex;gap:18px;align-items:center;background:var(--surf);border:1px solid var(--bd,var(--line,#E3E7E1));border-radius:26px;box-shadow:var(--sh);padding:22px 26px;margin:26px 0 18px;flex-wrap:wrap}
+.pr-ava{width:64px;height:64px;border-radius:50%;background:var(--g1,#0F3B2C);color:#fff;display:grid;place-items:center;font:800 1.5rem/1 'Plus Jakarta Sans',sans-serif;flex:none}
+.pr-head-t{display:grid;gap:3px;min-width:200px;flex:1}
+.pr-head-t b{font-size:1.15rem}.pr-head-t small{color:var(--mut)}
+.pr-badges{display:flex;gap:8px;flex-wrap:wrap}
+.pr-badge{padding:5px 12px;border-radius:999px;background:rgba(43,217,160,.14);color:var(--g2,#2F6B4F);font:700 .72rem 'Plus Jakarta Sans',sans-serif}
+.pr-badge.ok{background:rgba(43,217,160,.18)}
+.pr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.pr-card{background:var(--surf);border:1px solid var(--bd,var(--line,#E3E7E1));border-radius:22px;box-shadow:var(--sh);padding:22px 24px;display:grid;gap:12px;align-content:start}
+.pr-card h3{margin:0;font-size:1.02rem}
+.pr-card>.sm-k{margin-bottom:-2px}
+.pr-dl{display:grid;gap:10px;margin:0}
+.pr-dl>div{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:baseline}
+.pr-dl dt{color:var(--mut);font-size:.82rem}
+.pr-dl dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.pr-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pr-form{display:grid;gap:10px}
+.pr-form .fld{margin:0}
+.pr-act{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+.pr-chip{display:inline-block;padding:4px 12px;border-radius:999px;font:700 .72rem 'Plus Jakarta Sans',sans-serif;background:rgba(148,163,184,.18);color:#475569}
+.pr-chip.ok{background:rgba(43,217,160,.18);color:var(--g2,#2F6B4F)}
+.pr-chip.bad{background:rgba(217,83,79,.14);color:#B23B37}
+.pr-chip.wait{background:rgba(228,118,27,.16);color:#B45A0E}
+.pr-qr{display:flex;gap:12px;align-items:center;justify-items:start}
+.pr-qr canvas{border-radius:10px;background:#fff;border:1px solid var(--bd,var(--line,#E3E7E1));flex:none}
+.pr-qr small{color:var(--mut);max-width:180px}
+@media(max-width:760px){
+  .pr-grid{grid-template-columns:1fr}
+  .pr-dl>div{grid-template-columns:1fr;gap:2px}
+  .pr-2col{grid-template-columns:1fr}
+  .pr-head{padding:18px}
+}

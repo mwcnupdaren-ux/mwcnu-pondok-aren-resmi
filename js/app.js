@@ -181,8 +181,8 @@ document.getElementById('sb').onclick=function(){var r=document.getElementById('
 if(r){q.value=r;draw();go('#ranting')}else if(sv.indexOf('|')>-1){var pp=sv.split('|');drawG(pp[1]);go(pp[0])}else go(sv)};
 document.getElementById('rq').onkeydown=function(e){if(e.key=='Enter')document.getElementById('sb').click()};
 document.getElementById('nb').onclick=function(){var t=document.getElementById('nm').value.trim();window.open('https://wa.me/6285161033689'+(t?'?text='+encodeURIComponent(t):''),'_blank','noopener')};
-var VW=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
-var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','banom-profile','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
+var VW=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
+var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','banom-profile','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
 [].forEach.call(document.querySelectorAll('.sl'),function(e,i){e.style.backgroundImage='url('+PH[HS[i%HS.length]]+')'});
 var LSV=MW.md('layanan',function(x){return x.tampil===false?null:{title:x.judul,desc:x.deskripsi||'',icon:ICONS[x.ikon]||ICONS.info,link:x.tautan||'#layanan'}},[
 {title:'Ambulans 24/7',desc:'Layanan ambulans gratis untuk warga NU Pondok Aren',icon:'<path d="M10 10H6"/><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14"/><path d="M8 8v4"/><path d="M9 18h6"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',link:'#ambulans'},
@@ -382,7 +382,7 @@ if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\
 var bm=h.match(/^\/?banom(?:\/([^\/]+))?\/?$/);
 if(bm){var bslug=bm[1]||'';if(bslug)BANOM.forEach(function(b,i){if(bpSlug(b.name)===bslug)bIndex=i});h=bIndex>=0?'banom-profile':'banom-page'}
 var target=h&&document.getElementById(h),parent=target&&target.closest('.vw');if(parent&&target!==parent){if(parent.hidden){anchorTarget=target;h=parent.id}else{target.scrollIntoView({behavior:'smooth',block:'start'});mark(parent.id);closeDD();return}}
-if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');mark('kontak');closeDD();window.scrollTo(0,0);return}}
+if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft=document.getElementById('site-footer');contact.hidden=false;[].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=true});var ids=['program','banom-page','banom-profile','struktur','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];ids.forEach(function(id){var v0=document.getElementById(id);if(v0)v0.hidden=true});document.body.classList.add('inview');mark('kontak');closeDD();window.scrollTo(0,0);return}}
 if(h=='video'){h='galeri';m='Video'}else if(h=='galeri')m='Foto';
 var mm=h.match(/^berita\/(\d+)$/);if(mm)h='baca';
 var v=VW.indexOf(h)>=0?h:'';
@@ -583,9 +583,11 @@ return fetch(C.url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(s.user.id)+'&se
 function authMsg(t,bad){var m=$('kAuthMsg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
 function applyProf(){var p=profGet();if(!p)return;function set(id,v){var e=$(id);if(e&&v&&!e.value)e.value=v}set('k-nama',p.nama);set('k-hp',p.hp);set('k-wadah',p.wadah);set('k-tingkat',p.tingkat);set('k-alamat',p.alamat);set('k-tmp',p.tempat_lahir);set('k-tgl',p.tanggal_lahir);set('k-jk',p.jk);set('k-kerja',p.pekerjaan);try{if(p.tingkat)$('k-tingkat').dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}set('k-rt',p.ranting)}
 function toggleAuth(){var s=sesGet(),ok=!!(s&&s.user),p=profGet();
+/* Tautan menu Profil hanya untuk sesi server; sesi lokal/offline diarahkan ke laman Daftar. */
+var nl=$('nav-pr');if(nl)nl.hidden=!(ok&&s&&!/^local-/.test(String(s.user.id||'')));
 $('kAuth').hidden=ok;$('kBar').hidden=!ok;$('kGate').hidden=!ok;
 if(ok){$('kWho').textContent=p&&p.nama?p.nama:(s.user.email||'Pengguna');$('kProfState').textContent=p&&p.nia?('Nomor induk '+p.nia+' · '+(p.status==='verified'?'terverifikasi':p.status==='rejected'?'ditolak':'menunggu verifikasi')):(p&&p.nama?'Profil sudah dibuat — nomor induk diterbitkan setelah pengurus memverifikasi.':'Profil belum dibuat — akan dibuatkan saat Anda menyimpan kartu.');applyProf();draw()}}
-function finishLogin(user,token,extra){sesSet({access_token:token||'',user:{id:user.id,email:user.email||''}});
+function finishLogin(user,token,extra,rt){sesSet({access_token:token||'',refresh_token:rt||'',user:{id:user.id,email:user.email||''}});
 if(extra&&(extra.nama||extra.hp)){var p=profGet()||{};profSave({nama:extra.nama||p.nama||'',hp:extra.hp||p.hp||'',email:user.email||p.email||''}).catch(function(){})}
 if(!profGet())profSave({nama:(extra&&extra.nama)||'',hp:(extra&&extra.hp)||'',email:user.email||''}).catch(function(){});
 authMsg('');toggleAuth()}
@@ -602,7 +604,7 @@ sbAuth(isUp?'signup':'token?grant_type=password',isUp?{email:em,password:pw,opti
   if(j&&!j.user&&!j.access_token&&!j.session){authMsg('Akun perlu konfirmasi. Periksa email Anda, lalu masuk.',1);return}
   var u=(j&&j.user)||(j&&j.session&&j.session.user);if(!u){authMsg('Server tidak mengembalikan sesi. Coba lagi.',1);return}
   if(!u.email_confirmed_at){authMsg('Email belum dikonfirmasi. Buka tautan konfirmasi di kotak masuk Anda, lalu masuk kembali.',1);return}
-  finishLogin(u,(j.access_token||(j.session&&j.session.access_token)),{nama:nm,hp:hp});authMsg('Berhasil masuk.')
+  finishLogin(u,(j.access_token||(j.session&&j.session.access_token)),{nama:nm,hp:hp},(j.refresh_token||(j.session&&j.session.refresh_token)||''));authMsg('Berhasil masuk.')
 }).catch(function(err){$('kAuthBtn').disabled=false;
   var m=String(err||'');
   if(isUp&&(m.indexOf('already')>-1||m.indexOf('registered')>-1)){authMsg('Email sudah terdaftar. Silakan masuk.',1);return}
@@ -611,6 +613,15 @@ sbAuth(isUp?'signup':'token?grant_type=password',isUp?{email:em,password:pw,opti
   authMsg('Gagal masuk: '+(m||'periksa email dan kata sandi Anda')+'.',1)
 })});
 $('kOut').addEventListener('click',function(){var k=profKey();sesSet(null);try{if(k)localStorage.removeItem('mwc_profile_'+k)}catch(e){}toggleAuth();authMsg('')})
+/* Lupa kata sandi: kirim tautan reset ke email yang diketik di form masuk. */
+$('kForgot').addEventListener('click',function(){var C=authCfg(),em=v('a-email');
+  if(!C.url){authMsg('Layanan akun belum tersedia — hubungi sekretariat.',1);return}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){authMsg('Isi email Anda di kolom Email, lalu klik lagi tombol ini.',1);return}
+  authMsg('Mengirim tautan reset…');
+  fetch(C.url+'/auth/v1/recover',{method:'POST',headers:{apikey:C.key,'Content-Type':'application/json'},body:JSON.stringify({email:em})})
+  .then(function(r){authMsg('Jika email terdaftar, tautan reset sudah dikirim. Periksa kotak masuk (dan folder spam).')})
+  .catch(function(){authMsg('Gagal mengirim. Periksa koneksi lalu coba lagi.',1)})
+});
 function v(id){return($(id).value||'').trim()}
 function fmt(d){return d.getDate()+' '+BL[d.getMonth()]+' '+d.getFullYear()}
 function fmtIso(s){var a=String(s).split('-');return a.length==3&&a[0]?parseInt(a[2],10)+' '+BL[parseInt(a[1],10)-1]+' '+a[0]:''}
@@ -724,6 +735,115 @@ var pgs=[{imgs:[{b:a,w:W,h:H,x:x1,y:y,mw:cw,mh:ch},{b:b,w:W,h:H,x:x2,y:y,mw:cw,m
 $('k-png').addEventListener('click',function(){job('gambar kartu',async function(){var cv=document.createElement('canvas');cv.width=W;cv.height=H*2+40;var c=cv.getContext('2d');c.fillStyle='#FFFFFF';c.fillRect(0,0,cv.width,cv.height);c.drawImage($('k-front'),0,0);c.drawImage($('k-back'),0,H+40);return save('kartu-anggota-'+slug()+'.png',await blob(cv,'image/png'))})});
 $('k-wa').addEventListener('click',async function(){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;msg('Menyimpan data\u2026');if(!await simpanKartu())return;var d=info(),t='Assalamualaikum, saya mendaftar sebagai anggota MWCNU Pondok Aren.\n\nNama: '+d.nama+'\nJenis kelamin: '+d.jk+'\nTempat, tgl lahir: '+d.tmp+', '+d.tgl+'\nAlamat: '+d.alamat+'\nTingkat/wilayah: '+d.wilayah+'\nPekerjaan: '+(d.kerja||'-')+'\nWadah khidmah: '+d.wadah+'\nNo. HP: '+d.hp+'\nNomor induk: '+(d.nia||'(belum diterbitkan)')+'\n\nMohon verifikasi keanggotaan saya. Saya akan melampirkan berkas PDF kartu dan foto pada chat ini. Terima kasih.';msg('Membuka WhatsApp\u2026');window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(t),'_blank','noopener')});
 window.addEventListener('load',function(){toggleAuth();profFetch().then(function(){toggleAuth()});draw()});if(document.readyState==='complete'){toggleAuth();profFetch().then(function(){toggleAuth()});draw()}
+
+/* ===== HALAMAN PROFIL (pemilik akun: Jama'ah & Pengurus) =====
+   Data ditampilkan dari server (profFetch) dengan cache localStorage.
+   Edit data diri hanya saat belum terbit NIA & belum diverifikasi —
+   kebijakan yang sama ditegakkan RLS di supabase-profiles.sql. */
+(function(){
+var PR=document.getElementById('profil');if(!PR)return;
+var PRT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
+var PROLES={super_admin:'Admin MWC',pengurus:'Pengurus ranting',jurnalis:'Jurnalis',ustadz:'Ustadz'};
+var PBL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+/* esc lokal: modul ini berada di IIFE modul KTA — esc milik IIFE utama tidak terlihat dari sini. */
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function pmsg(t,bad){var m=$('pr-msg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
+function pwmsg(t,bad){var m=$('pr-pw-msg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
+function ptgl(iso){if(!iso)return '—';var a=String(iso).slice(0,10).split('-');return a.length==3&&a[0]?(+a[2])+' '+PBL[(+a[1])-1]+' '+a[0]:String(iso)}
+/* Sesi server saja: sesi lokal/offline tidak bisa memanggil API. */
+function login(){var s=sesGet();return s&&s.user&&!/^local-/.test(String(s.user.id||''))?s:null}
+/* Perbarui access token lewat refresh_token saat 401, lalu ulang sekali. */
+function prefresh(){var s=sesGet();if(!s||!s.refresh_token)return Promise.reject(new Error('Sesi berakhir. Masuk kembali.'))
+return sbAuth('token?grant_type=refresh_token',{refresh_token:s.refresh_token}).then(function(j){
+  if(!j||!j.access_token)throw new Error('Sesi berakhir. Masuk kembali.')
+  var u=s.user;sesSet({access_token:j.access_token,refresh_token:j.refresh_token||s.refresh_token,user:{id:(j.user&&j.user.id)||u.id,email:(j.user&&j.user.email)||u.email}});return j})}
+function rfetch(url,opt,retry){var s=sesGet(),C=authCfg();opt=opt||{}
+opt.headers=Object.assign({'apikey':C.key,'Content-Type':'application/json',Authorization:'Bearer '+((s&&s.access_token)||'')},opt.headers||{})
+return fetch(url,opt).then(function(r){if(r.status===401&&!retry)return prefresh().then(function(){return rfetch(url,opt,1)});return r})}
+function stRow(){var p=profGet()||{},st=p.status||'pending';return{p:p,hasNia:!!p.nia,st:st,ver:st==='verified',rej:st==='rejected'}}
+function editable(){var x=stRow();return !x.hasNia&&x.st==='pending'}
+function drawQR(){var cv=$('pr-qr-cv'),x=stRow();if(!cv||!x.hasNia||!x.ver){$('pr-qr').hidden=true;return}
+try{var url=location.origin+'/v/'+encodeURIComponent(x.p.nia),q=qrcode(0,'M');q.addData(url);q.make();
+var n=q.getModuleCount(),size=cv.width,k=Math.max(1,Math.floor(size/n)),ox=Math.floor((size-k*n)/2),oy=Math.floor((size-k*n)/2),c=cv.getContext('2d');
+c.fillStyle='#FFFFFF';c.fillRect(0,0,size,size);c.fillStyle='#0A2118';
+for(var r=0;r<n;r++)for(var s2=0;s2<n;s2++)if(q.isDark(r,s2))c.fillRect(ox+s2*k,oy+r*k,k,k);$('pr-qr').hidden=false}catch(e){$('pr-qr').hidden=true}}
+function fillForm(p){function set(id,v){var e=$(id);if(e)e.value=v||''}
+set('pr-nama',p.nama);set('pr-hp',p.hp);set('pr-jk',p.jk);set('pr-tmp',p.tempat_lahir);set('pr-tgl',p.tanggal_lahir||'');set('pr-alamat',p.alamat);set('pr-wadah',p.wadah);set('pr-kerja',p.pekerjaan)
+var t=$('pr-tingkat');if(t){t.value=p.tingkat||'';t.dispatchEvent(new Event('change',{bubbles:true}))}
+if(p.ranting){var rt=$('pr-rt');if(rt&&!rt.options.length)fillRT();if(rt)rt.value=p.ranting}}
+function fillRT(){var rt=$('pr-rt');if(!rt||rt.options.length)return;var o=document.createElement('option');o.value='';o.textContent='Pilih kelurahan';rt.appendChild(o);PRT.forEach(function(n){var q=document.createElement('option');q.value=n;q.textContent=n;rt.appendChild(q)})}
+function renderRO(p){var rows=[['Nama',p.nama],['Email',p.email],['Nomor HP',p.hp],['Jenis kelamin',p.jk],['Tempat, tanggal lahir',p.tempat_lahir?p.tempat_lahir+', '+ptgl(p.tanggal_lahir):''],['Alamat',p.alamat],['Asal wilayah',(p.tingkat||'')==='PRNU'?('PRNU '+(p.ranting||'')):((p.tingkat||'')==='MWCNU'?'MWCNU Kec. Pondok Aren':'')],['Wadah khidmah',p.wadah],['Pekerjaan',p.pekerjaan]]
+$('pr-ro-dl').innerHTML=rows.filter(function(r){return r[1]}).map(function(r){return '<div><dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd></div>'}).join('')}
+function render(){var s=login();$('pr-anon').hidden=!!s;$('pr-main').hidden=!s
+var nl=$('nav-pr');if(nl)nl.hidden=!s;if(!s)return
+var x=stRow(),p=x.p,email=s.user.email||p.email||''
+$('pr-name').textContent=p.nama||email.split('@')[0];$('pr-email').textContent=email
+$('pr-ava').textContent=((p.nama||email||'?').trim()[0]||'?').toUpperCase()
+$('pr-since').textContent=p.created_at?('Anggota sejak '+ptgl(p.created_at)):''
+$('pr-nia').textContent=x.hasNia?p.nia:'Belum diterbitkan'
+var ch=$('pr-status');ch.textContent=x.hasNia?(x.ver?'Terverifikasi':x.rej?'Ditolak':'Menunggu verifikasi'):'Menunggu penerbitan'
+ch.className='pr-chip '+(x.hasNia&&x.ver?'ok':x.hasNia&&x.rej?'bad':'wait')
+$('pr-terbit').textContent=p.issued_at?ptgl(p.issued_at):'—'
+$('pr-nia-note').textContent=x.hasNia?(x.ver?'Kartu Anda sah sebagai bukti keanggotaan aktif.':x.rej?'Pendaftaran ditolak. Hubungi sekretariat untuk informasi lebih lanjut.':'Kartu menunggu verifikasi pengurus ranting/sekretariat.'):'Nomor induk diterbitkan otomatis setelah pengurus memverifikasi data Anda.'
+$('pr-copy-qr').hidden=!(x.hasNia&&x.ver);drawQR()
+var ed=editable();$('pr-form').hidden=!ed;$('pr-ro').hidden=ed;if(ed)fillForm(p);else renderRO(p)
+loadStaff()}
+function loadStaff(){var s=login(),el=$('pr-staff');if(!el)return;if(!s){el.hidden=true;return}
+var C=authCfg();if(!C.url){el.hidden=true;return}
+rfetch(C.url+'/rest/v1/staff?email=eq.'+encodeURIComponent(s.user.email||'')+'&select=email,role,nama,prnu')
+.then(function(r){return r.ok?r.json():[]}).then(function(a){var row=a&&a[0]
+if(!row){el.hidden=true;$('pr-role').textContent="Jama'ah";return}
+el.hidden=false;$('pr-staff-role').textContent=PROLES[row.role]||row.role
+$('pr-staff-prnu').textContent=row.role==='pengurus'?(PRT[(parseInt(row.prnu,10)||1)-1]||row.prnu||'-'):row.role==='super_admin'?'MWCNU Kecamatan Pondok Aren':'—'
+$('pr-role').textContent=PROLES[row.role]||'Pengurus'}).catch(function(){el.hidden=true})}
+/* Simpan data diri (hanya saat profil masih pending — server menegakkan juga). */
+$('pr-form').addEventListener('submit',function(e){e.preventDefault()
+if(!login()){authMsg('Masuk dulu untuk menyimpan perubahan.',1);location.hash='#daftar';return}
+if(!editable()){pmsg('Data terkunci karena kartu sudah diterbitkan. Gunakan tombol "Minta perbaikan data".',1);return}
+var g=function(id){return($(id).value||'').trim()},p=profGet()||{}
+var b={nama:g('pr-nama'),hp:g('pr-hp'),jk:$('pr-jk').value||'',tempat_lahir:g('pr-tmp'),tanggal_lahir:$('pr-tgl').value||'',alamat:g('pr-alamat'),tingkat:$('pr-tingkat').value||'',ranting:$('pr-rt').value||'',wadah:g('pr-wadah'),pekerjaan:g('pr-kerja')}
+if(!b.nama){pmsg('Nama lengkap wajib diisi.',1);return}
+var hp=b.hp.replace(/\D/g,'')
+if(!/^08\d{8,11}$/.test(hp)){pmsg('Nomor HP/WhatsApp tampak tidak valid (contoh: 0812xxxxxxx).',1);return}
+if(b.tingkat==='PRNU'&&!b.ranting){pmsg('Pilih kelurahan / ranting Anda.',1);return}
+if(!b.tanggal_lahir){pmsg('Tanggal lahir wajib diisi.',1);return}
+pmsg('Menyimpan…')
+profSave(b).then(function(){pmsg('Perubahan data tersimpan.');render()}).catch(function(err){
+var m=String(err&&err.message||err||'')
+if(/sesi berakhir/i.test(m)){pmsg('Sesi berakhir. Masuk kembali untuk menyimpan.',1);return}
+pmsg('Data belum tersimpan: '+m+'.',1)})})
+/* Ganti kata sandi (akun email+sandi). */
+$('pr-pw').addEventListener('submit',function(e){e.preventDefault()
+var pw=$('pr-pw1').value||'',pw2=$('pr-pw2').value||''
+if(pw.length<6){pwmsg('Kata sandi minimal 6 karakter.',1);return}
+if(pw!==pw2){pwmsg('Kedua kata sandi belum sama.',1);return}
+pwmsg('Memperbarui…')
+rfetch(authCfg().url+'/auth/v1/user',{method:'PUT',body:JSON.stringify({password:pw})})
+.then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+.then(function(x){if(!x.ok)throw new Error((x.j&&(x.j.msg||x.j.message))||('gagal ('+(x.j&&x.j.code||'')+')'))
+pwmsg('Kata sandi berhasil diperbarui.');$('pr-pw1').value='';$('pr-pw2').value=''})
+.catch(function(err){pwmsg('Gagal memperbarui: '+(String(err&&err.message||err)||'periksa koneksi')+'.',1)})})
+/* Kirim tautan reset (berlaku juga bila lupa sandi lama). */
+$('pr-reset').addEventListener('click',function(){var s=login(),C=authCfg();if(!C.url){pwmsg('Layanan akun belum tersedia.',1);return}
+pwmsg('Mengirim tautan reset…')
+fetch(C.url+'/auth/v1/recover',{method:'POST',headers:{apikey:C.key,'Content-Type':'application/json'},body:JSON.stringify({email:(s&&s.user.email)||''})})
+.then(function(){pwmsg('Jika email terdaftar, tautan reset sudah dikirim ke email Anda.')})
+.catch(function(){pwmsg('Gagal mengirim. Periksa koneksi lalu coba lagi.',1)})})
+$('pr-out').addEventListener('click',function(){var k=profKey();sesSet(null);try{if(k)localStorage.removeItem('mwc_profile_'+k)}catch(e){}toggleAuth();render();location.hash='#top'})
+$('pr-copy-qr').addEventListener('click',function(){var x=stRow();if(!x.hasNia)return
+var url=location.origin+'/v/'+encodeURIComponent(x.p.nia)
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){pmsg('Tautan verifikasi disalin: '+url)},function(){window.prompt('Salin tautan ini:',url)})}else window.prompt('Salin tautan ini:',url)})
+function waText(aks){var x=stRow(),p=x.p,s=login()||{}
+return 'Assalamualaikum, saya ingin '+aks+' data akun saya di MWCNU Pondok Aren.\n\nNama: '+(p.nama||'-')+'\nEmail: '+(s.user&&s.user.email||'-')+'\nNomor induk: '+(x.hasNia?p.nia:'(belum terbit)')+'\n\nMohon petunjuk langkah selanjutnya. Terima kasih.'}
+$('pr-wa-fix').addEventListener('click',function(){window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(waText('meminta perbaikan')),'_blank','noopener')})
+$('pr-wa-del').addEventListener('click',function(){if(!confirm('Permintaan penghapusan akun diproses oleh sekretariat dengan verifikasi identitas. Lanjutkan ke WhatsApp?'))return
+window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(waText('meminta penghapusan')),'_blank','noopener')})
+$('pr-tingkat').addEventListener('change',function(){var w=$('pr-rt-w');if(!w)return
+if(this.value==='PRNU'){fillRT();w.hidden=false}else{w.hidden=true;$('pr-rt').value=''}})
+$('pr-rt-w').addEventListener('change',function(){})
+addEventListener('hashchange',function(){if((location.hash||'#top')=='#profil')render()})
+if(document.readyState==='complete')profFetch().then(render);else window.addEventListener('load',function(){profFetch().then(render)})
+})();
 }catch(e){}})();
 /* ===== KONSULTASI AGAMA ===== */
 (function(){try{

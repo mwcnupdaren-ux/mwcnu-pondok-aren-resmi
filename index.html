@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0C3B2B">
 <meta property="og:title" content="MWCNU Pondok Aren"><meta property="og:description" content="Portal resmi MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=28">
+<link rel="stylesheet" href="/css/style.css?v=29">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -45,7 +45,7 @@
 <div class="dd"><button class="ddb" aria-expanded="false" aria-haspopup="true" aria-controls="nav-profil">Profil<i></i></button><div class="ddm" id="nav-profil"><a href="#sejarah">Sejarah</a><a href="#visi">Visi & Misi</a><a href="#struktur">Struktur Pengurus</a></div></div>
 <a href="#berita">Berita</a>
 <div class="dd"><button class="ddb" aria-expanded="false" aria-haspopup="true" aria-controls="nav-program">Program & Layanan<i></i></button><div class="ddm" id="nav-program"><a href="#program">Program Khidmat</a><a href="#layanan">Layanan Jam'iyyah</a><a href="#ambulans">Layanan Ambulans</a><a href="#majelis">Majelis Taklim</a><a href="#konsultasi">Konsultasi Agama</a><a href="#zis">Zakat (UPZ) & Infaq</a></div></div>
-<a href="#kontak">Kontak</a></nav>
+<a href="#kontak">Kontak</a><a href="#profil" id="nav-pr" hidden>Profil Saya</a></nav>
 <div class="nav-actions">
   <button id="hbtn" aria-label="Cari dalam situs" title="Cari dalam situs (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
   <a class="btn-kta" href="#daftar">Daftar KTA</a>
@@ -307,8 +307,8 @@
 </div></section>
 <section id="daftar" class="vw" hidden><div class="wrap" id="kartu-app"><h2>Kartu Anggota MWCNU Pondok Aren</h2><a class="back" href="#top">&larr; Kembali ke beranda</a>
 <p class="pg-lead">Buat pratinjau kartu anggota dan unduh sebagai PDF siap cetak (ukuran kartu 85,6 &times; 54 mm) atau gambar untuk disimpan di HP. Data diri Anda disimpan di basis data MWCNU Pondok Aren dan nomor induk diterbitkan oleh sistem, bukan dibuat di perangkat. Kartu baru sah sebagai bukti keanggotaan setelah diverifikasi pengurus; sebelum itu kartu diberi tanda <b>BELUM TERVERIFIKASI</b>.</p>
-<div class="kt-auth" id="kAuth"><div class="kt-auth-l"><span class="sm-k"><i></i>Masuk dulu</span><h3>Masuk untuk membuat Kartu Anggota</h3><p>Untuk melindungi data Anda, pembuatan Kartu Anggota wajib masuk. Jika Anda belum punya profil, profil akan <b>dibuatkan sekaligus</b> saat Anda daftar — tidak perlu langkah tambahan.</p></div><form class="kt-auth-f" id="kAuthF"><div class="kt-tabs"><button type="button" id="kTabIn" class="on">Masuk</button><button type="button" id="kTabUp">Buat akun &amp; profil</button></div><label class="fld"><span>Email *</span><input type="email" id="a-email" autocomplete="email" placeholder="contoh: nama@email.com"></label><label class="fld"><span>Kata sandi *</span><input type="password" id="a-pass" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label class="fld" data-reg><span>Nama lengkap *</span><input type="text" id="a-nama" autocomplete="name" placeholder="Nama sesuai KTP"></label><label class="fld" data-reg><span>Nomor HP / WhatsApp *</span><input type="tel" id="a-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label><button type="submit" class="btn" id="kAuthBtn">Masuk</button><p class="fm-msg" id="kAuthMsg" role="status"></p><p class="fm-note">Akun dan profil memerlukan koneksi ke server MWCNU. Pendaftaran KTA hanya dapat dilanjutkan setelah email dikonfirmasi; data profil disimpan di basis data MWCNU.</p></form></div>
-<div class="kt-bar" id="kBar" hidden><span class="sm-k"><i></i>Profil</span><div class="kt-bar-t"><b id="kWho">—</b><small id="kProfState">—</small></div><button type="button" class="kt-b" id="kOut">Keluar</button></div>
+<div class="kt-auth" id="kAuth"><div class="kt-auth-l"><span class="sm-k"><i></i>Masuk dulu</span><h3>Masuk untuk membuat Kartu Anggota</h3><p>Untuk melindungi data Anda, pembuatan Kartu Anggota wajib masuk. Jika Anda belum punya profil, profil akan <b>dibuatkan sekaligus</b> saat Anda daftar — tidak perlu langkah tambahan.</p></div><form class="kt-auth-f" id="kAuthF"><div class="kt-tabs"><button type="button" id="kTabIn" class="on">Masuk</button><button type="button" id="kTabUp">Buat akun &amp; profil</button></div><label class="fld"><span>Email *</span><input type="email" id="a-email" autocomplete="email" placeholder="contoh: nama@email.com"></label><label class="fld"><span>Kata sandi *</span><input type="password" id="a-pass" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label class="fld" data-reg><span>Nama lengkap *</span><input type="text" id="a-nama" autocomplete="name" placeholder="Nama sesuai KTP"></label><label class="fld" data-reg><span>Nomor HP / WhatsApp *</span><input type="tel" id="a-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label><button type="submit" class="btn" id="kAuthBtn">Masuk</button><button type="button" class="kt-b" id="kForgot" hidden>Lupa kata sandi? Kirim tautan reset ke email</button><p class="fm-msg" id="kAuthMsg" role="status"></p><p class="fm-note">Akun dan profil memerlukan koneksi ke server MWCNU. Pendaftaran KTA hanya dapat dilanjutkan setelah email dikonfirmasi; data profil disimpan di basis data MWCNU.</p></form></div>
+<div class="kt-bar" id="kBar" hidden><span class="sm-k"><i></i>Profil</span><div class="kt-bar-t"><b id="kWho">—</b><small id="kProfState">—</small></div><a class="kt-b" href="#profil">Profil Saya</a><button type="button" class="kt-b" id="kOut">Keluar</button></div>
 <div class="kt-g" id="kGate" hidden>
 <div class="kt-f"><span class="sm-k"><i></i>Data anggota</span><h3>Isi data diri</h3>
 <div class="fld"><span>Foto (rasio 3&times;4) *</span><label class="kt-drop" for="k-foto"><input type="file" id="k-foto" accept="image/*"><b id="k-foto-t">Pilih atau ambil foto wajah</b><small>Foto menghadap depan, latar polos, wajah terlihat jelas</small></label>
@@ -333,6 +333,86 @@
 <p class="fm-msg" id="k-msg" role="status"></p>
 <p class="fm-note">Nomor induk diterbitkan oleh sistem MWCNU dan tidak berubah setelah terbit. Kartu berstatus <b>menunggu verifikasi</b> sampai disetujui pengurus ranting/sekretariat. Tombol WhatsApp hanya membuka percakapan; lampirkan sendiri berkas PDF kartu dan foto Anda pada chat tersebut.</p></div>
 </div></div></section>
+
+<section id="profil" class="vw" hidden><div class="wrap" id="pr-app">
+<a class="back" href="#top">&larr; Kembali ke beranda</a>
+<h2>Profil Saya</h2>
+<p class="pg-lead">Halaman akun Anda sebagai Jama'ah atau Pengurus MWCNU Pondok Aren: data keanggotaan, status Kartu Anggota, dan keamanan akun.</p>
+
+<div class="pr-anon" id="pr-anon" hidden>
+  <div class="pr-lock"><span class="sm-k"><i></i>Belum masuk</span><h3>Masuk untuk melihat profil Anda</h3><p>Halaman ini berisi data diri, status Kartu Anggota (KTA), dan pengaturan akun. Masuk atau buat akun terlebih dahulu di laman Daftar KTA.</p><a class="btn" href="#daftar">Masuk / Daftar</a></div>
+</div>
+
+<div id="pr-main" hidden>
+  <div class="pr-head">
+    <div class="pr-ava" id="pr-ava" aria-hidden="true">—</div>
+    <div class="pr-head-t"><b id="pr-name">—</b><small id="pr-email">—</small><small id="pr-since"></small></div>
+    <div class="pr-badges"><span class="pr-badge" id="pr-role">Jama'ah</span><span class="pr-badge ok" id="pr-confirm">Email terkonfirmasi</span></div>
+  </div>
+
+  <div class="pr-grid">
+    <div class="pr-card"><span class="sm-k"><i></i>Keanggotaan</span><h3>Kartu Anggota (KTA)</h3>
+      <dl class="pr-dl"><div><dt>Nomor induk (NIA)</dt><dd id="pr-nia">—</dd></div><div><dt>Status</dt><dd><span class="pr-chip" id="pr-status">—</span></dd></div><div><dt>Diterbitkan</dt><dd id="pr-terbit">—</dd></div></dl>
+      <div class="pr-qr" id="pr-qr" hidden><canvas id="pr-qr-cv" width="132" height="132" aria-label="QR verifikasi kartu anggota Anda"></canvas><small>Pindai QR ini untuk memverifikasi keabsahan kartu.</small></div>
+      <div class="pr-act"><button type="button" class="btn o s" id="pr-copy-qr" hidden>Salin tautan verifikasi</button><a class="btn o s" href="#daftar">Buka / unduh kartu</a></div>
+      <p class="fm-note" id="pr-nia-note"></p>
+    </div>
+
+    <div class="pr-card"><span class="sm-k"><i></i>Data diri</span><h3>Data keanggotaan</h3>
+      <form id="pr-form" class="pr-form" novalidate>
+        <label class="fld"><span>Nama lengkap *</span><input type="text" id="pr-nama" autocomplete="name"></label>
+        <div class="pr-2col">
+          <label class="fld"><span>Nomor HP / WhatsApp *</span><input type="tel" id="pr-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label>
+          <label class="fld"><span>Jenis kelamin</span><select id="pr-jk"><option value="">Pilih</option><option>Laki-laki</option><option>Perempuan</option></select></label>
+        </div>
+        <div class="pr-2col">
+          <label class="fld"><span>Tempat lahir</span><input type="text" id="pr-tmp" autocomplete="off"></label>
+          <label class="fld"><span>Tanggal lahir</span><input type="date" id="pr-tgl"></label>
+        </div>
+        <label class="fld"><span>Alamat</span><input type="text" id="pr-alamat" autocomplete="street-address"></label>
+        <div class="pr-2col">
+          <label class="fld"><span>Asal pengurus / anggota</span><select id="pr-tingkat"><option value="">Pilih</option><option value="MWCNU">MWCNU (Kecamatan Pondok Aren)</option><option value="PRNU">PRNU / Ranting (Kelurahan)</option></select></label>
+          <label class="fld" id="pr-rt-w" hidden><span>Kelurahan / ranting</span><select id="pr-rt"></select></label>
+        </div>
+        <div class="pr-2col">
+          <label class="fld"><span>Wadah khidmah</span><input type="text" id="pr-wadah" placeholder="mis. IPNU, Muslimat — opsional"></label>
+          <label class="fld"><span>Pekerjaan</span><input type="text" id="pr-kerja" autocomplete="organization-title"></label>
+        </div>
+        <div class="pr-act"><button type="submit" class="btn" id="pr-save">Simpan perubahan</button></div>
+        <p class="fm-msg" id="pr-msg" role="status"></p>
+      </form>
+      <div id="pr-ro" hidden>
+        <dl class="pr-dl" id="pr-ro-dl"></dl>
+        <p class="fm-note">Kartu Anda sudah memiliki nomor induk, sehingga data ini <b>terkunci</b> demi keabsahan kartu. Perubahan data dilakukan oleh pengurus ranting/sekretariat — gunakan tombol <b>Minta perbaikan data</b> di kartu Privasi di bawah.</p>
+      </div>
+    </div>
+
+    <div class="pr-card"><span class="sm-k"><i></i>Keamanan</span><h3>Kata sandi &amp; sesi</h3>
+      <form id="pr-pw" class="pr-form" novalidate>
+        <div class="pr-2col">
+          <label class="fld"><span>Kata sandi baru *</span><input type="password" id="pr-pw1" autocomplete="new-password" placeholder="Minimal 6 karakter"></label>
+          <label class="fld"><span>Ulangi kata sandi baru *</span><input type="password" id="pr-pw2" autocomplete="new-password"></label>
+        </div>
+        <div class="pr-act"><button type="submit" class="btn o" id="pr-pw-btn">Perbarui kata sandi</button><button type="button" class="btn o" id="pr-reset">Kirim tautan reset ke email</button><button type="button" class="btn o" id="pr-out">Keluar</button></div>
+        <p class="fm-msg" id="pr-pw-msg" role="status"></p>
+      </form>
+      <p class="fm-note">Setelah kata sandi diperbarui, sesi di perangkat lain akan tetap aktif hingga masing-masing keluar. Sesi di perangkat ini diperbarui otomatis.</p>
+    </div>
+
+    <div class="pr-card"><span class="sm-k"><i></i>Privasi &amp; data</span><h3>Data pribadi Anda</h3>
+      <p class="fm-note" style="margin-top:0">Data yang tersimpan di basis data MWCNU: nama, jenis kelamin, tempat/tanggal lahir, alamat, pekerjaan, nomor HP, asal wilayah, dan wadah khidmah. Email dipakai untuk masuk. Data keanggotaan hanya dapat diakses pengurus ranting terkait untuk keperluan verifikasi kartu.</p>
+      <div class="pr-act"><button type="button" class="btn o" id="pr-wa-fix">Minta perbaikan data via WhatsApp</button><button type="button" class="btn o" id="pr-wa-del">Minta penghapusan akun via WhatsApp</button></div>
+      <p class="fm-note">Permintaan diproses sekretariat dengan verifikasi identitas terlebih dahulu. Data tidak dijual dan tidak dibagikan kepada pihak di luar kepengurusan.</p>
+    </div>
+
+    <div class="pr-card" id="pr-staff" hidden><span class="sm-k"><i></i>Pengelola</span><h3>Akun Pengurus</h3>
+      <dl class="pr-dl"><div><dt>Peran</dt><dd id="pr-staff-role">—</dd></div><div><dt>Wilayah verifikasi</dt><dd id="pr-staff-prnu">—</dd></div></dl>
+      <div class="pr-act"><a class="btn" href="/admin" target="_blank" rel="noopener">Buka panel pengelola</a></div>
+      <p class="fm-note">Panel pengelola hanya untuk akun yang terdaftar sebagai pengurus/admin MWC.</p>
+    </div>
+  </div>
+</div>
+</div></section>
 
 <section id="baca" class="vw" hidden><div class="wrap">
 <div class="ar-grid">
@@ -378,7 +458,7 @@
 
 <script src="/js/vendor/qrcode.js?v=20"></script>
 <script src="/js/config.js?v=21"></script>
-<script src="/js/content.js?v=27"></script>
+<script src="/js/content.js?v=28"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
 <div class="gs-panel" role="document">
