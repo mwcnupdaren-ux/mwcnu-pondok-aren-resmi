@@ -21,21 +21,27 @@ a{color:var(--gold);font-weight:700}small{color:#6B7F75}
 <script src="/js/config.js"></script>
 <script>
 (function(){
-var raw=decodeURIComponent((location.pathname.split('/v/')[1]||'')).trim().toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40);
+var raw='';
+try{raw=decodeURIComponent((location.pathname.split('/v/')[1]||'')).trim().toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40)}catch(e){raw=(location.pathname.split('/v/')[1]||'').replace(/%[0-9a-fA-F]{2}/g,'').replace(/[^A-Z0-9-]/g,'').trim().toUpperCase().slice(0,40)}
 var n=document.getElementById('n'),s=document.getElementById('s'),t=document.getElementById('t');
 n.textContent=raw||'(nomor tidak ditemukan)';
 function cd(x){x=x.replace(/\D/g,'');var tt=0;for(var i=0;i<x.length;i++)tt+=(+x[x.length-1-i])*(i%2?3:1);return(10-tt%10)%10}
-var m=/^MWC-(\d{2})-(\d{2})-(\d{5,6})-(\d)$/.exec(raw);
+var m=/^MWC-(\d{2})-(\d{2})-(\d{6})-(\d)$/.exec(raw);
 if(!m){s.className='s bad';s.textContent='Format nomor induk tidak dikenali.';t.textContent='Pastikan QR dipindai dari kartu anggota MWCNU Pondok Aren yang asli.';return}
 if(cd(m[1]+m[2]+m[3])!==+m[4]){s.className='s bad';s.textContent='Angka cek tidak cocok. Nomor ini kemungkinan salah ketik atau tidak asli.';return}
 var C=window.MWC_CFG||{};
 if(!C.supabaseUrl||!C.supabaseKey){s.className='s wait';s.textContent='Format nomor cocok, tetapi layanan verifikasi belum tersedia.';t.textContent='Hubungi sekretariat untuk pemeriksaan manual.';return}
-fetch(C.supabaseUrl+'/rest/v1/rpc/verify_nia',{method:'POST',headers:{apikey:C.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({p_nia:raw})})
-.then(function(r){return r.json()})
+function down(){s.className='s wait';s.textContent='Layanan verifikasi tidak dapat dijangkau. Coba lagi.';t.textContent='Ini bukan berarti kartu tidak asli. Periksa koneksi, lalu muat ulang halaman ini.'}
+function who(row){return row.nama?(' — '+row.nama):''}
+function where(row){return row.wilayah?(' Wilayah: '+row.wilayah+'.'):''}
+fetch(C.supabaseUrl+'/rest/v1/rpc/verify_nia',{method:'POST',cache:'no-store',headers:{apikey:C.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({p_nia:raw})})
+.then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()})
 .then(function(a){var row=a&&a[0];
-  if(!row){s.className='s bad';s.textContent='Nomor tidak ditemukan di data anggota.';t.textContent='Kartu belum terdaftar. Hubungi sekretariat MWCNU Pondok Aren.';return}
-  if(row.verified){s.className='s ok';s.textContent='Kartu VALID — '+row.nama; t.textContent='Nomor '+raw+' terdaftar aktif sebagai anggota MWCNU Pondok Aren.'}
-  else{s.className='s wait';s.textContent='Kartu TERDAFTAR, menunggu verifikasi pengurus — '+row.nama;t.textContent='Data sudah masuk tetapi belum diverifikasi. Hubungi sekretariat.'}
-}).catch(function(){s.className='s wait';s.textContent='Layanan verifikasi tidak dapat dijangkau. Coba lagi.'});
+  /* Server hanya membalas kartu yang sudah TERVERIFIKASI. Nomor yang belum
+     terverifikasi, ditolak, atau tidak terdaftar diperlakukan sama — agar
+     pihak luar tidak bisa memetakan nomor anggota lewat halaman ini. */
+  if(!row){s.className='s bad';s.textContent='Nomor tidak dapat diverifikasi.';t.textContent='Kartu ini belum sah sebagai bukti keanggotaan yang aktif. Hubungi sekretariat MWCNU Pondok Aren untuk pemeriksaan.';return}
+  s.className='s ok';s.textContent='Kartu VALID'+who(row);t.textContent='Nomor '+raw+' terdaftar aktif sebagai anggota MWCNU Pondok Aren.'+where(row)
+}).catch(down);
 })();
 </script></body></html>

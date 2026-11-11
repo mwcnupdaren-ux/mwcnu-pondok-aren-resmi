@@ -14,25 +14,15 @@ alter table public.content_items add column if not exists updated_by text;
 alter table public.site_settings add column if not exists updated_by text;
 
 -- Recreate trigger agar kompatibel dengan skema yang sudah naik level.
+-- PENTING: logika HARUS sama dengan touch_row() di supabase/schema.sql —
+-- sebelumnya dua versi berbeda sehingga perilaku updated_by bergantung pada
+-- urutan eksekusi file. schema.sql adalah sumber kebenaran.
 create or replace function public.touch_row() returns trigger
 language plpgsql as $$
 begin
   new.updated_at := now();
-
-  if tg_table_name = 'content_items' then
-    if new.updated_by is null then
-      new.updated_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
-    end if;
-
-    if tg_op = 'INSERT' and new.created_by is null then
-      new.created_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
-    end if;
-  elsif tg_table_name = 'site_settings' then
-    if new.updated_by is null then
-      new.updated_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
-    end if;
-  end if;
-
+  new.updated_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
+  if tg_table_name = 'content_items' and tg_op = 'INSERT' and new.created_by is null then new.created_by := new.updated_by; end if;
   return new;
 end $$;
 

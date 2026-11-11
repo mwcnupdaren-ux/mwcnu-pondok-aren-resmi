@@ -74,11 +74,17 @@ var SETS = {
  tipografi: { l: 'Tipografi & Bacaan', F: [T('font_judul','Font judul artikel',{t:'select',o:['Plus Jakarta Sans','Inter','Serif']}), T('font_isi','Font isi artikel',{t:'select',o:['Inter','Plus Jakarta Sans','Serif']}), T('ukuran_isi','Ukuran isi (px)',{t:'num',h:'Standar: 16. Rentang 14–20.'}), T('jarak_baris','Jarak baris',{t:'num',h:'Standar: 1.75. Rentang 1.4–2.2.'}), T('dropcap','Huruf awal besar (drop cap)',{t:'bool'})] }
 };
 var GROUPS = [['Konten', ['berita','agenda','video','galeri','kegiatan','majelis','tanya_jawab']], ['Beranda & layanan', ['layanan','program']], ['Organisasi', ['pengurus','ranting','banom','halaman']]];
-var S = { dirty: false, set: {}, items: {}, staff: [], me: null };
+var S = { dirty: false, set: {}, items: {}, staff: [], me: null, memPage: 0 };
 var root = $('#app');
 
 function toast(m, bad) { var t = $('#toast'), e = document.createElement('div'); e.className = 't' + (bad ? ' bad' : ''); e.textContent = m; t.appendChild(e); setTimeout(function () { e.remove(); }, bad ? 6000 : 3200); }
 function isAdmin() { return S.me && (S.me.role === 'super_admin' || S.me.role === 'admin'); }
+/* Pengurus (termasuk pengurus ranting) boleh membuka Anggota & Verifikasi.
+   Batas wilayahnya ditegakkan RLS lewat public.verifies() di supabase-profiles.sql. */
+function canMembers() { return S.me && ['super_admin','admin','pengurus','editor'].indexOf(S.me.role) >= 0; }
+/* Siapa yang benar-benar dapat membuka daftar anggota (selaras viewMembers):
+   Jurnalis dan Ustadz tidak dapat, meski mereka punya menu Sistem. */
+function canMembersView() { return !!S.me && (isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor'); }
 function can(c, data) {
   if (!S.me || !c) return false;
   var role = S.me.role;
@@ -98,7 +104,7 @@ function login() { screen('<h1>Admin MWCNU Pondok Aren</h1><p>Masuk dengan akun 
   $('#gbtn').onclick = function () { sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/admin' } }); }; }
 function denied(email) { screen('<h1>Akun belum terdaftar</h1><p><b>' + esc(email) + '</b> belum terdaftar sebagai pengelola. Minta admin menambahkan email ini di menu Pengelola.</p><p><button class="btn o" id="out">Keluar</button></p>'); $('#out').onclick = signOut; }
 function fatal(m) { screen('<h1>Terjadi kesalahan</h1><p>' + esc(m) + '</p><p><button class="btn o" onclick="location.reload()">Muat ulang</button></p>'); }
-function signOut() { sb.auth.signOut().then(function () { location.href = '/admin'; }); }
+function signOut() { sb.auth.signOut().then(function () { location.href = '/admin'; }).catch(function () { toast('Gagal keluar sesi. Periksa koneksi lalu coba lagi.', 1); }); }
 
 /* ---------- kerangka ---------- */
 function shell(title, active, body, actions) {
@@ -111,7 +117,9 @@ function shell(title, active, body, actions) {
   });
   if (isAdmin()) {
     nav += navSection('Pengaturan situs', Object.keys(SETS).map(function (k) { var a = active === 'set/' + k; return '<a data-nav href="#/set/' + k + '" class="' + (a ? 'on' : '') + '"' + (a ? ' aria-current="page"' : '') + '>' + esc(SETS[k].l) + '</a>'; }).join(''), active.indexOf('set/') === 0);
-    nav += navSection('Sistem', '<a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '"' + (active === 'members' ? ' aria-current="page"' : '') + '>Anggota &amp; Verifikasi</a><a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '"' + (active === 'staff' ? ' aria-current="page"' : '') + '>Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '"' + (active === 'log' ? ' aria-current="page"' : '') + '>Riwayat perubahan</a>', ['members','staff','log'].indexOf(active) >= 0);
+  }
+  if (canMembers()) {
+    nav += navSection('Sistem', (canMembersView() ? '<a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '"' + (active === 'members' ? ' aria-current="page"' : '') + '>Anggota &amp; Verifikasi</a>' : '') + (isAdmin() ? '<a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '"' + (active === 'staff' ? ' aria-current="page"' : '') + '>Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '"' + (active === 'log' ? ' aria-current="page"' : '') + '>Riwayat perubahan</a>' : ''), ['members','staff','log'].indexOf(active) >= 0);
   }
   nav += '<a class="nav-site" href="/" target="_blank" rel="noopener">Lihat situs &nearr;</a>';
   root.innerHTML = '<div class="shell"><aside class="side" id="side"><div class="brand"><img src="/assets/img/favicon.png" alt=""><div><b>Admin MWCNU</b><small>Pondok Aren</small></div></div><label class="nav-search"><span class="sr-only">Cari menu</span><input id="navq" type="search" placeholder="Cari menu…" autocomplete="off"></label><nav class="nav-list" id="navList" aria-label="Menu admin">' + nav + '<p class="nav-empty" id="navEmpty" hidden>Tidak ada menu yang cocok.</p></nav></aside><main class="main"><div class="top"><div style="display:flex;gap:12px;align-items:center"><button class="btn o s burger" id="burger" aria-expanded="false" aria-controls="side">Menu</button><h2>' + esc(title) + '</h2></div><div class="who"><span>' + esc(S.me.nama || S.user.email) + ' · ' + esc(roleName(S.me.role)) + '</span>' + (actions || '') + '<button class="btn o s" id="out">Keluar</button></div></div>' + body + '</main></div>';
@@ -139,7 +147,11 @@ function noAccess() { shell('Tidak ada akses', '', '<div class="panel empty">Per
 function fieldHTML(f, v) {
   var id = 'f' + Math.random().toString(36).slice(2, 8), h = '<div class="fld" data-k="' + f.k + '" data-t="' + f.t + '">', lab = '<label for="' + id + '">' + esc(f.l) + (f.req ? ' *' : '') + '</label>', hint = f.h ? '<small class="h">' + esc(f.h) + '</small>' : '';
   if (f.t === 'bool') return h + '<label class="chk"><input class="in" type="checkbox" ' + (v === false ? '' : 'checked') + '> ' + esc(f.l) + '</label></div>';
-  if (f.t === 'select') return h + lab + '<select class="in" id="' + id + '"><option value="">Pilih…</option>' + f.o.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' + hint + '<span class="em"></span></div>';
+  if (f.t === 'select') { var selOpts = f.o.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('');
+    /* Nilai tersimpan yang tidak ada di daftar: tampilkan sebagai opsi tambahan
+       agar tidak hilang/ditimpa kosong saat formulir disimpan. */
+    if (v && f.o.indexOf(v) < 0) selOpts += '<option selected>' + esc(v) + '</option>';
+    return h + lab + '<select class="in" id="' + id + '"><option value="">Pilih…</option>' + selOpts + '</select>' + hint + '<span class="em"></span></div>'; }
   if (f.t === 'area' || f.t === 'rich') return h + lab + '<textarea class="in ' + (f.t === 'rich' ? 'rich' : '') + '" id="' + id + '">' + esc(v) + '</textarea>' + hint + '<span class="em"></span></div>';
   if (f.t === 'image') v = safeMediaURL(v);
   if (f.t === 'image') return h + '<span class="lab">' + esc(f.l) + (f.req ? ' *' : '') + '</span><div class="img" data-f="' + (f.f || 'umum') + '" data-png="' + (f.png ? 1 : '') + '" data-max="' + (f.max || 1600) + '"><div class="thumb" style="' + (v ? 'background-image:url(\'' + esc(v) + '\')' : '') + '">' + (v ? '' : 'Belum ada') + '</div><div><label class="btn s g">Pilih gambar<input type="file" accept="image/*" hidden></label> <button type="button" class="btn s o" data-act="imgdel">Hapus</button><input class="in" type="hidden" value="' + esc(v) + '"></div></div>' + hint + '<span class="em"></span></div>';
@@ -186,7 +198,7 @@ function shrink(file, max, png) {
     var fr = new FileReader(); fr.onerror = function () { rej(new Error('Berkas tidak terbaca')); };
     fr.onload = function () { var im = new Image(); im.onerror = function () { rej(new Error('Berkas bukan gambar yang valid')); }; im.onload = function () {
       var k = Math.min(1, max / Math.max(im.width, im.height)), cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
-      var keepPng = png || /png/.test(file.type) && false; var tp = keepPng ? 'image/png' : 'image/webp';
+      var keepPng = png || /png/.test(file.type); var tp = keepPng ? 'image/png' : 'image/webp';
       cv.toBlob(function (b) { if (b && b.type === tp) return res(b); cv.toBlob(function (b2) { b2 ? res(b2) : rej(new Error('Gagal memproses gambar')); }, keepPng ? 'image/png' : 'image/jpeg', .86); }, tp, .86); };
       im.src = fr.result; };
     fr.readAsDataURL(file);
@@ -238,13 +250,13 @@ async function viewHome() {
   var cards = Object.keys(COLS).filter(function (k) { return can(COLS[k]); }).map(function (k) { return '<a class="stat" data-nav href="#/' + k + '"><b>' + (n[k] || 0) + '</b><span>' + COLS[k].l + (d[k] ? ' · ' + d[k] + ' draf' : '') + '</span></a>'; }).join('');
   var draftCount = d.berita || 0;
   var attention = '<div class="task-grid"><a class="task-card" data-nav href="#/berita?status=draft"><span class="task-label">Draf berita</span><b>' + draftCount + '</b><small>' + (draftCount ? 'Buka daftar draf untuk ditinjau atau dilanjutkan.' : 'Tidak ada draf berita yang menunggu.') + '</small></a>';
-  if (isAdmin()) attention += '<a class="task-card" data-nav href="#/members?status=pending"><span class="task-label">Verifikasi KTA</span><b id="memCount">…</b><small id="memHint">Memeriksa pendaftaran anggota.</small></a>';
+  if (canMembersView()) attention += '<a class="task-card" data-nav href="#/members?status=pending"><span class="task-label">Verifikasi KTA</span><b id="memCount">…</b><small id="memHint">Memeriksa pendaftaran anggota.</small></a>';
   attention += '</div>';
   var latest = (recent.data || []).filter(function (x) { return COLS[x.type] && can(COLS[x.type], x.data); }).slice(0, 5);
   var latestHTML = '<section class="recent-panel"><div class="section-head"><div><h3>Terakhir diperbarui</h3><p>Konten yang paling baru disentuh di CMS.</p></div></div>' + (latest.length ? '<ul class="recent-list">' + latest.map(function (x) { var c = COLS[x.type], title = c.ti(x.data) || '(tanpa judul)', date = x.updated_at ? new Date(x.updated_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; return '<li><a data-nav href="#/' + x.type + '/' + encodeURIComponent(x.id) + '"><span><b>' + esc(title) + '</b><small>' + esc(c.l) + (date ? ' · ' + esc(date) : '') + '</small></span><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></a></li>'; }).join('') + '</ul>' : '<div class="empty">Belum ada konten terbaru yang dapat Anda kelola.</div>') + '</section>';
   shell('Ringkasan', '', (isAdmin() && un.length ? '<div class="note">Jenis konten berikut belum dikelola CMS, jadi situs masih memakai data bawaan: <b>' + un.map(function (k) { return COLS[k].l; }).join(', ') + '</b>. Jalankan <code>supabase/seed.sql</code> atau aktifkan dari halaman masing-masing.</div>' : '') + attention + '<div class="section-head"><div><h3>Kelola konten</h3><p>Ringkasan data yang dapat Anda akses.</p></div></div><div class="grid">' + cards + '</div>' + latestHTML);
   function loadMembers() {
-    if (!isAdmin()) return;
+    if (!canMembersView()) return;
     sb.from('profiles').select('status').then(function (mr) {
       var count = $('#memCount'), hint = $('#memHint');
       if (!count || !hint) return;
@@ -252,6 +264,10 @@ async function viewHome() {
       var pending = mr.data.filter(function (x) { return x.status === 'pending'; }).length;
       count.textContent = String(pending);
       hint.textContent = pending ? 'Perlu diperiksa oleh pengelola.' : 'Tidak ada pendaftaran yang menunggu.';
+    }).catch(function () {
+      var count = $('#memCount'), hint = $('#memHint');
+      if (count) count.textContent = '—';
+      if (hint) hint.textContent = 'Status verifikasi tidak tersedia.';
     });
   }
   loadMembers();
@@ -266,20 +282,31 @@ async function viewList(key, q, flt, pub) {
   var shown = list.filter(function (x) { return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || (pub === 'published' ? x.published : !x.published)); });
   var movable = !c.ord && !q && !pub;
   var rows = shown.map(function (x, i) {
-    var writable = isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase(), media = safeMediaURL(x.data.foto || x.data.logo), title = c.ti(x.data) || '(tanpa judul)';
+    /* Selaras policy items_update di supabase/schema.sql:
+       (can_edit DAN created_by = diri sendiri) ATAU can_review(type).
+       can_review = super_admin, atau pengurus pada jenis 'berita'. */
+    var me = (S.user.email || '').toLowerCase(), r = S.me.role;
+    var writable = isAdmin()
+      || (r === 'pengurus' && key === 'berita')
+      || ((r === 'pengurus' || r === 'editor') && ['agenda','video','galeri','kegiatan','majelis'].indexOf(key) >= 0 && x.created_by === me)
+      || (r === 'jurnalis' && key === 'berita' && ['Literasi','Opini'].indexOf((x.data && x.data.kategori) || '') >= 0 && x.created_by === me)
+      || (r === 'ustadz' && key === 'tanya_jawab' && x.created_by === me);
+    /* Jurnalis tidak boleh menerbitkan sendiri (ditegakkan guard_publish di schema.sql). */
+    var canPub = writable && !(r === 'jurnalis' && !x.published);
+    var media = safeMediaURL(x.data.foto || x.data.logo), title = c.ti(x.data) || '(tanpa judul)';
     var thumb = media ? '<img class="row-thumb" src="' + esc(media) + '" alt="" loading="lazy">' : '';
     var more = '<details class="row-menu"><summary class="act" aria-label="Aksi lainnya" title="Aksi lainnya">•••</summary><div class="row-menu-items">' + (movable ? '<button class="act" data-mv="-1" data-id="' + x.id + '" title="Naikkan urutan">Naikkan</button><button class="act" data-mv="1" data-id="' + x.id + '" title="Turunkan urutan">Turunkan</button>' : '') + '<button class="act" data-dup="' + x.id + '">Salin sebagai draf</button><button class="act d" data-del="' + x.id + '">Hapus</button></div></details>';
-    return '<tr><td class="t"><span class="row-title">' + thumb + '<span><b>' + esc(title) + '</b><small>' + esc(c.su(x.data)) + '</small></span></span></td><td class="hm"><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></td><td class="a">' + (writable ? '<a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a><button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button>' + more : '<span class="chip">Hanya baca</span>') + '</td></tr>';
+    return '<tr><td class="t"><span class="row-title">' + thumb + '<span><b>' + esc(title) + '</b><small>' + esc(c.su(x.data)) + '</small></span></span></td><td class="hm"><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></td><td class="a">' + (writable ? '<a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a>' + (canPub ? '<button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button>' : '') + more : '<span class="chip">Hanya baca</span>') + '</td></tr>';
   }).join('');
   var managed = S.set.managed && S.set.managed[key];
   shell(c.l, key, (!managed ? '<div class="note">Jenis ini belum dikelola CMS, jadi situs masih memakai data bawaan. ' + (isAdmin() ? '<button class="btn s" id="mng">Aktifkan pengelolaan</button> (situs akan memakai data di sini, termasuk bila kosong)' : 'Minta admin mengaktifkannya.') + '</div>' : '') +
     '<div class="panel"><div class="bar"><input type="search" id="q" placeholder="Cari…" value="' + esc(q || '') + '">' + (ff ? '<select id="flt" aria-label="Filter ' + esc(ff.l.toLowerCase()) + '"><option value="">Semua ' + esc(ff.l.toLowerCase()) + '</option>' + ff.o.map(function (o) { return '<option' + (o === flt ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' : '') + '<select id="pubFilter" aria-label="Status publikasi"><option value="">Semua status</option><option value="published"' + (pub === 'published' ? ' selected' : '') + '>Terbit</option><option value="draft"' + (pub === 'draft' ? ' selected' : '') + '>Draf</option></select></div>' +
     (shown.length ? '<table><thead><tr><th>Judul</th><th class="hm">Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="empty">' + (list.length ? 'Tidak ada yang cocok.' : 'Belum ada data.') + '</div>') + '</div>',
     '<a class="btn" data-nav href="#/' + key + '/new">+ Tambah</a>');
-  var qi = $('#q'); qi.addEventListener('input', function () { clearTimeout(qi.__t); qi.__t = setTimeout(function () { viewList(key, qi.value, $('#flt') && $('#flt').value, $('#pubFilter').value); var n = $('#q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
+  var qi = $('#q'); qi.addEventListener('input', function () { clearTimeout(qi.__t); qi.__t = setTimeout(function () { viewList(key, qi.value, $('#flt') && $('#flt').value, $('#pubFilter').value); var n = $('#q'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); });
   if ($('#flt')) $('#flt').onchange = function () { viewList(key, $('#q').value, this.value, $('#pubFilter').value); };
   $('#pubFilter').onchange = function () { viewList(key, $('#q').value, $('#flt') && $('#flt').value, this.value); };
-  if ($('#mng')) $('#mng').onclick = function () { var m = Object.assign({}, S.set.managed || {}); m[key] = true; saveSet('managed', m).then(function () { toast('Pengelolaan diaktifkan.'); viewList(key); }); };
+  if ($('#mng')) $('#mng').onclick = function () { var m = Object.assign({}, S.set.managed || {}); m[key] = true; saveSet('managed', m).then(function () { toast('Pengelolaan diaktifkan.'); viewList(key); }).catch(function (e) { toast('Gagal mengaktifkan: ' + errMsg(e), 1); }); };
   $('.main').addEventListener('click', async function (e) {
     var b = e.target.closest('[data-del],[data-dup],[data-pub],[data-mv]'); if (!b) return;
     try {
@@ -298,9 +325,12 @@ async function viewEdit(key, id) {
   var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita', penulis: (S.me && S.me.nama) || '' } : {}));
   if (item && !can(c, item.data)) return noAccess();
   var pubDefault = item ? !!item.published : S.me.role !== 'jurnalis';
+  /* Jurnalis tidak dapat menerbitkan sendiri — ditegakkan guard_publish di schema.sql.
+     Kotak centang dikunci agar percobaan tidak berujung galat dari server. */
+  var pubLocked = S.me.role === 'jurnalis' && !pubDefault;
   var hint = (!item && S.me.role === 'jurnalis') ? '<div class="note">Penyerahan ke tinjauan: tulisan Jurnalis disimpan sebagai <b>draf</b> dan perlu ditinjau Pengurus sebelum terbit.</div>' : '';
   var fields = c.F.map(function (f) { if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; } return f; });
-  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel" id="form" novalidate>' + formHTML(fields, data) + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
+  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel" id="form" novalidate>' + formHTML(fields, data) + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
   var form = $('#form'); form.__F = fields; bindForm(form);
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); var d = readForm(form, fields); if (!can(c, d) || (key === 'berita' && !fields.filter(function (f) { return f.k === 'kategori'; })[0].o.includes(d.kategori))) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
@@ -327,36 +357,56 @@ function viewSet(key) {
 }
 async function viewStaff() {
   if (!isAdmin()) return noAccess();
-  var r = await sb.from('staff').select('email,role,nama').order('created_at', { ascending: true }); if (r.error) return toast(errMsg(r.error), 1); S.staff = r.data || [];
-  shell('Pengelola', 'staff', '<div class="note ok">Peran: <b>Super Admin</b> mengelola seluruh situs dan pengelola; <b>Pengurus / Editor</b> mengelola berita umum, agenda, video, galeri, kegiatan pilihan, dan majelis; <b>Jurnalis</b> membuat usulan Jurnal Literasi dan Opini, yang perlu ditinjau Pengurus sebelum terbit; <b>Ustadz</b> mengelola Tanya Jawab Agama.</div><div class="panel"><table><thead><tr><th>Email</th><th>Nama</th><th>Peran</th><th></th></tr></thead><tbody>' +
-    S.staff.map(function (s) { return '<tr><td>' + esc(s.email) + '</td><td>' + esc(s.nama || '') + '</td><td><select data-role="' + esc(s.email) + '">' + ['super_admin','pengurus','jurnalis','ustadz'].map(function (role) { return '<option value="' + role + '"' + (s.role === role ? ' selected' : '') + '>' + esc(roleName(role)) + '</option>'; }).join('') + '</select></td><td class="a"><button class="act d" data-rm="' + esc(s.email) + '">Hapus</button></td></tr>'; }).join('') +
-    '</tbody></table></div><form class="panel form" id="sf" style="margin-top:16px"><h3>Tambah pengelola</h3><div class="fld"><label for="se">Email Google</label><input type="text" id="se" placeholder="nama@gmail.com"></div><div class="fld"><label for="sn">Nama</label><input type="text" id="sn"></div><div class="fld"><label for="sr">Peran</label><select id="sr"><option value="pengurus">Pengurus / Editor</option><option value="jurnalis">Jurnalis (Literasi &amp; Opini)</option><option value="ustadz">Ustadz (Tanya Jawab)</option><option value="super_admin">Super Admin</option></select></div><div class="foot"><button class="btn g" type="submit">Tambah</button></div></form>');
-  $('#sf').onsubmit = async function (e) { e.preventDefault(); var em = $('#se').value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast('Email tidak valid.', 1); var r2 = await sb.from('staff').insert({ email: em, nama: $('#sn').value.trim(), role: $('#sr').value }); if (r2.error) return toast(errMsg(r2.error), 1); toast('Pengelola ditambahkan.'); viewStaff(); };
-  $$('[data-role]').forEach(function (s) { s.onchange = async function () { var email = s.getAttribute('data-role'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && s.value !== 'super_admin') { toast('Promosikan Super Admin lain sebelum menurunkan peran ini.', 1); return viewStaff(); } var r2 = await sb.from('staff').update({ role: s.value }).eq('email', email); if (r2.error) toast(errMsg(r2.error), 1); else toast('Peran diubah.'); viewStaff(); }; });
-  $$('[data-rm]').forEach(function (b) { b.onclick = async function () { if (!confirm('Hapus pengelola ' + b.getAttribute('data-rm') + '?')) return; var email = b.getAttribute('data-rm'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && S.staff.filter(function (x) { return x.role === 'super_admin'; }).length < 2) { toast('Super Admin terakhir tidak dapat dihapus.', 1); return; } var r2 = await sb.from('staff').delete().eq('email', email); if (r2.error) toast(errMsg(r2.error), 1); else toast('Dihapus.'); viewStaff(); }; });
+  var r = await sb.from('staff').select('email,role,nama,prnu').order('created_at', { ascending: true }); if (r.error) return toast(errMsg(r.error), 1); S.staff = r.data || [];
+  shell('Pengelola', 'staff', '<div class="note ok">Peran: <b>Super Admin</b> mengelola seluruh situs dan pengelola; <b>Pengurus / Editor</b> mengelola berita umum, agenda, video, galeri, kegiatan pilihan, dan majelis; <b>Jurnalis</b> membuat usulan Jurnal Literasi dan Opini, yang perlu ditinjau Pengurus sebelum terbit; <b>Ustadz</b> mengelola Tanya Jawab Agama. Pengurus ranting hanya dapat memverifikasi anggota di ranting yang ditetapkan lewat kolom <code>staff.prnu</code>.</div><div class="panel"><table><thead><tr><th>Email</th><th>Nama</th><th>Peran</th><th>Ranting verifikasi</th><th></th></tr></thead><tbody>' +
+    S.staff.map(function (s) { var known = ['super_admin','pengurus','jurnalis','ustadz'].indexOf(s.role) >= 0; return '<tr><td>' + esc(s.email) + '</td><td>' + esc(s.nama || '') + '</td><td><select data-role="' + esc(s.email) + '">' + (known ? '' : '<option value="" selected>' + esc(roleName(s.role)) + ' (peran tidak dikenal)</option>') + ['super_admin','pengurus','jurnalis','ustadz'].map(function (role) { return '<option value="' + role + '"' + (s.role === role ? ' selected' : '') + '>' + esc(roleName(role)) + '</option>'; }).join('') + '</select></td><td>' + (s.role === 'pengurus' ? '<select data-prnu="' + esc(s.email) + '"><option value="">Pilih ranting</option>' + RT.map(function (n, i) { return '<option value="' + String(i + 1).padStart(2, '0') + '"' + (s.prnu === String(i + 1).padStart(2, '0') ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>' : '—') + '</td><td class="a"><button class="act d" data-rm="' + esc(s.email) + '">Hapus</button></td></tr>'; }).join('') +
+    '</tbody></table></div><form class="panel form" id="sf" style="margin-top:16px"><h3>Tambah pengelola</h3><div class="fld"><label for="se">Email Google</label><input type="text" id="se" placeholder="nama@gmail.com"></div><div class="fld"><label for="sn">Nama</label><input type="text" id="sn"></div><div class="fld"><label for="sr">Peran</label><select id="sr"><option value="pengurus">Pengurus / Editor</option><option value="jurnalis">Jurnalis (Literasi &amp; Opini)</option><option value="ustadz">Ustadz (Tanya Jawab)</option><option value="super_admin">Super Admin</option></select></div><div class="fld" id="sprnu-w"><label for="sprnu">Ranting untuk verifikasi</label><select id="sprnu"><option value="">Pilih ranting</option>' + RT.map(function (n, i) { return '<option value="' + String(i + 1).padStart(2, '0') + '">' + esc(n) + '</option>'; }).join('') + '</select><small>Wajib untuk peran Pengurus / Editor.</small></div><div class="foot"><button class="btn g" type="submit">Tambah</button></div></form>');
+  $('#sr').onchange = function () { $('#sprnu-w').hidden = this.value !== 'pengurus'; };
+  $('#sprnu-w').hidden = $('#sr').value !== 'pengurus';
+  $$('[data-prnu]').forEach(function (s) { s.onchange = async function () { try { var r2 = await sb.from('staff').update({ prnu: s.value || null }).eq('email', s.getAttribute('data-prnu')); if (r2.error) throw r2.error; toast('Wilayah verifikasi disimpan.'); } catch (er) { toast(errMsg(er), 1); } }; });
+  $$('[data-role]').forEach(function (s) { s.onchange = async function () { try { var email = s.getAttribute('data-role'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && s.value !== 'super_admin') { toast('Promosikan Super Admin lain sebelum menurunkan peran ini.', 1); return viewStaff(); } if (s.value === 'pengurus' && !(person && person.prnu)) { toast('Pilih dan simpan ranting verifikasi sebelum menjadikan akun ini Pengurus.', 1); return viewStaff(); } var r2 = await sb.from('staff').update({ role: s.value }).eq('email', email); if (r2.error) throw r2.error; toast('Peran diubah.'); viewStaff(); } catch (er) { toast(errMsg(er), 1); } }; });
+  $('#sf').onsubmit = async function (e) { e.preventDefault(); var em = $('#se').value.trim().toLowerCase(), role = $('#sr').value, prnu = $('#sprnu').value; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast('Email tidak valid.', 1); if (role === 'pengurus' && !prnu) return toast('Pilih ranting yang menjadi wilayah verifikasi.', 1); try { var r2 = await sb.from('staff').insert({ email: em, nama: $('#sn').value.trim(), role: role, prnu: role === 'pengurus' ? prnu : null }); if (r2.error) throw r2.error; toast('Pengelola ditambahkan.'); viewStaff(); } catch (er) { toast(errMsg(er), 1); } };
+  $$('[data-rm]').forEach(function (b) { b.onclick = async function () { if (!confirm('Hapus pengelola ' + b.getAttribute('data-rm') + '?')) return; var email = b.getAttribute('data-rm'), person = S.staff.filter(function (x) { return x.email === email; })[0]; if (person && person.role === 'super_admin' && S.staff.filter(function (x) { return x.role === 'super_admin'; }).length < 2) { toast('Super Admin terakhir tidak dapat dihapus.', 1); return; } try { var r2 = await sb.from('staff').delete().eq('email', email); if (r2.error) throw r2.error; toast('Dihapus.'); viewStaff(); } catch (er) { toast(errMsg(er), 1); } }; });
 }
 async function viewMembers(status) {
-  if (!isAdmin()) return noAccess();
+  if (!canMembers()) return noAccess();
+  if (!isAdmin() && S.me.role !== 'pengurus' && S.me.role !== 'editor') return noAccess();
   status = ['pending','verified','rejected'].indexOf(status) >= 0 ? status : '';
-  var r = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+  /* Paginasi: 200 baris per halaman. RLS sudah membatasi ke wilayah pengurus. */
+  var PAGE = 200, page = Math.max(0, parseInt(S.memPage || 0, 10) || 0);
+  var q0 = sb.from('profiles').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(page * PAGE, page * PAGE + PAGE - 1);
+  if (status) q0 = q0.eq('status', status);
+  var r = await q0;
   if (r.error) return toast(errMsg(r.error), 1);
-  var list = r.data || [];
+  var list = r.data || [], total = r.count == null ? list.length : r.count, pages = Math.max(1, Math.ceil(total / PAGE));
   var chip = function (s) { return '<span class="chip' + (s === 'verified' ? '' : s === 'rejected' ? ' x' : '') + '">' + ({verified:'Terverifikasi',pending:'Menunggu',rejected:'Ditolak'}[s] || s) + '</span>'; };
-  shell('Anggota & Verifikasi NIA', 'members', '<div class="panel"><div class="bar"><input type="search" id="mq" placeholder="Cari nama, email, NIA, HP…" value="' + '"><select id="mf"><option value="">Semua status</option><option value="pending"' + (status === 'pending' ? ' selected' : '') + '>Menunggu</option><option value="verified"' + (status === 'verified' ? ' selected' : '') + '>Terverifikasi</option><option value="rejected"' + (status === 'rejected' ? ' selected' : '') + '>Ditolak</option></select></div>' +
+  shell('Anggota & Verifikasi NIA', 'members', '<div class="note">Alur: <b>Verifikasi</b> → <b>Terbitkan NIA</b>. NIA diterbitkan server dan tidak dapat diubah setelah terbit. Pengurus hanya melihat anggota di wilayahnya (atur kolom <code>prnu</code> di menu Pengelola).</div><div class="panel"><div class="bar"><input type="search" id="mq" placeholder="Cari nama, email, NIA, HP…" value="' + '"><select id="mf"><option value="">Semua status</option><option value="pending"' + (status === 'pending' ? ' selected' : '') + '>Menunggu</option><option value="verified"' + (status === 'verified' ? ' selected' : '') + '>Terverifikasi</option><option value="rejected"' + (status === 'rejected' ? ' selected' : '') + '>Ditolak</option></select><span class="chip">' + total + ' anggota</span></div>' +
     (list.length ? '<table><thead><tr><th>Anggota</th><th class="hm">Kontak</th><th>NIA</th><th>Status</th><th></th></tr></thead><tbody>' +
     list.map(function (p) { return '<tr><td class="t"><b>' + esc(p.nama || '(tanpa nama)') + '</b><small>' + esc(p.email || '') + (p.ranting ? ' · PRNU ' + esc(p.ranting) : (p.tingkat ? ' · ' + esc(p.tingkat) : '')) + '</small></td><td class="hm">' + esc(p.hp || '—') + '</td><td>' + esc(p.nia || '—') + '</td><td>' + chip(p.status) + '</td><td class="a">' +
       (p.status !== 'verified' ? '<button class="act" data-vfy="' + p.id + '">Verifikasi</button>' : '') +
-      (p.status !== 'rejected' ? '<button class="act" data-rej="' + p.id + '">Tolak</button>' : '') +
-      (p.status !== 'pending' ? '<button class="act" data-pnd="' + p.id + '">Tunggu</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table>'
-    : '<div class="empty">Belum ada profil anggota. Akan terisi otomatis saat pengguna mendaftar KTA.</div>') + '</div>');
+      (p.status === 'verified' && !p.nia ? '<button class="act" data-nia="' + p.id + '">Terbitkan NIA</button>' : '') +
+      (p.status !== 'rejected' && (isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor') ? '<button class="act" data-rej="' + p.id + '">Tolak</button>' : '') +
+      (p.status !== 'pending' && (isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor') ? '<button class="act" data-pnd="' + p.id + '">Tunggu</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table>'
+    : '<div class="empty">Belum ada profil anggota. Akan terisi otomatis saat pengguna mendaftar KTA.</div>') +
+    (pages > 1 ? '<div class="bar" style="justify-content:space-between"><button class="btn o s" data-pg="' + (page - 1) + '"' + (page ? '' : ' disabled') + '>‹ Sebelumnya</button><span class="chip">Halaman ' + (page + 1) + ' / ' + pages + '</span><button class="btn o s" data-pg="' + (page + 1) + '"' + (page + 1 < pages ? '' : ' disabled') + '>Berikutnya ›</button></div>' : '') + '</div>');
   var q = $('#mq'), f = $('#mf');
-  function filt() { var t = q.value.toLowerCase(), s = f.value; $$('tbody tr').forEach(function (tr) { var ok = (!t || tr.textContent.toLowerCase().indexOf(t) > -1) && (!s || tr.textContent.toLowerCase().indexOf(s === 'pending' ? 'menunggu' : s === 'verified' ? 'terverifikasi' : 'ditolak') > -1); tr.style.display = ok ? '' : 'none'; }); }
-  q.addEventListener('input', filt); f.onchange = filt;
+  function filt() { var t = q.value.toLowerCase(); $$('tbody tr').forEach(function (tr) { tr.style.display = !t || tr.textContent.toLowerCase().indexOf(t) > -1 ? '' : 'none'; }); }
+  q.addEventListener('input', filt); f.onchange = function () { S.memPage = 0; location.hash = '#/members' + (f.value ? '?status=' + encodeURIComponent(f.value) : ''); viewMembers(f.value); };
   $('.main').addEventListener('click', async function (e) {
-    var b = e.target.closest('[data-vfy],[data-rej],[data-pnd]'); if (!b) return;
-    var st = b.hasAttribute('data-vfy') ? 'verified' : b.hasAttribute('data-rej') ? 'rejected' : 'pending';
-    var id = b.getAttribute('data-vfy') || b.getAttribute('data-rej') || b.getAttribute('data-pnd');
-    try { var r2 = await sb.from('profiles').update({ status: st }).eq('id', id).select().single(); if (r2.error) throw r2.error; toast('Status disimpan: ' + st + '.'); viewMembers(); }
+    var pg = e.target.closest('[data-pg]');
+    if (pg) { S.memPage = Math.max(0, +pg.getAttribute('data-pg')); return viewMembers(status); }
+    var b = e.target.closest('[data-vfy],[data-rej],[data-pnd],[data-nia]'); if (!b) return;
+    var id = b.getAttribute('data-vfy') || b.getAttribute('data-rej') || b.getAttribute('data-pnd') || b.getAttribute('data-nia');
+    try {
+      if (b.hasAttribute('data-nia')) {
+        if (!confirm('Terbitkan nomor induk untuk anggota ini? Nomor tidak dapat diubah setelah terbit.')) return;
+        var rn = await sb.rpc('issue_nia_verified', { p_id: id }); if (rn.error) throw rn.error;
+        toast('NIA diterbitkan: ' + rn.data + '.'); return viewMembers(status);
+      }
+      var st = b.hasAttribute('data-vfy') ? 'verified' : b.hasAttribute('data-rej') ? 'rejected' : 'pending';
+      var r2 = await sb.from('profiles').update({ status: st }).eq('id', id).select().single(); if (r2.error) throw r2.error;
+      toast('Status disimpan: ' + st + '.'); viewMembers(status);
+    }
     catch (er) { toast(errMsg(er), 1); }
   });
 }
@@ -367,6 +417,15 @@ async function viewLog() {
 }
 function route() {
   if (!S.me) return;
+  /* Guard perubahan yang belum disimpan: berlaku juga untuk tombol back/forward
+     browser dan edit hash manual, bukan hanya klik tautan data-nav. */
+  if (!routeGuardSkip && S.dirty && location.hash !== routeLastHash &&
+      !confirm('Perubahan belum disimpan. Tinggalkan halaman ini?')) {
+    history.replaceState(null, '', location.pathname + location.search + routeLastHash);
+    return; /* tetap di halaman yang sedang diedit — formulir tidak dirender ulang */
+  }
+  routeGuardSkip = false;
+  routeLastHash = location.hash;
   var hash = (location.hash || '#/').replace(/^#\/?/, ''), qi = hash.indexOf('?');
   var params = new URLSearchParams(qi < 0 ? '' : hash.slice(qi + 1));
   var p = (qi < 0 ? hash : hash.slice(0, qi)).split('/');
@@ -378,8 +437,10 @@ function route() {
   if (p[1]) return viewEdit(p[0], p[1]);
   return viewList(p[0], '', '', params.get('status') || '');
 }
+var routeLastHash = location.hash, routeGuardSkip = false;
 document.addEventListener('click', function (e) {
   var a = e.target.closest('[data-nav]'); if (a && S.dirty && !confirm('Perubahan belum disimpan. Tinggalkan halaman ini?')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+  if (a && routeGuardSkip !== undefined && S.dirty) routeGuardSkip = true; /* sudah dikonfirmasi di atas */
   if (a && $('#side')) { $('#side').classList.remove('open'); if ($('#burger')) $('#burger').setAttribute('aria-expanded', 'false'); }
 }, true);
 window.addEventListener('beforeunload', function (e) { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
@@ -393,7 +454,19 @@ async function boot() {
     var q = await sb.from('staff').select('email,role,nama'); if (q.error) return fatal('Gagal membaca daftar pengelola: ' + errMsg(q.error) + '. Pastikan supabase/schema.sql sudah dijalankan.');
     S.staff = q.data || []; S.me = S.staff.filter(function (x) { return x.email === email; })[0]; if (!S.me) return denied(email);
     var st = await sb.from('site_settings').select('key,value'); (st.data || []).forEach(function (x) { S.set[x.key] = x.value; });
-    sb.auth.onAuthStateChange(function (ev) { if (ev === 'SIGNED_OUT') location.href = '/admin'; });
+    sb.auth.onAuthStateChange(function (ev) {
+      if (ev === 'SIGNED_OUT') location.href = '/admin';
+      /* Saat token/sesi diperbarui, segarkan peran dari staff agar perubahan
+         role/penghapusan pengelola berlaku tanpa harus memuat ulang halaman. */
+      else if (ev === 'USER_UPDATED' || ev === 'TOKEN_REFRESHED') {
+        sb.from('staff').select('email,role,nama').then(function (q2) {
+          if (q2.error || !S.user) return;
+          S.staff = q2.data || [];
+          S.me = S.staff.filter(function (x) { return x.email === ((S.user.email || '')).toLowerCase(); })[0] || null;
+          if (!S.me) location.href = '/admin';
+        }).catch(function () {});
+      }
+    });
     route();
   } catch (e) { fatal(errMsg(e)); }
 }

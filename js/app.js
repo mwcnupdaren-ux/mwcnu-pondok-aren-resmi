@@ -1,13 +1,16 @@
 
 (function(){
 var PH=["/assets/img/img-a40aafe9.webp","/assets/img/img-897feccb.webp","/assets/img/img-6e2f9266.webp","/assets/img/img-da3baea3.webp","/assets/img/img-1a2f09f7.webp","/assets/img/img-5d1ae212.webp","/assets/img/img-6d655717.webp","/assets/img/img-ffb9a380.webp"];
-var MW=window.MWC||{md:function(t,f,d){return d},set:function(){return null},grp:function(d){return d},tok:function(s){return s}};
+var MW=window.MWC||{md:function(t,f,d){return d},set:function(){return null},grp:function(d){return d},tok:function(s){return s},raw:function(){return[]}};
 function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
 function safeURL(s){s=String(s||'').trim();if(s.charAt(0)=='#'||(s.charAt(0)=='/'&&s.charAt(1)!='/'))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'||u.protocol=='http:'||u.protocol=='mailto:'||u.protocol=='tel:')return u.href}catch(e){}return '#'}
 function imgURL(s){s=String(s||'').trim();if(/^\/(?!\/)[^\\"'<>]*$/.test(s))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'&&u.origin!==location.origin)return u.href}catch(e){}return ''}
-function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI MARK OL OPTION P PATH POLYGON POLYLINE RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}[].forEach.call(e.attributes,function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
+function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI MARK OL OPTION P PATH POLYGON POLYLINE RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}/* Snapshot statis: e.attributes itu live — menghapus atribut saat iterasi menyusutkan koleksi dan forEach melompati atribut berikutnya (onerror bisa lolos). */[].forEach.call([].slice.call(e.attributes),function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
 function put(el,html){if(el)el.innerHTML=cleanHTML(html)}
 function fill(id,h){put(document.getElementById(id),h)}
+/* Helper UI global: modul-modul terpisah (Konsultasi, Majelis, Zakat) memakai
+   put/esc/cleanHTML yang sama agar selalu tersanitasi dan tidak ada ReferenceError. */
+window.MWCUI={put:put,esc:esc,cleanHTML:cleanHTML};
 function ph(u){if(!u)return null;u=imgURL(u);if(!u)return null;var i=PH.indexOf(u);if(i<0){PH.push(u);i=PH.length-1}return i}
 var HS=(function(){var h=MW.set('hero');return h&&h.slides&&h.slides.length>=1&&h.slides.every(Boolean)?h.slides.map(ph):[4,0,5,1]})();
 var ICONS={"ambulans": "<path d=\"M10 10H6\"/><path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\"/><path d=\"M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14\"/><path d=\"M8 8v4\"/><path d=\"M9 18h6\"/><circle cx=\"17\" cy=\"18\" r=\"2\"/><circle cx=\"7\" cy=\"18\" r=\"2\"/>", "zakat": "<path d=\"M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16\"/><path d=\"m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9\"/><path d=\"m2 13 6 6\"/>", "majelis": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>", "konsultasi": "<path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22Z\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/>", "beasiswa": "<path d=\"M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z\"/><path d=\"M22 10v6\"/><path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\"/>", "kesehatan": "<path d=\"M11 2v2\"/><path d=\"M5 2v2\"/><path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\"/><path d=\"M8 15a6 6 0 0 0 12 0v-3\"/><circle cx=\"20\" cy=\"10\" r=\"2\"/>", "info": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>", "kalender": "<path d=\"M8 2v4\"/><path d=\"M16 2v4\"/><rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"/><path d=\"M3 10h18\"/>", "buku": "<path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/>", "hati": "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/>", "telepon": "<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z\"/>", "lokasi": "<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>"};
@@ -475,6 +478,8 @@ if(_hn&&N){N.slice(0,3).forEach(function(n){var a=document.createElement('articl
 put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><div class="meta"><span class="chip">'+n[0]+'</span><small>'+n[2]+' &middot; '+rtOf(n)+' menit baca</small></div><h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">Baca selengkapnya</span></div>');
 act(a,function(){location.hash='#berita/'+N.indexOf(n)});_hn.appendChild(a)})}
 var G=MW.md('galeri',function(x){return[x.judul,ph(x.foto),x.kegiatan||'']},[["Halal Bi Halal di Omah Singgah NU Alfath",4,"Halal Bi Halal"],["Sambutan di Lailatul Ijtima'",1,"Lailatul Ijtima'"],["Sambutan pada Halal Bi Halal",5,"Halal Bi Halal"],["Sambutan di Pondok Kacang Barat",2,"Lailatul Ijtima'"],["Lailatul Ijtima' di Pondok Kacang Barat",0,"Lailatul Ijtima'"],["Pengurus dan tamu undangan",6,"Halal Bi Halal"],["Rangkaian acara Halal Bi Halal",7,"Halal Bi Halal"],["Rangkaian acara Lailatul Ijtima'",3,"Lailatul Ijtima'"]]);
+/* Buang item dengan foto tidak valid (ph() -> null) agar tidak muncul url(undefined). */
+G=G.filter(function(g){return g&&g[1]!=null});
 var gl=document.getElementById('gal'),gt=document.getElementById('gtabs'),GE=['Semua',"Lailatul Ijtima'",'Halal Bi Halal'],gcur=[],lb=document.getElementById('lb'),li=0,lbi=document.getElementById('lbi');
 function lbShow(i){li=(i+gcur.length)%gcur.length;var g=gcur[li];lbi.src=PH[g[1]];lbi.alt=g[0];
 document.getElementById('lbt').textContent=g[0];document.getElementById('lbe').textContent=g[2];document.getElementById('lbc').textContent=(li+1)+' dari '+gcur.length}
@@ -549,23 +554,40 @@ var HF='"Plus Jakarta Sans",system-ui,sans-serif',BF='"Inter",system-ui,sans-ser
 var S={photo:null,rand:null,imgs:null};
 
 function authCfg(){try{var C=window.MWC_CFG||{};return{url:C.supabaseUrl||'',key:C.supabaseKey||''}}catch(e){return{url:'',key:''}}}
-function sesGet(){try{return JSON.parse(localStorage.getItem('mwc_auth')||'null')}catch(e){return null}}
+function sesGet(){try{var s=JSON.parse(localStorage.getItem('mwc_auth')||'null');if(s&&s.user&&/^local-/.test(String(s.user.id||''))){localStorage.removeItem('mwc_auth');return null}return s}catch(e){return null}}
 function sesSet(s){try{if(s)localStorage.setItem('mwc_auth',JSON.stringify(s));else localStorage.removeItem('mwc_auth')}catch(e){}}
 function profKey(){var s=sesGet();return s&&s.user&&(s.user.id||s.user.email)}
 function profGet(){var k=profKey();if(!k)return null;try{return JSON.parse(localStorage.getItem('mwc_profile_'+k)||'null')}catch(e){return null}}
-function profSave(p){var k=profKey();if(!k)return;try{localStorage.setItem('mwc_profile_'+k,JSON.stringify(p||{}))}catch(e){}
-try{var C=authCfg(),s=sesGet();if(C.url&&C.key&&s&&s.access_token&&s.user&&!/^local-/.test(String(s.user.id))){var b={id:s.user.id,email:s.user.email||''};['nama','hp','nia','wadah','tingkat','ranting','alamat','tempat_lahir','jk','pekerjaan'].forEach(function(f){if(p[f]!==undefined)b[f]=p[f]});if(p.tanggal_lahir)b.tanggal_lahir=p.tanggal_lahir;if(p.status)b.status=p.status;fetch(C.url+'/rest/v1/profiles',{method:'POST',headers:{apikey:C.key,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify(b)}).then(function(r){if(!r.ok)throw r;return r.json()}).catch(function(){})} }catch(e){}}
+/* Simpan profil. NIA & status TIDAK pernah dikirim klien — keduanya diatur server
+   (issue_nia / guard_profile di supabase-profiles.sql). Mengembalikan Promise. */
+function profSave(p){var k=profKey();if(!k)return Promise.resolve(null);try{localStorage.setItem('mwc_profile_'+k,JSON.stringify(p||{}))}catch(e){}
+try{var C=authCfg(),s=sesGet();if(!C.url||!C.key||!s||!s.access_token||!s.user||/^local-/.test(String(s.user.id)))return Promise.resolve(null);
+var b={};['nama','hp','wadah','tingkat','ranting','alamat','tempat_lahir','jk','pekerjaan'].forEach(function(f){if(p[f]!==undefined)b[f]=p[f]});if(p.tanggal_lahir)b.tanggal_lahir=p.tanggal_lahir;
+var H={apikey:C.key,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json',Prefer:'return=representation'};
+function keep(row){if(row){var m=profGet()||{};['nia','status','issued_at','signers'].forEach(function(f){if(row[f]!==undefined)m[f]=row[f]});try{localStorage.setItem('mwc_profile_'+k,JSON.stringify(m))}catch(e){}}return row||null}
+return fetch(C.url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(s.user.id),{method:'PATCH',headers:H,body:JSON.stringify(b)}).then(function(r){
+  if(r.status===401){sesSet(null);throw new Error('sesi berakhir — silakan masuk ulang')}
+  if(r.status===403)throw new Error('server menolak perubahan data (403) — hubungi sekretariat')
+  if(!r.ok)throw new Error('gagal menyimpan profil ('+r.status+')');
+  return r.json().then(function(a){if(a&&a.length)return keep(a[0]);
+    /* Belum ada baris profil (akun lama): buat sekali, tanpa nia/status. */
+    return fetch(C.url+'/rest/v1/profiles',{method:'POST',headers:H,body:JSON.stringify(Object.assign({id:s.user.id,email:s.user.email||''},b))}).then(function(r2){if(!r2.ok)throw new Error('gagal membuat profil ('+r2.status+')');return r2.json()}).then(function(a2){return keep(a2&&a2[0])})})
+})}catch(e){return Promise.reject(e)}}
 function sbErr(r){return r&&r.msg?(r.code+' '+r.msg):(r&&r.message)}
 function sbAuth(path,body){var C=authCfg();if(!C.url||!C.key)return Promise.reject('server');return fetch(C.url+'/auth/v1/'+path,{method:'POST',headers:{apikey:C.key,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw sbErr(j);return j})})}
-function profFetch(){var C=authCfg(),s=sesGet();if(!C.url||!C.key||!s||!s.user||/^local-/.test(String(s.user.id)))return Promise.resolve(profGet());return fetch(C.url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(s.user.id)+'&select=*',{headers:{apikey:C.key,Authorization:'Bearer '+(s.access_token||C.key)}}).then(function(r){return r.ok?r.json():[]}).then(function(a){var p=a&&a[0];if(p){var l=profGet()||{};var m={nama:p.nama||l.nama||'',hp:p.hp||l.hp||'',email:p.email||s.user.email||''};try{localStorage.setItem('mwc_profile_'+profKey(),JSON.stringify(m))}catch(e){}return m}return profGet()}).catch(function(){return profGet()})}
+function profFetch(){var C=authCfg(),s=sesGet();if(!C.url||!C.key||!s||!s.user||/^local-/.test(String(s.user.id)))return Promise.resolve(profGet());
+/* Tanpa access token jangan pernah fallback ke anon key — data profil hanya diambil
+   dengan sesi milik pengguna (RLS membatasi ke barisnya sendiri). */
+if(!s.access_token)return Promise.resolve(profGet());
+return fetch(C.url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(s.user.id)+'&select=*',{headers:{apikey:C.key,Authorization:'Bearer '+s.access_token}}).then(function(r){return r.ok?r.json():[]}).then(function(a){var p=a&&a[0];if(p){var l=profGet()||{};var m={nama:p.nama||l.nama||'',hp:p.hp||l.hp||'',email:p.email||s.user.email||'',nia:p.nia||'',status:p.status||'pending',issued_at:p.issued_at||null,signers:p.signers||null,wadah:p.wadah||'',tingkat:p.tingkat||'',ranting:p.ranting||'',alamat:p.alamat||'',tempat_lahir:p.tempat_lahir||'',tanggal_lahir:p.tanggal_lahir||'',jk:p.jk||'',pekerjaan:p.pekerjaan||''};try{localStorage.setItem('mwc_profile_'+profKey(),JSON.stringify(m))}catch(e){}return m}return profGet()}).catch(function(){return profGet()})}
 function authMsg(t,bad){var m=$('kAuthMsg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
-function applyProf(){var p=profGet();if(!p)return;function set(id,v){var e=$(id);if(e&&v&&!e.value)e.value=v}set('k-nama',p.nama);set('k-hp',p.hp)}
+function applyProf(){var p=profGet();if(!p)return;function set(id,v){var e=$(id);if(e&&v&&!e.value)e.value=v}set('k-nama',p.nama);set('k-hp',p.hp);set('k-wadah',p.wadah);set('k-tingkat',p.tingkat);set('k-alamat',p.alamat);set('k-tmp',p.tempat_lahir);set('k-tgl',p.tanggal_lahir);set('k-jk',p.jk);set('k-kerja',p.pekerjaan);try{if(p.tingkat)$('k-tingkat').dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}set('k-rt',p.ranting)}
 function toggleAuth(){var s=sesGet(),ok=!!(s&&s.user),p=profGet();
 $('kAuth').hidden=ok;$('kBar').hidden=!ok;$('kGate').hidden=!ok;
-if(ok){$('kWho').textContent=p&&p.nama?p.nama:(s.user.email||'Pengguna');$('kProfState').textContent=p&&p.nama?'Profil sudah dibuat — tinggal lengkapi data kartu.':'Profil belum dibuat — akan dibuatkan saat Anda menyimpan kartu.';applyProf();draw()}}
-function finishLogin(user,token,extra){sesSet({access_token:token||'',user:{id:user.id||('local-'+user.email),email:user.email||''}});
-if(extra&&(extra.nama||extra.hp)){var p=profGet()||{};profSave({nama:extra.nama||p.nama||'',hp:extra.hp||p.hp||'',email:user.email||p.email||''})}
-if(!profGet())profSave({nama:(extra&&extra.nama)||'',hp:(extra&&extra.hp)||'',email:user.email||''});
+if(ok){$('kWho').textContent=p&&p.nama?p.nama:(s.user.email||'Pengguna');$('kProfState').textContent=p&&p.nia?('Nomor induk '+p.nia+' · '+(p.status==='verified'?'terverifikasi':p.status==='rejected'?'ditolak':'menunggu verifikasi')):(p&&p.nama?'Profil sudah dibuat — nomor induk diterbitkan setelah pengurus memverifikasi.':'Profil belum dibuat — akan dibuatkan saat Anda menyimpan kartu.');applyProf();draw()}}
+function finishLogin(user,token,extra){sesSet({access_token:token||'',user:{id:user.id,email:user.email||''}});
+if(extra&&(extra.nama||extra.hp)){var p=profGet()||{};profSave({nama:extra.nama||p.nama||'',hp:extra.hp||p.hp||'',email:user.email||p.email||''}).catch(function(){})}
+if(!profGet())profSave({nama:(extra&&extra.nama)||'',hp:(extra&&extra.hp)||'',email:user.email||''}).catch(function(){});
 authMsg('');toggleAuth()}
 $('kTabIn').addEventListener('click',function(){$('kTabIn').classList.add('on');$('kTabUp').classList.remove('on');document.querySelectorAll('#kAuthF [data-reg]').forEach(function(e){e.hidden=true});$('kAuthBtn').textContent='Masuk';$('a-pass').autocomplete='current-password'});
 $('kTabUp').addEventListener('click',function(){$('kTabUp').classList.add('on');$('kTabIn').classList.remove('on');document.querySelectorAll('#kAuthF [data-reg]').forEach(function(e){e.hidden=false});$('kAuthBtn').textContent='Buat akun & profil';$('a-pass').autocomplete='new-password'});
@@ -579,24 +601,26 @@ sbAuth(isUp?'signup':'token?grant_type=password',isUp?{email:em,password:pw,opti
   $('kAuthBtn').disabled=false;
   if(j&&!j.user&&!j.access_token&&!j.session){authMsg('Akun perlu konfirmasi. Periksa email Anda, lalu masuk.',1);return}
   var u=(j&&j.user)||(j&&j.session&&j.session.user);if(!u){authMsg('Server tidak mengembalikan sesi. Coba lagi.',1);return}
+  if(!u.email_confirmed_at){authMsg('Email belum dikonfirmasi. Buka tautan konfirmasi di kotak masuk Anda, lalu masuk kembali.',1);return}
   finishLogin(u,(j.access_token||(j.session&&j.session.access_token)),{nama:nm,hp:hp});authMsg('Berhasil masuk.')
 }).catch(function(err){$('kAuthBtn').disabled=false;
   var m=String(err||'');
   if(isUp&&(m.indexOf('already')>-1||m.indexOf('registered')>-1)){authMsg('Email sudah terdaftar. Silakan masuk.',1);return}
-  if(!authCfg().url){authMsg('Server login tidak tersedia. Profil akan disimpan di perangkat ini.',1)}
-  /* Cadangan lokal: tetap beri akses agar alur tidak buntu */
-  finishLogin({id:'local-'+em,email:em},'',{nama:nm,hp:hp});authMsg('Masuk (perangkat ini).')
+  if(!authCfg().url){authMsg('Layanan akun belum tersedia. Kartu Anggota memerlukan akun terdaftar — hubungi sekretariat.',1);return}
+  /* Tidak ada lagi masuk otomatis: akun palsu lokal membuat NIA bisa diklaim orang lain. */
+  authMsg('Gagal masuk: '+(m||'periksa email dan kata sandi Anda')+'.',1)
 })});
-$('kOut').addEventListener('click',function(){sesSet(null);toggleAuth();authMsg('')})
+$('kOut').addEventListener('click',function(){var k=profKey();sesSet(null);try{if(k)localStorage.removeItem('mwc_profile_'+k)}catch(e){}toggleAuth();authMsg('')})
 function v(id){return($(id).value||'').trim()}
 function fmt(d){return d.getDate()+' '+BL[d.getMonth()]+' '+d.getFullYear()}
 function fmtIso(s){var a=String(s).split('-');return a.length==3&&a[0]?parseInt(a[2],10)+' '+BL[parseInt(a[1],10)-1]+' '+a[0]:''}
 function cd(s){var d=s.replace(/\D/g,''),t=0;for(var i=0;i<d.length;i++)t+=(+d[d.length-1-i])*(i%2?3:1);return(10-t%10)%10}
 function lvl(){return v('k-tingkat')}
-function nia(){try{var k=profKey();if(k){var r=localStorage.getItem('mwc_rand_'+k);if(r)S.rand=r}}catch(e){}
-if(!S.rand){S.rand=String(Math.floor(Math.random()*999999)+1).padStart(6,'0');try{var k2=profKey();if(k2)localStorage.setItem('mwc_rand_'+k2,S.rand)}catch(e){}}
-var i=RT.indexOf(v('k-rt')),rr=(lvl()=='PRNU'&&i>=0)?String(i+1).padStart(2,'0'):'00',yy=String(new Date().getFullYear()).slice(2);return'MWC-'+rr+'-'+yy+'-'+S.rand+'-'+cd(rr+yy+S.rand)}
-function info(){var t=new Date(),L=lvl(),rt=v('k-rt');return{nia:nia(),nama:v('k-nama'),jk:v('k-jk'),tmp:v('k-tmp'),tgl:fmtIso(v('k-tgl')),alamat:v('k-alamat'),rt:rt,wilayah:L=='MWCNU'?'MWCNU Kec. Pondok Aren':L=='PRNU'?('PRNU'+(rt?' '+rt:'')):'',kerja:v('k-kerja'),wadah:v('k-wadah'),hp:v('k-hp'),terbit:fmt(t)}}
+/* NIA diterbitkan server (issue_nia di supabase-profiles.sql) setelah pengurus
+   memverifikasi. Klien hanya membaca — tidak pernah membuat atau mengubahnya. */
+function nia(){var p=profGet();return(p&&p.nia)||''}
+
+function info(){var t=new Date(),L=lvl(),rt=v('k-rt'),p=profGet()||{};return{nia:nia(),nama:v('k-nama'),jk:v('k-jk'),tmp:v('k-tmp'),tgl:fmtIso(v('k-tgl')),alamat:v('k-alamat'),rt:rt,wilayah:L=='MWCNU'?'MWCNU Kec. Pondok Aren':L=='PRNU'?('PRNU'+(rt?' '+rt:'')):'',kerja:v('k-kerja'),wadah:v('k-wadah'),hp:v('k-hp'),terbit:fmt(t),status:p.status||'pending'}}
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 function txt(c,t,x,y,font,col,ls,al){c.font=font;c.fillStyle=col;c.textAlign=al||'left';if('letterSpacing' in c)c.letterSpacing=(ls||0)+'px';c.fillText(t,x,y);if('letterSpacing' in c)c.letterSpacing='0px'}
 function fitF(c,t,maxW,fam,wt,max,min){var s=max;while(s>min){c.font=wt+' '+s+'px '+fam;if(c.measureText(t).width<=maxW)break;s--}return wt+' '+s+'px '+fam}
@@ -620,13 +644,14 @@ var hl=c.createLinearGradient(40,0,W-40,0);hl.addColorStop(0,'rgba(255,201,74,.9
 var px=44,py=166,pw=230,ph=307;c.save();c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=24;c.shadowOffsetY=10;var bg=c.createLinearGradient(px,py,px+pw,py+ph);bg.addColorStop(0,'#FFC94A');bg.addColorStop(1,'#2BD9A0');c.fillStyle=bg;rr(c,px-6,py-6,pw+12,ph+12,26);c.fill();c.restore();photo(c,d,px,py,pw,ph);
 c.fillStyle='#FFC94A';rr(c,px,492,pw,42,21);c.fill();txt(c,(d.wadah||'WADAH KHIDMAH').toUpperCase(),px+pw/2,520,'700 17px '+BF,'#06241A',1.5,'center');
 var x0=318,mw=W-44-x0;
-lbl(c,'NOMOR INDUK ANGGOTA',x0,176);txt(c,d.nia,x0,214,fitF(c,d.nia,mw,HF,'700',34,20),'#FFFFFF',1);
+lbl(c,'NOMOR INDUK ANGGOTA',x0,176);var niaTxt=d.nia||'BELUM DITERBITKAN';txt(c,niaTxt,x0,214,fitF(c,niaTxt,mw,HF,'700',34,20),d.nia?'#FFFFFF':'rgba(255,255,255,.45)',1);
 lbl(c,'NAMA LENGKAP',x0,254);txt(c,d.nama||'Nama lengkap',x0,296,fitF(c,d.nama||'Nama lengkap',mw,HF,'700',36,20),d.nama?'#FFFFFF':'rgba(255,255,255,.4)');
 lbl(c,'TEMPAT, TANGGAL LAHIR',x0,334);var ttl=(d.tmp||d.tgl)?[d.tmp,d.tgl].filter(Boolean).join(', '):'Tempat, tanggal lahir';txt(c,ttl,x0,364,fitF(c,ttl,mw,BF,'600',22,15),d.tmp&&d.tgl?'#FFFFFF':'rgba(255,255,255,.4)');
 lbl(c,'ALAMAT',x0,398);var al=wrap(c,d.alamat||'Alamat lengkap',mw,2,'500 20px '+BF);al.forEach(function(l,i){txt(c,l,x0,426+i*26,'500 20px '+BF,d.alamat?'#FFFFFF':'rgba(255,255,255,.4)')});
 lbl(c,'WILAYAH',x0,486);txt(c,d.wilayah||'-',x0,514,fitF(c,d.wilayah||'-',290,BF,'600',21,14),'#FFFFFF');
 lbl(c,'PEKERJAAN',x0+310,486);txt(c,d.kerja||'-',x0+310,514,fitF(c,d.kerja||'-',mw-310,BF,'600',21,14),'#FFFFFF');
 CFG.pejabat.forEach(function(p,i){var xc=i?800:470;txt(c,p.j,xc,544,'500 14px '+BF,'rgba(255,255,255,.75)',0,'center');var sg=S.imgs.ttd[i];if(sg){var k=Math.min(170/sg.width,48/sg.height),sw=sg.width*k,sh=sg.height*k;c.drawImage(sg,xc-sw/2,594-sh,sw,sh)}c.fillStyle='rgba(255,255,255,.45)';c.fillRect(xc-130,596,260,1.5);txt(c,p.n,xc,618,fitF(c,p.n,290,HF,'700',17,11),'#FFFFFF',0,'center')});
+if(d.status!=='verified'){c.save();c.translate(W/2,H/2);c.rotate(-Math.PI/9);c.textAlign='center';c.font='800 64px '+HF;c.fillStyle='rgba(255,201,74,.20)';c.fillText('BELUM TERVERIFIKASI',0,0);c.font='700 22px '+BF;c.fillStyle='rgba(255,201,74,.30)';c.fillText('Kartu belum sah sebagai bukti keanggotaan',0,40);c.restore()}
 txt(c,'Tradisi, Harmoni, Masa Depan',44,580,'italic 600 15px '+HF,'#FFC94A');
 txt(c,'Terbit '+d.terbit+'  \u00b7  Berlaku selamanya',44,606,'500 12px '+BF,'rgba(255,255,255,.72)');
 bar(c,H-8,8)}
@@ -637,8 +662,10 @@ var g=c.createLinearGradient(0,0,W,0);g.addColorStop(0,'#0F3B2C');g.addColorStop
 var lw=logo(c,S.imgs.lw,40,14,74),tx=40+lw+22;
 txt(c,'KARTU ANGGOTA',tx,44,'700 20px '+HF,'#FFC94A',3);txt(c,'MWCNU PONDOK AREN',tx,84,'700 34px '+HF,'#FFFFFF',.5);
 c.save();c.shadowColor='rgba(8,32,26,.28)';c.shadowBlur=22;c.shadowOffsetY=8;c.fillStyle='#FFFFFF';rr(c,44,134,316,316,26);c.fill();c.restore();c.strokeStyle='#E3E7E1';c.lineWidth=2;rr(c,44,134,316,316,26);c.stroke();
-qr(c,CFG.domain+'/v/'+d.nia,66,156,272);
-txt(c,'PINDAI UNTUK VERIFIKASI & ABSENSI',202,484,'700 14px '+BF,'#1E4D3A',1,'center');txt(c,d.nia,202,512,fitF(c,d.nia,316,HF,'700',22,14),'#17352A',.5,'center');txt(c,CFG.web,202,538,'500 14px '+BF,'#5B6F65',0,'center');
+if(d.status!=='verified'){c.save();c.translate(W/2,H/2);c.rotate(-Math.PI/9);c.textAlign='center';c.font='800 58px '+HF;c.fillStyle='rgba(15,59,44,.16)';c.fillText('BELUM TERVERIFIKASI',0,0);c.restore()}
+if(d.nia){qr(c,CFG.domain+'/v/'+d.nia,66,156,272);txt(c,'PINDAI UNTUK VERIFIKASI & ABSENSI',202,484,'700 14px '+BF,'#1E4D3A',1,'center');txt(c,d.nia,202,512,fitF(c,d.nia,316,HF,'700',22,14),'#17352A',.5,'center')}
+else{txt(c,'QR DITERBITKAN',202,300,'700 20px '+HF,'#8A6400',1,'center');txt(c,'SETELAH VERIFIKASI',202,330,'700 20px '+HF,'#8A6400',1,'center');txt(c,'Nomor induk belum diterbitkan pengurus.',202,484,'600 14px '+BF,'#8A6400',0,'center')}
+txt(c,CFG.web,202,538,'500 14px '+BF,'#5B6F65',0,'center');
 var x0=410,mw=W-44-x0,ink='#17352A',mut='#4A5F55';
 lbl(c,'FUNGSI KARTU',x0,152,'#1E4D3A');
 ['Verifikasi keanggotaan','Absensi kegiatan dan pengajian','Akses layanan jam\u2019iyyah'].forEach(function(t,i){var y=190+i*38;c.fillStyle='#E4761B';c.beginPath();c.arc(x0+11,y-7,11,0,6.2832);c.fill();c.strokeStyle='#FFFFFF';c.lineWidth=3;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(x0+5.5,y-7);c.lineTo(x0+9.5,y-3);c.lineTo(x0+17,y-12);c.stroke();txt(c,t,x0+34,y,'700 20px '+BF,ink)});
@@ -650,9 +677,12 @@ lbl(c,'SEKRETARIAT',x0,514,'#1E4D3A');wrap(c,CFG.alamat,mw,2,'500 15px '+BF).for
 txt(c,CFG.kontak,x0,596,'600 15px '+BF,ink);bar(c,H-8,8)}
 function ink(im){if(!im)return null;var cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;var x=cv.getContext('2d');x.drawImage(im,0,0);try{var d=x.getImageData(0,0,cv.width,cv.height),p=d.data;for(var i=0;i<p.length;i+=4){var l=(0.299*p[i]+0.587*p[i+1]+0.114*p[i+2])/255;p[i+3]=Math.round(p[i+3]*(1-l));p[i]=p[i+1]=p[i+2]=255}x.putImageData(d,0,0)}catch(e){}return cv}
 function li(src){return new Promise(function(r){if(!src)return r(null);var i=new Image();if(/^https?:/i.test(src))i.crossOrigin='anonymous';i.onload=function(){r(i)};i.onerror=function(){r(null)};i.src=src})}
-async function ensure(){if(S.imgs)return;try{if(document.fonts&&document.fonts.load)await Promise.all([document.fonts.load('700 30px "Plus Jakarta Sans"'),document.fonts.load('500 20px "Inter"'),document.fonts.load('700 20px "Inter"'),document.fonts.load('italic 600 17px "Plus Jakarta Sans"')])}catch(e){}S.imgs={lw:await li(LW),ttd:[ink(await li(CFG.pejabat[0].ttd)),ink(await li(CFG.pejabat[1].ttd))]}}
+async function ensure(){if(S.imgs)return;try{if(document.fonts&&document.fonts.load)await Promise.all([document.fonts.load('700 30px "Plus Jakarta Sans"'),document.fonts.load('500 20px "Inter"'),document.fonts.load('700 20px "Inter"'),document.fonts.load('italic 600 17px "Plus Jakarta Sans"')])}catch(e){}
+/* Guard: CMS kartu.pejabat bisa berisi kurang dari 2 pejabat — jangan sampai
+   CFG.pejabat[1] melempar TypeError dan kartu tampil kosong. */
+var p0=CFG.pejabat[0]||{},p1=CFG.pejabat[1]||p0;S.imgs={lw:await li(LW),ttd:[ink(await li(p0.ttd)),ink(await li(p1.ttd))]}}
 var tm=null;
-async function draw(){await ensure();var d=info();front($('k-front').getContext('2d'),d);back($('k-back').getContext('2d'),d);$('k-nia-p').textContent='Nomor induk anggota Anda dibuat otomatis: '+d.nia}
+async function draw(){await ensure();var d=info();front($('k-front').getContext('2d'),d);back($('k-back').getContext('2d'),d);var st=$('kProfState');if(st&&d.nia)st.textContent='Nomor induk '+d.nia+' · '+(d.status==='verified'?'terverifikasi':d.status==='rejected'?'ditolak':'menunggu verifikasi');$('k-nia-p').textContent=d.nia?('Nomor induk Anda: '+d.nia+(d.status==='verified'?' (terverifikasi)':' (menunggu verifikasi)')):'Nomor induk belum diterbitkan. Simpan data, lalu tunggu verifikasi pengurus ranting/sekretariat.'}
 function sched(){clearTimeout(tm);tm=setTimeout(draw,140)}
 function msg(t,bad){var m=$('k-msg');m.textContent=t;m.style.color=bad?'#D9534F':''}
 $('kartu-app').addEventListener('input',sched);$('kartu-app').addEventListener('change',sched);function tg(){var p=lvl();$('k-rt-w').hidden=p!=='PRNU';$('k-wil').hidden=p!=='MWCNU'}$('kartu-app').addEventListener('change',tg);tg();
@@ -684,21 +714,27 @@ return new Blob(parts,{type:'application/pdf'})}
 function slug(){return(v('k-nama').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'anggota')}
 function save(name,b){return new Promise(function(res,rej){var fb=function(){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href)},2500);res('saved')};
 if(window.claude&&claude.use){claude.use('downloads').then(function(d){if(!d)return fb();d.save({filename:name,data:b}).then(function(){res('saved')},function(e){if(e&&e.code==='declined')res('declined');else fb()})},fb)}else fb()})}
-async function job(label,fn){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;try{var d0=info();profSave({nama:d0.nama,hp:d0.hp,email:(sesGet().user||{}).email||'',nia:d0.nia,wadah:d0.wadah,tingkat:lvl(),ranting:d0.rt||'',alamat:d0.alamat,tempat_lahir:d0.tmp,tanggal_lahir:v('k-tgl'),jk:d0.jk,pekerjaan:d0.kerja||''})}catch(e){}msg('Menyiapkan '+label+'\u2026');try{await draw();var r=await fn();msg(r==='declined'?'Penyimpanan dibatalkan.':label+' siap. Periksa folder unduhan Anda.')}catch(e){msg('Gagal menyiapkan '+label+'. Coba lagi.',1)}}
+/* Data kartu yang boleh dikirim klien. NIA/status sengaja TIDAK ada di sini. */
+function kartuData(){var d=info();return{nama:d.nama,hp:d.hp,wadah:d.wadah,tingkat:lvl(),ranting:d.rt||'',alamat:d.alamat,tempat_lahir:d.tmp,tanggal_lahir:v('k-tgl'),jk:d.jk,pekerjaan:d.kerja||''}}
+async function simpanKartu(){try{var row=await profSave(kartuData());if(!row)throw new Error('profil belum tersimpan di server');var p=profGet()||{};p.nia=row.nia||p.nia||'';p.status=row.status||p.status||'pending';try{localStorage.setItem('mwc_profile_'+profKey(),JSON.stringify(p))}catch(e){}await draw();return true}catch(e){var m=String(e&&e.message||e);msg('Data belum tersimpan: '+m+(/sesi|koneksi|jaringan|fetch/i.test(m)?'. Periksa koneksi lalu coba lagi.':'.'),1);return false}}
+async function job(label,fn){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;msg('Menyimpan data\u2026');if(!await simpanKartu())return;msg('Menyiapkan '+label+'\u2026');try{await draw();var r=await fn();msg(r==='declined'?'Penyimpanan dibatalkan.':label+' siap. Periksa folder unduhan Anda.')}catch(e){msg('Gagal menyiapkan '+label+'. Coba lagi.',1)}}
 $('k-pdf').addEventListener('click',function(){job('PDF kartu',async function(){var a=await bytes($('k-front')),b=await bytes($('k-back')),mk=function(x){return{imgs:[{b:x,w:W,h:H,x:0,y:0,mw:85.6,mh:54}]}};return save('kartu-anggota-'+slug()+'.pdf',pdf([mk(a),mk(b)],85.6,54))})});
 $('k-a4').addEventListener('click',function(){job('PDF A4',async function(){var a=await bytes($('k-front')),b=await bytes($('k-back')),cw=85.6,ch=54,x1=13.4,x2=x1+cw+12,y=48,L=[];[x1,x2].forEach(function(x){[[x,x+cw],[x,x+cw]].forEach(function(_,k){});var xs=[x,x+cw],ys=[y,y+ch];xs.forEach(function(px,i){ys.forEach(function(py,j){var sx=i?1:-1,sy=j?1:-1;L.push([px+sx*2,py,px+sx*6,py]);L.push([px,py+sy*2,px,py+sy*6])})})});
 var pgs=[{imgs:[{b:a,w:W,h:H,x:x1,y:y,mw:cw,mh:ch},{b:b,w:W,h:H,x:x2,y:y,mw:cw,mh:ch}],lines:L,texts:[{t:'Kartu Anggota MWCNU Pondok Aren',x:13.4,y:22,s:14,g:0.1},{t:'Cetak pada ukuran 100% (jangan pilih Fit to Page), lalu potong mengikuti tanda sudut.',x:13.4,y:30,s:8},{t:'DEPAN',x:x1+4,y:y-7,s:7},{t:'BELAKANG',x:x2+4,y:y-7,s:7},{t:CFG.web,x:13.4,y:285,s:7}]}];return save('kartu-anggota-'+slug()+'-A4.pdf',pdf(pgs,210,297))})});
 $('k-png').addEventListener('click',function(){job('gambar kartu',async function(){var cv=document.createElement('canvas');cv.width=W;cv.height=H*2+40;var c=cv.getContext('2d');c.fillStyle='#FFFFFF';c.fillRect(0,0,cv.width,cv.height);c.drawImage($('k-front'),0,0);c.drawImage($('k-back'),0,H+40);return save('kartu-anggota-'+slug()+'.png',await blob(cv,'image/png'))})});
-$('k-wa').addEventListener('click',function(){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;try{var d0=info();profSave({nama:d0.nama,hp:d0.hp,email:(sesGet().user||{}).email||'',nia:d0.nia,wadah:d0.wadah,tingkat:lvl(),ranting:d0.rt||'',alamat:d0.alamat,tempat_lahir:d0.tmp,tanggal_lahir:v('k-tgl'),jk:d0.jk,pekerjaan:d0.kerja||''})}catch(e){}var d=info(),t='Assalamualaikum, saya mendaftar sebagai anggota MWCNU Pondok Aren.\n\nNama: '+d.nama+'\nJenis kelamin: '+d.jk+'\nTempat, tgl lahir: '+d.tmp+', '+d.tgl+'\nAlamat: '+d.alamat+'\nTingkat/wilayah: '+d.wilayah+'\nPekerjaan: '+(d.kerja||'-')+'\nWadah khidmah: '+d.wadah+'\nNo. HP: '+d.hp+'\nNomor induk: '+d.nia+'\n\nFile kartu (PDF) dan foto saya lampirkan pada chat ini. Mohon verifikasi. Terima kasih.';msg('Membuka WhatsApp\u2026');window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(t),'_blank','noopener')});
+$('k-wa').addEventListener('click',async function(){if(!sesGet()||!sesGet().user){authMsg('Masuk dulu untuk membuat kartu.',1);toggleAuth();return}if(!valid())return;msg('Menyimpan data\u2026');if(!await simpanKartu())return;var d=info(),t='Assalamualaikum, saya mendaftar sebagai anggota MWCNU Pondok Aren.\n\nNama: '+d.nama+'\nJenis kelamin: '+d.jk+'\nTempat, tgl lahir: '+d.tmp+', '+d.tgl+'\nAlamat: '+d.alamat+'\nTingkat/wilayah: '+d.wilayah+'\nPekerjaan: '+(d.kerja||'-')+'\nWadah khidmah: '+d.wadah+'\nNo. HP: '+d.hp+'\nNomor induk: '+(d.nia||'(belum diterbitkan)')+'\n\nMohon verifikasi keanggotaan saya. Saya akan melampirkan berkas PDF kartu dan foto pada chat ini. Terima kasih.';msg('Membuka WhatsApp\u2026');window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(t),'_blank','noopener')});
 window.addEventListener('load',function(){toggleAuth();profFetch().then(function(){toggleAuth()});draw()});if(document.readyState==='complete'){toggleAuth();profFetch().then(function(){toggleAuth()});draw()}
 }catch(e){}})();
 /* ===== KONSULTASI AGAMA ===== */
 (function(){try{
 var $=function(i){return document.getElementById(i)};if(!$('konsultasi'))return;
+/* put/cleanHTML dari modul utama (window.MWCUI) — sebelumnya modul ini memakai
+   put yang tidak ada di scope-nya, sehingga seluruh modul mati diam-diam. */
+var put=(window.MWCUI&&window.MWCUI.put)||function(el,html){if(el)el.innerHTML=html};
 var QA=window.MWC_QA||[];
 /* Isi QA dengan data nyata, contoh: {k:'Ibadah',q:'Pertanyaan ...',a:'Jawaban ...'} */
 var C=[['Ibadah','Shalat, puasa, zakat, haji'],['Akidah','Keyakinan dan keimanan'],['Akhlak & tasawuf','Adab dan pembinaan diri'],['Muamalah','Jual beli dan ekonomi syariah'],['Keluarga','Pernikahan dan rumah tangga'],['Waris & wasiat','Pembagian harta peninggalan'],['Amaliyah NU','Tahlil, maulid, ziarah, qunut'],['Lainnya','Pertanyaan di luar topik lain']];
-function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 put($('ka-cats'),C.map(function(c,i){return '<button type="button" class="mt-f" data-i="'+i+'"><b>'+esc(c[0])+'</b><small>'+esc(c[1])+'</small></button>'}).join(''));
 [].forEach.call($('ka-cats').querySelectorAll('button'),function(b,i){b.setAttribute('data-i',i);b.setAttribute('aria-controls','ka-kat');b.setAttribute('aria-label','Pilih topik '+C[i][0])});
 $('ka-kat').textContent='';$('ka-fk').textContent='';[['ka-kat','Pilih topik'],['ka-fk','Semua topik']].forEach(function(x){var o=document.createElement('option');o.value='';o.textContent=x[1];$(x[0]).appendChild(o);C.forEach(function(c){var q=document.createElement('option');q.textContent=c[0];$(x[0]).appendChild(q)})});
@@ -719,11 +755,13 @@ m.textContent='Membuka WhatsApp…';window.open('https://wa.me/6285161033689?tex
 /* ===== MAJELIS TAKLIM ===== */
 (function(){try{
 var $=function(i){return document.getElementById(i)};if(!$('majelis'))return;
+/* put/cleanHTML dari modul utama (window.MWCUI) — sama seperti modul Konsultasi. */
+var put=(window.MWCUI&&window.MWCUI.put)||function(el,html){if(el)el.innerHTML=html};
 var MT=window.MWC_MT||[];
 /* Isi MT dengan data nyata, contoh: {nama:'Majelis Taklim ...',asuh:'Ust. ...',hari:'Kamis',jam:'19.30',tempat:'...',ranting:'Pondok Karya',hp:'628...'} */
 var RT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
 var fr=$('mt-ranting');fr.textContent='';var all=document.createElement('option');all.value='';all.textContent='Semua ranting';fr.appendChild(all);RT.forEach(function(r){var o=document.createElement('option');o.textContent=r;fr.appendChild(o)});
-function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function card(m){var jd=[m.hari,m.jam].filter(Boolean).join(' · '),hp=String(m.hp||'').replace(/\D/g,'');if(hp.charAt(0)=='0')hp='62'+hp.slice(1);if(!/^62\d{8,13}$/.test(hp))hp='';return '<div class="mt-c"><b>'+esc(m.nama)+'</b>'+(m.asuh?'<p>Pengasuh: '+esc(m.asuh)+'</p>':'')+(jd?'<p>'+esc(jd)+'</p>':'')+(m.tempat?'<p>'+esc(m.tempat)+'</p>':'')+(m.ranting?'<p>Ranting '+esc(m.ranting)+'</p>':'')+(hp?'<a class="loc-btn" href="https://wa.me/'+hp+'" target="_blank" rel="noopener">Hubungi</a>':'')+'</div>'}
 function draw(){var r=fr.value,q=$('mt-q').value.trim().toLowerCase(),L=MT.filter(function(m){return(!r||m.ranting==r)&&(!q||(m.nama+' '+(m.asuh||'')+' '+(m.tempat||'')).toLowerCase().indexOf(q)>-1)});
 put($('mt-list'),L.length?L.map(card).join(''):'<div class="mt-e"><span>'+(MT.length?'Tidak ada majelis yang cocok dengan pencarian Anda.':'Data majelis taklim sedang dihimpun. Pengasuh dan pengurus ranting dapat mendaftarkan majelisnya melalui formulir di bawah.')+'</span><button type="button" class="loc-btn" data-go="mt-daftar">Daftarkan majelis</button></div>');$('mt-n').textContent=MT.length?L.length+' majelis':''}
@@ -742,10 +780,12 @@ bind('mt-daftar',function(g){return 'Assalamualaikum, saya ingin mendaftarkan ma
 (function(){try{
 var $=function(i){return document.getElementById(i)};
 if(!$('zk-calc'))return;
-function put(el,html){if(el)el.innerHTML=html}
+/* Selalu lewat cleanHTML dari modul utama agar konten tersanitasi,
+   sama seperti put() di bagian lain situs. */
+function put(el,html){if(el)el.innerHTML=(window.MWCUI&&window.MWCUI.cleanHTML?window.MWCUI.cleanHTML(html):html)}
 function imgURL(s){s=String(s||'').trim();if(/^\/(?!\/)[^\\"'<>]*$/.test(s))return s;try{var u=new URL(s,location.href);if(u.protocol==='https:'&&u.origin!==location.origin)return u.href}catch(e){}return ''}
 var PAY=window.MWC_PAY||{banks:[],qris:''};
-function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function dig(v){return parseInt(String(v).replace(/\D/g,''),10)||0}
 function dot(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
 function rp(n){return 'Rp '+dot(n)}

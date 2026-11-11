@@ -45,6 +45,18 @@ language sql stable security definer set search_path = public as $$
   select public.staff_role() = 'super_admin' or (public.staff_role() = 'pengurus' and t = 'berita')
 $$;
 
+-- Fungsi pembantu RLS tidak dieksekusi langsung dari luar; batasi haknya
+-- dan berikan hanya ke peran yang memang menjalankan query (anon/authenticated),
+-- mengikuti pola member_email_confirmed() di supabase-profiles.sql.
+revoke all on function
+  public.staff_role(), public.is_staff(), public.is_admin(),
+  public.can_edit(text, jsonb), public.can_review(text)
+from public, anon, authenticated;
+grant execute on function
+  public.staff_role(), public.is_staff(), public.is_admin(),
+  public.can_edit(text, jsonb), public.can_review(text)
+  to anon, authenticated, service_role;
+
 -- 2) PENGATURAN SITUS (satu baris per kunci) ---------------------------
 create table if not exists public.site_settings (
   key        text primary key,
@@ -80,6 +92,7 @@ create table if not exists public.change_log (
   ref     text,
   ringkas text
 );
+create index if not exists change_log_tabel_at on public.change_log (tabel, at desc);
 
 -- 5) TRIGGER: cap waktu/pengubah + catat riwayat ------------------------
 create or replace function public.touch_row() returns trigger
@@ -96,12 +109,17 @@ language plpgsql security definer set search_path = public as $$
 declare r record; j text; k text; s text;
 begin
   r := case when tg_op = 'DELETE' then old else new end;
-  if auth.uid() is null then return r; end if;
   if tg_table_name = 'content_items' then
     j := r.type; k := r.id::text;
     s := left(coalesce(r.data ->> 'judul', r.data ->> 'nama', r.data ->> 'q', r.data ->> 'kelurahan', ''), 120);
   else
     j := null; k := r.key; s := null;
+  end if;
+  /* Aksi lewat service_role (backend/SQL Editor) tetap tercatat di riwayat. */
+  if auth.uid() is null then
+    insert into public.change_log(who, tabel, aksi, jenis, ref, ringkas)
+    values ('service_role', tg_table_name, tg_op, j, k, s);
+    return r;
   end if;
   insert into public.change_log(who, tabel, aksi, jenis, ref, ringkas)
   values (lower(coalesce(auth.jwt() ->> 'email', current_user)), tg_table_name, tg_op, j, k, s);
@@ -139,7 +157,9 @@ alter table public.content_items  enable row level security;
 alter table public.change_log     enable row level security;
 
 drop policy if exists staff_read on public.staff;
-create policy staff_read   on public.staff for select to authenticated using (public.is_staff());
+-- Daftar lengkap pengelola (email + role) hanya untuk admin. Baris sendiri tetap
+-- dapat dibaca lewat staff_self_select; sisanya tertutup dari jurnalis/ustadz.
+create policy staff_read   on public.staff for select to authenticated using (public.is_admin());
 drop policy if exists staff_write on public.staff;
 drop policy if exists staff_self_update on public.staff;
 drop policy if exists staff_self_select on public.staff;
@@ -162,6 +182,32 @@ drop policy if exists items_update on public.content_items;
 create policy items_update on public.content_items for update to authenticated
   using ((public.can_edit(type, data) and created_by = lower(coalesce(auth.jwt() ->> 'email',''))) or public.can_review(type))
   with check (public.can_edit(type, data) or public.can_review(type));
+
+-- Penegakan alur tulis → tinjau: jurnalis TIDAK boleh menerbitkan sendiri
+-- (published false → true hanya oleh can_review), dan jenis konten tidak
+-- boleh diganti saat update. Ditegakkan server, bukan hanya UI admin.
+create or replace function public.guard_publish() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.published and not old.published and not public.can_review(new.type) then
+    raise exception 'Hanya pengurus yang dapat menerbitkan konten ini';
+  end if;
+  return new;
+end $$;
+create or replace function public.guard_item_type() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.type is distinct from old.type then
+    raise exception 'Jenis konten tidak boleh diubah setelah dibuat';
+  end if;
+  return new;
+end $$;
+drop trigger if exists trg_guard_publish on public.content_items;
+create trigger trg_guard_publish before update on public.content_items
+  for each row execute function public.guard_publish();
+drop trigger if exists trg_guard_item_type on public.content_items;
+create trigger trg_guard_item_type before update on public.content_items
+  for each row execute function public.guard_item_type();
 drop policy if exists items_delete on public.content_items;
 create policy items_delete on public.content_items for delete to authenticated
   using (public.is_admin() or (public.can_edit(type, data) and created_by = lower(coalesce(auth.jwt() ->> 'email',''))));
@@ -187,6 +233,8 @@ create or replace function public.can_upload_media() returns boolean
 language sql stable security definer set search_path = public as $$
   select public.staff_role() in ('super_admin','pengurus','jurnalis','ustadz')
 $$;
+revoke all on function public.can_upload_media() from public, anon, authenticated;
+grant execute on function public.can_upload_media() to authenticated, service_role;
 drop policy if exists media_insert on storage.objects;
 create policy media_insert on storage.objects for insert to authenticated
   with check (bucket_id = 'media' and public.can_upload_media());
@@ -199,6 +247,8 @@ create policy media_delete on storage.objects for delete to authenticated
 
 -- 9) ADMIN PERTAMA ------------------------------------------------------
 -- Admin pertama: akun Google organisasi (email resmi di situs). Ganti hanya jika ingin akun lain (huruf kecil).
+-- do nothing (bukan do update): menjalankan ulang skema TIDAK mengembalikan peran
+-- admin yang sengaja diturunkan/diganti pengelola sebelumnya.
 insert into public.staff (email, role, nama)
 values ('mwcnu.pdaren@gmail.com', 'super_admin', 'Super Admin Utama')
-on conflict (email) do update set role = 'super_admin', nama = 'Super Admin Utama';
+on conflict (email) do nothing;

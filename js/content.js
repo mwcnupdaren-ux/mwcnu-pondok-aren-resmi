@@ -143,6 +143,23 @@
     if (!rendered) { syncFlag(false); go(d); return; } /* belum tampil: langsung pakai data terbaru */
     if (prev === next) { syncFlag(false); return; } /* sudah sama dengan cache */
     if (synced()) { syncFlag(false); return; }      /* sudah pernah dimuat ulang pada kunjungan ini */
+    /* Jangan reload saat pengguna sedang mengisi formulir yang belum dikirim,
+       agar isian KTA/zakat/layanan tidak hilang tanpa konfirmasi. */
+    var hasDraft = false;
+    try {
+      hasFormCheck: {
+        var els = document.querySelectorAll('input:not([type=hidden]):not([type=search]), textarea, select');
+        for (var i = 0; i < els.length; i++) {
+          var el = els[i];
+          if (el.disabled || el.readOnly) continue;
+          if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'submit' || el.type === 'button') continue;
+          if (String(el.value || '').trim()) { hasDraft = true; break hasFormCheck; }
+        }
+      }
+    } catch (e) {}
+    if (hasDraft && !confirm('Ada perubahan konten baru di CMS. Halaman akan dimuat ulang, tetapi isian formulir Anda yang belum dikirim akan hilang. Muat ulang sekarang?')) {
+      syncFlag(false); return; /* coba lagi pada kunjungan berikutnya */
+    }
     syncFlag(true); location.reload();              /* tampilkan perubahan CMS yang baru disimpan */
   }).catch(function () { clearTimeout(timer); go(cache); });
 })();

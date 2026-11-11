@@ -1,0 +1,8 @@
+# Jangan ikut di-serve publik oleh Vercel:
+# skema database, data seed, catatan audit, dan skrip QA internal.
+supabase/
+supabase-profiles.sql
+docs/
+*.md
+_qa-*
+_qa-*.png
