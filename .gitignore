@@ -23,3 +23,8 @@ creative-direction-*.png
 shot-*.png
 dev.log
 *.bak
+.vercel
+
+# Artefak QA internal (skrip & tangkapan layar) - tidak ikut di-push
+_qa-*
+_qa-*.png

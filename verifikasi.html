@@ -34,9 +34,16 @@ if(!C.supabaseUrl||!C.supabaseKey){s.className='s wait';s.textContent='Format no
 function down(){s.className='s wait';s.textContent='Layanan verifikasi tidak dapat dijangkau. Coba lagi.';t.textContent='Ini bukan berarti kartu tidak asli. Periksa koneksi, lalu muat ulang halaman ini.'}
 function who(row){return row.nama?(' — '+row.nama):''}
 function where(row){return row.wilayah?(' Wilayah: '+row.wilayah+'.'):''}
-fetch(C.supabaseUrl+'/rest/v1/rpc/verify_nia',{method:'POST',cache:'no-store',headers:{apikey:C.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({p_nia:raw})})
-.then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()})
-.then(function(a){var row=a&&a[0];
+/* Jalur utama: Edge Function rate-limited (P0-1). Fallback ke RPC langsung
+   hanya saat function belum ter-deploy (404) atau jaringan gagal — setelah
+   patch revoke anon dijalankan, RPC langsung memang akan ditolak server. */
+function callFn(){return fetch(C.supabaseUrl+'/functions/v1/verify-nia',{method:'POST',cache:'no-store',headers:{apikey:C.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({p_nia:raw})})}
+function callRpc(){return fetch(C.supabaseUrl+'/rest/v1/rpc/verify_nia',{method:'POST',cache:'no-store',headers:{apikey:C.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({p_nia:raw})})}
+callFn().then(function(r){return r.status===404?callRpc():r}).catch(callRpc).then(function(r){
+  if(r.status===429){s.className='s wait';s.textContent='Terlalu banyak permintaan dari perangkat ini. Tunggu sekitar satu menit, lalu muat ulang halaman.';t.textContent='';return null}
+  if(!r.ok)throw new Error('http '+r.status);return r.json()
+})
+.then(function(a){if(a===null)return;var row=a&&a[0];
   /* Server hanya membalas kartu yang sudah TERVERIFIKASI. Nomor yang belum
      terverifikasi, ditolak, atau tidak terdaftar diperlakukan sama — agar
      pihak luar tidak bisa memetakan nomor anggota lewat halaman ini. */
