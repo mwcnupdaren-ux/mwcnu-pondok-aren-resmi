@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/v/:nia",
-      "destination": "/verifikasi.html"
+      "destination": "/verifikasi"
     },
     {
       "source": "/admin",
@@ -11,11 +11,11 @@
     },
     {
       "source": "/banom",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/banom/:slug",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ],
   "headers": [
