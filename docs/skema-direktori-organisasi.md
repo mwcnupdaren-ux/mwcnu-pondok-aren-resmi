@@ -191,15 +191,23 @@ returns text language sql stable security definer set search_path = public as $$
                    where s.email = lower(coalesce(auth.jwt() ->> 'email','')) limit 1), '')
 $$;
 
--- boleh mengelola unit ini?
+-- boleh mengelola unit ini? (termasuk turunan unit milik pengurus ranting)
 create or replace function public.manages_unit(p_unit uuid)
 returns boolean language sql stable security definer set search_path = public as $$
-  select public.is_admin() or exists (
-    select 1 from public.organizational_units u
-    where u.id = p_unit
-      and public.staff_role() = 'pengurus'
-      and u.prnu_code is not null
-      and u.prnu_code = public.my_prnu()
+  select public.is_admin() or (
+    public.staff_role() = 'pengurus' and exists (
+      with recursive up as (
+        select u.id, u.parent_id, u.prnu_code, 1 as depth
+        from public.organizational_units u where u.id = p_unit
+        union all
+        select u.id, u.parent_id, u.prnu_code, up.depth + 1
+        from public.organizational_units u
+        join up on u.id = up.parent_id
+        where up.depth < 10
+      )
+      select 1 from up
+      where up.prnu_code is not null and up.prnu_code = public.my_prnu()
+    )
   )
 $$;
 
@@ -239,7 +247,7 @@ where p.is_public and u.is_public;
 
 | Tabel | Baca (anon + authenticated) | Tulis (authenticated) |
 |---|---|---|
-| `organizational_units` | `is_public = true` | `is_admin()` **atau** (`staff_role()='pengurus'` **dan** `prnu_code = my_prnu()`) |
+| `organizational_units` | `is_public = true` | `is_admin()` **atau** (`staff_role()='pengurus'` **dan** (unit itu — atau salah satu leluhurnya, maks 10 tingkat — ber-`prnu_code = my_prnu()`; **atau** membuat unit turunan `prnu_code` null ber-kind selain `mwc`/`prnu` di bawah unit yang dikelolanya)) |
 | `organizational_terms` | semua baris | `is_admin()` saja (masa khidmat = keputusan MWC) |
 | `organizational_profiles` | `is_public = true` | `is_admin()` saja (identitas publik terpusat) |
 | `organizational_positions` | unit-nya publik | `manages_unit(unit_id)` |
@@ -358,3 +366,40 @@ Pola tetap SPA existing: section hidden + `VW`/`VWnoback` + `route()`, tanpa fra
 4. **Urutan**: FASE 2 (pengurus MWC + struktur) → FASE 3 (11 PRNU + pencarian/filter + detail).
 
 Setelah persetujuan, migrasi tetap **tidak dijalankan otomatis** — Anda yang mengeksekusi di SQL Editor.
+
+---
+
+## 11. Hasil Validasi Migrasi (Postgres 16 / PGlite, 12 Nov 2026)
+
+`supabase/direktori-organisasi.sql` dijalankan pada Postgres 16 asli (PGlite/WASM) dengan prasyarat tiruan `staff`, `staff_role()`, `is_admin()`, `auth.jwt()`, peran `anon`/`authenticated`. Seluruh 20 pemeriksaan **lulus**:
+
+| # | Uji | Hasil |
+|---|---|---|
+| A | Seed 14 unit (mwc, syuriyah, tanfidziyah, prnu-01…11) | ✅ |
+| B | RLS aktif di kelima tabel | ✅ |
+| C | anon baca unit publik | ✅ 14 baris |
+| D | anon baca `linked_staff_email` | ⛔ ditolak (permission denied) |
+| E | anon INSERT unit | ⛔ ditolak |
+| F | pengurus-08: `manages_unit` unit sendiri / prnu-03 / Syuriyah MWC | ✅ true / false / false |
+| G | pengurus-08 tulis jabatan di prnu-08 vs prnu-03 | ✅ boleh / ⛔ ditolak |
+| H | pengurus-08 buat Syuriyah turunan prnu-08 + jabatannya | ✅ boleh |
+| H2 | pengurus-08 mengklaim `prnu_code` lain lewat `parent_id` | ⛔ ditolak |
+| H3 | pengurus-08 membuat unit kind `mwc`/`prnu` | ⛔ ditolak |
+| H4 | pengurus-08 membuat unit di bawah prnu-03 | ⛔ ditolak |
+| I | admin `manages_unit` prnu-03 | ✅ true |
+| J | jurnalis INSERT unit | ⛔ ditolak |
+| K | profil baru default `is_public = false` | ✅ |
+| L | `directory_public` saat profil belum publik | ✅ 0 baris |
+| M | setelah publik + term aktif + membership | ✅ 1 baris lengkap |
+| N | masa khidmat aktif kedua | ⛔ ditolak (unique parsial) |
+| O | slug tidak valid | ⛔ ditolak (check) |
+| P | `prnu_code` duplikat | ⛔ ditolak (unique) |
+| Q | hapus unit yang masih dirujuk | ⛔ ditolak (FK restrict) |
+| R | rollback drop 5 tabel + view | ✅ bersih (0 sisa) |
+
+Dua celah desain ditemukan **lewat uji ini** dan sudah diperbaiki sebelum eksekusi:
+
+1. `manages_unit()` semula hanya mencocokkan `prnu_code` unit itu sendiri → pengurus ranting tidak bisa mengelola Syuriyah/Tanfidziyah miliknya. Kini menelusuri leluhur (maks 10 tingkat, aman dari siklus).
+2. Policy tulis `organizational_units` semula menolak pembuatan unit turunan → kini mengizinkan pembuatan unit `prnu_code` null ber-kind selain `mwc`/`prnu` di bawah unit yang dikelolanya, dengan tetap menolak klaim kode PRNU lain (H2–H4).
+
+Idempotensi juga terverifikasi: file dijalankan **dua kali** berturut-turut tanpa error.
