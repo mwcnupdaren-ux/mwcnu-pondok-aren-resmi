@@ -126,15 +126,17 @@ var P=MW.md('program',function(x){return{t:x.judul||'',s:x.deskripsi||'',k:MW.li
 {t:"Badan otonom",s:"Kaderisasi dan gerakan bersama badan otonom di tingkat kecamatan.",k:["GP Ansor","Fatayat NU","IPNU","IPPNU"],a:["Lihat badan otonom","#struktur"]}]);
 if(!P.length)P=[{t:'Program khidmat',s:'Informasi program akan diumumkan melalui MWCNU Pondok Aren.',k:[],a:['Lihat kabar kegiatan','#berita']}];
 var PI=[I[0],I[4],'M2 4h20v13H2z M8 21h8 M12 17v4',I[3],I[2]];
-var pl=document.getElementById('pl'),pd=document.getElementById('pd'),pi='';
+var pl=document.getElementById('pl'),pd=document.getElementById('program-panel'),pi='';
 function sv(d){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+d+'"/></svg>'}
 function pshow(i,anim){var p=P[i];if(!p)return;pi=String(i);
 [].forEach.call(pl.children,function(b,j){var selected=j==i;b.setAttribute('aria-selected',selected);b.tabIndex=selected?0:-1});
 pd.setAttribute('aria-labelledby','program-tab-'+i);
+pd.setAttribute('aria-describedby','program-description-'+i);
 var url=p.a[1],urlOK=/^#[-\w/]+$/.test(url)||/^https:\/\/(?:[\w-]+\.)+[\w-]+(?:[/?#][^\s]*)?$/i.test(url);if(!urlOK)url='#berita';
 put(pd,'<div class="program-panel-top"><span class="program-step">Program '+('0'+(i+1)).slice(-2)+' <i>/ '+('0'+P.length).slice(-2)+'</i></span><span class="pbig">'+sv(PI[i%PI.length])+'</span></div><h3>'+esc(p.t)+'</h3><p>'+esc(p.s)+'</p>'+(p.k.length?'<div class="program-focus"><b>Fokus kegiatan</b><ul class="pk">'+p.k.map(function(k){return '<li>'+esc(k)+'</li>'}).join('')+'</ul></div>':'')+'<div class="program-actions"><a class="btn" id="program-wa" href="https://wa.me/6285161033689?text='+encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang program "+p.t)+'" target="_blank" rel="noopener">Tanya lewat WhatsApp</a><a class="btn o" id="program-detail-link" href="'+esc(safeURL(url))+'">'+esc(p.a[0]||'Lihat detail')+' <span aria-hidden="true">→</span></a></div>');
+var programDescription=pd.querySelector('p');if(programDescription)programDescription.id='program-description-'+i;
 if(anim){pd.classList.remove('sw');void pd.offsetWidth;pd.classList.add('sw')}}
-P.forEach(function(p,i){var b=document.createElement('button');b.id='program-tab-'+i;b.setAttribute('role','tab');b.setAttribute('aria-controls','pd');b.setAttribute('aria-selected',i===0);b.tabIndex=i===0?0:-1;
+P.forEach(function(p,i){var b=document.createElement('button');b.id='program-tab-'+i;b.setAttribute('role','tab');b.setAttribute('aria-controls','program-panel');b.setAttribute('aria-selected',i===0);b.tabIndex=i===0?0:-1;
 put(b,'<span class="program-tab-num">'+('0'+(i+1)).slice(-2)+'</span><span class="pi">'+sv(PI[i%PI.length])+'</span><span class="program-tab-copy"><b>'+esc(p.t)+'</b><small>'+esc(p.k.slice(0,2).join(' · ')||'Program khidmat MWCNU')+'</small></span><span class="program-tab-arrow" aria-hidden="true">→</span>');
 b.onclick=function(){pshow(i,1)};b.onkeydown=function(e){var next=e.key==='ArrowDown'||e.key==='ArrowRight'?i+1:e.key==='ArrowUp'||e.key==='ArrowLeft'?i-1:e.key==='Home'?0:e.key==='End'?P.length-1:-1;if(next<0)return;e.preventDefault();next=(next+P.length)%P.length;pshow(next,1);pl.children[next].focus()};pl.appendChild(b)});
 pshow(0,0);
@@ -375,7 +377,7 @@ var hd=document.querySelector('header'),off=(hd?hd.offsetHeight:0)+24;
 scrollTo({top:t.getBoundingClientRect().top+scrollY-off,behavior:'smooth'})});
 var SITE_TITLE=document.title;
 function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null,bIndex=-1;
-if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/);if(pm)h='banom'+(pm[1]?'/'+pm[1]:'')}
+if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/);if(pn=='/program')h='program';else if(pm)h='banom'+(pm[1]?'/'+pm[1]:'')}
 /* FASE T5: alias rute lama halaman banom statis → halaman direktori dinamis.
    Hash di URL diubah langsung agar tautan lama tetap berfungsi. */
 var LEGACY_BANOM={'banom-gpansor':'gp-ansor','banom-fatayat':'fatayat-nu','banom-ipnu':'ipnu','banom-ippnu':'ippnu'};
@@ -397,8 +399,9 @@ if(v=='banom-profile')bpRender(bIndex);
 if(v=='sejarah')pgRenderSejarah();
 if(v=='visi')pgRenderVisi();
 if(v=='struktur')skStats();
+if(v=='program'){pshow(0,0);try{document.title='Program Khidmat | MWCNU Pondok Aren'}catch(e){}}
 if(window.MWCDIR)window.MWCDIR.route(v,dm?dm[1]:rm?rm[1]:'');
-if(v!='baca'&&v!='banom-profile'&&v!='pengurus'&&v!='ranting-detail'&&document.title!==SITE_TITLE){try{document.title=SITE_TITLE}catch(e){}}}
+if(v!='baca'&&v!='program'&&v!='banom-profile'&&v!='pengurus'&&v!='ranting-detail'&&document.title!==SITE_TITLE){try{document.title=SITE_TITLE}catch(e){}}}
 addEventListener('hashchange',route);route();
 // Dialog, berita, galeri
 var dlg=document.getElementById('dlg'),db=document.getElementById('dlgBody');

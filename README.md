@@ -1,8 +1,9 @@
 # MWCNU Pondok Aren (situs + Kartu Anggota)
 
 Situs statis tanpa proses build. Cukup HTML, CSS, JavaScript, dan gambar.
-Halaman memakai router hash (`#agenda`, `#zis`, `#daftar`, dst.), jadi tidak perlu aturan server khusus
-kecuali satu: alamat QR `/v/<nomor>` (sudah diatur di `vercel.json`).
+Halaman memakai router hash (`#agenda`, `#zis`, `#daftar`, dst.), jadi tidak perlu aturan server khusus.
+Pengecualian yang sudah diatur di `vercel.json` adalah alamat QR `/v/<nomor>`, halaman admin `/admin`,
+dan halaman Program Khidmat yang dapat diakses langsung melalui `/program`.
 
 ## Isi proyek
 

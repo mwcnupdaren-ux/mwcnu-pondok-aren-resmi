@@ -10,6 +10,10 @@
       "destination": "/admin/index.html"
     },
     {
+      "source": "/program",
+      "destination": "/"
+    },
+    {
       "source": "/banom",
       "destination": "/"
     },

@@ -236,7 +236,7 @@ header.sc .logo{color:#19523F}
 .program-page{--program-accent:#C79A1E}
 #program:not([hidden]) .program-hero,#program:not([hidden]) .pg,#program:not([hidden]) .program-note{opacity:1!important;transform:none!important;filter:none!important;visibility:visible!important}
 .program-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:28px;margin:0 0 34px;padding:clamp(26px,5vw,54px);overflow:hidden;border:1px solid color-mix(in srgb,var(--gold) 28%,var(--line));border-radius:30px;background:radial-gradient(ellipse at 88% 8%,rgba(43,217,160,.15),transparent 38%),linear-gradient(135deg,var(--surf),color-mix(in srgb,var(--g2) 5%,var(--surf)));box-shadow:0 22px 48px -36px rgba(12,59,43,.38)}
-.program-hero h2{margin:8px 0 12px;font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.055em}
+.program-hero h1{margin:8px 0 12px;font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.055em}
 .program-hero .lead{margin:0;max-width:58ch;font-size:1.02rem;line-height:1.75}
 .program-mark{width:92px;height:92px;display:grid;place-items:center;flex:none;border:1px solid color-mix(in srgb,var(--gold) 52%,transparent);border-radius:28px;background:color-mix(in srgb,var(--gold) 12%,transparent);color:var(--gold);transform:rotate(-8deg)}
 .program-mark svg{width:48px;height:48px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round}
@@ -264,7 +264,7 @@ header.sc .logo{color:#19523F}
 .pd::after{content:"";position:absolute;right:-30px;bottom:-24px;width:300px;aspect-ratio:520/341;background:#fff;opacity:.08;-webkit-mask:var(--nu) center/contain no-repeat;mask:var(--nu) center/contain no-repeat;pointer-events:none}
 .pd>*{position:relative;z-index:1}
 .pbig{width:62px;height:62px;border-radius:19px;background:rgba(255,255,255,.16);display:grid;place-items:center}.pbig svg{width:30px;height:30px}
-.pd h3{font-size:clamp(1.6rem,3vw,2.2rem);margin:20px 0 10px}
+.pd h2,.pd h3{font-size:clamp(1.6rem,3vw,2.2rem);margin:20px 0 10px}
 .pd p{color:#D5E8DD;max-width:46ch;margin:0 0 22px;font-size:1.05rem}
 .pk{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px;padding:0;list-style:none}
 .pk li{padding:8px 14px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-size:.9rem;font-weight:600}
@@ -6709,6 +6709,41 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
 .kt-lock{margin:12px 0 0;padding:12px 14px;border-radius:var(--r-md,14px);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--ink);font-size:.84rem;line-height:1.6}
 .kt-lock[hidden]{display:none}
 .kt-lock b{color:var(--ink)}
+
+/* Halaman daftar KTA: alur pendaftaran dan panel kerja yang lebih terarah. */
+#daftar{padding:136px 0 96px!important;background:linear-gradient(180deg,color-mix(in srgb,var(--g2) 5%,var(--bg)),var(--bg) 420px)!important}
+#daftar #kartu-app{max-width:1180px!important}
+#daftar .back{margin-bottom:22px!important}
+#daftar .kt-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(430px,.9fr);gap:32px;align-items:end;margin:0 0 30px;padding:0 0 28px;border-bottom:1px solid var(--hair)}
+#daftar .kt-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--acc-deep);font:700 .72rem/1 var(--fh);letter-spacing:.16em;text-transform:uppercase}
+#daftar .kt-eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 5px color-mix(in srgb,var(--gold) 16%,transparent)}
+#daftar .kt-hero h1{margin:14px 0 12px;color:var(--ink);font:700 clamp(2.05rem,4.5vw,3.4rem)/1.03 var(--fh);letter-spacing:-.05em}
+#daftar .kt-hero p{max-width:62ch;margin:0;color:var(--mut);font-size:1rem;line-height:1.75}
+#daftar .kt-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0;padding:0;list-style:none;border:1px solid var(--hair);border-radius:var(--r-lg);overflow:hidden;background:var(--surf)}
+#daftar .kt-flow li{position:relative;display:grid;gap:3px;min-height:106px;padding:18px 16px;border-left:1px solid var(--hair)}
+#daftar .kt-flow li:first-child{border-left:0}
+#daftar .kt-flow span{color:var(--gold);font:700 .68rem/1 var(--fh);letter-spacing:.12em}
+#daftar .kt-flow b{color:var(--ink);font:700 .9rem/1.3 var(--fh)}
+#daftar .kt-flow small{color:var(--mut);font-size:.75rem;line-height:1.4}
+#daftar .pg-lead{max-width:82ch;margin:0 0 26px!important;padding:14px 16px;border-left:3px solid var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:.94rem!important}
+#daftar .kt-auth{position:relative;overflow:hidden;border-radius:var(--r-lg)!important}
+#daftar .kt-auth::after{content:"";position:absolute;width:250px;height:250px;right:-120px;bottom:-150px;border:1px solid color-mix(in srgb,var(--g2) 34%,transparent);border-radius:50%;pointer-events:none}
+#daftar .kt-auth-l,#daftar .kt-auth-f{position:relative;z-index:1}
+#daftar .kt-auth-l .sm-k,#daftar .kt-f>.sm-k,#daftar .kt-p>.sm-k{color:var(--acc-deep)!important}
+#daftar .kt-bar{box-shadow:0 12px 30px -26px color-mix(in srgb,var(--g1) 60%,transparent)!important}
+#daftar .kt-g{gap:22px!important}
+#daftar .kt-f,#daftar .kt-p{border-radius:var(--r-lg)!important}
+#daftar .kt-f{border-top:3px solid var(--gold)!important}
+#daftar .kt-p{border-top:3px solid var(--g2)!important}
+#daftar .kt-p h3::after{content:"Pratinjau diperbarui saat data diisi";display:block;margin-top:6px;color:var(--mut);font:500 .78rem/1.5 var(--fz);letter-spacing:0}
+#daftar .kt-cv{gap:20px!important}
+#daftar .kt-cv>div{padding:12px;border:1px solid var(--hair);border-radius:var(--r-md);background:var(--bg-alt)}
+#daftar .kt-cv canvas{border-radius:12px!important}
+#daftar .kt-act{grid-template-columns:1fr!important;margin-top:22px!important}
+#daftar .kt-act .btn,#daftar .kt-act .kt-b{min-height:46px!important}
+#daftar .kt-lock{margin-top:16px!important}
+@media(max-width:900px){#daftar .kt-hero{grid-template-columns:1fr;gap:22px}#daftar .kt-flow{max-width:720px}}
+@media(max-width:620px){#daftar{padding:104px 0 70px!important}#daftar .kt-hero{margin-bottom:22px;padding-bottom:22px}#daftar .kt-hero h1{font-size:clamp(1.9rem,10vw,2.55rem)}#daftar .kt-flow li{min-height:92px;padding:14px 10px}#daftar .kt-flow b{font-size:.8rem}#daftar .kt-flow small{font-size:.68rem}#daftar .pg-lead{padding:12px 13px;font-size:.88rem!important}#daftar .kt-cv>div{padding:9px}}
 
 /* ---------- Detail ranting (FASE 3) ---------- */
 /* main h2 memakai !important (baris 4246) sehingga .pg-sub ikut besar;
