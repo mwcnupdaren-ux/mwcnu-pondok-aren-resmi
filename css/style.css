@@ -1,4 +1,4 @@
-﻿
+
 :root{--acc:#168250;color-scheme:light dark;--bg:#F4F8F5;--surf:#fff;--ink:#10211A;--mut:#4F6459;--g1:#0C3B2B;--g2:#168250;--gold:#C79A1E;--line:#D5E2DA;
 box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1612;--surf:#13241D;--ink:#E8F1EC;--mut:#9DB5A8;--g1:#071F17;--line:#244035;--acc:#4FC78C}}
@@ -6615,4 +6615,75 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
   .pr-dl>div{grid-template-columns:1fr;gap:2px}
   .pr-2col{grid-template-columns:1fr}
   .pr-head{padding:18px}
+}
+
+/* =====================================================================
+   DIREKTORI ORGANISASI (FASE 2)
+   Pengurus (#direktori-pengurus), struktur (#struktur-organisasi),
+   ranting (#direktori-ranting), detail orang (#pengurus/<slug>).
+   Mobile-first; memakai token warna/radius yang sudah ada.
+   ===================================================================== */
+
+/* Filter direktori pengurus */
+.dir-filters{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 18px}
+.dir-filters[hidden]{display:none}
+.dir-f{display:flex;flex-direction:column;gap:5px;flex:1 1 180px;min-width:0}
+.dir-f[hidden]{display:none}
+.dir-f>span{font:700 .68rem var(--fz);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.dir-f select{width:100%;padding:11px 14px;border-radius:999px;border:1px solid var(--hair,var(--line));background:var(--surf);color:var(--ink);font:600 .86rem var(--fz);appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.dir-f select:focus{outline:0;border-color:var(--g2);box-shadow:0 0 0 3px color-mix(in srgb,var(--g2) 14%,transparent)}
+
+/* Avatar berfoto */
+.av.dir-av{background-size:cover;background-position:center top;color:transparent;text-indent:-9999px;overflow:hidden}
+.av.lg{width:88px;height:88px;font-size:1.6rem;border-radius:26px}
+
+/* Metadata kecil di atas daftar */
+.dir-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 16px;color:var(--mut);font:600 .82rem var(--fz)}
+.dir-meta .chip{margin:0}
+
+/* ---------- Pohon struktur ---------- */
+.org-tree{display:flex;flex-direction:column;gap:12px}
+.org-node{display:flex;flex-direction:column;gap:10px}
+.org-h{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"kind name arrow" "kind sub arrow";gap:2px 12px;align-items:center;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--hair,var(--line));border-radius:var(--r-md,14px);background:var(--surf);color:var(--ink);cursor:pointer;transition:border-color .18s}
+.org-h:hover:not(:disabled){border-color:color-mix(in srgb,var(--g2) 45%,transparent)}
+.org-h:disabled{cursor:default;opacity:.85}
+.org-h .org-kind{grid-area:kind;font:700 .6rem var(--fz);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.org-h b{grid-area:name;font:700 .98rem/1.3 var(--fh);letter-spacing:-.01em;min-width:0}
+.org-h small{grid-area:sub;color:var(--mut);font:600 .76rem var(--fz)}
+.org-h i{grid-area:arrow;font-style:normal;color:var(--mut);font-size:1.05rem}
+.org-h:disabled i{display:none}
+.org-kids{display:flex;flex-direction:column;gap:10px;margin-left:12px;padding-left:14px;border-left:2px solid color-mix(in srgb,var(--g2) 14%,transparent)}
+
+/* ---------- Direktori ranting ---------- */
+.prnu-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:6px}
+.prnu-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"code name arrow" "code sub arrow";gap:2px 14px;align-items:center;width:100%;text-align:left;padding:16px;border:1px solid var(--hair,var(--line));border-radius:var(--r-md,14px);background:var(--surf);color:var(--ink);cursor:pointer;transition:border-color .18s}
+.prnu-card:hover{border-color:color-mix(in srgb,var(--g2) 45%,transparent)}
+.prnu-code{grid-area:code;display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:color-mix(in srgb,var(--g2) 10%,transparent);color:var(--g2);font:800 .9rem var(--fh)}
+.prnu-card b{grid-area:name;font:700 .98rem/1.3 var(--fh);min-width:0}
+.prnu-card small{grid-area:sub;color:var(--mut);font:600 .76rem var(--fz)}
+.prnu-card i{grid-area:arrow;font-style:normal;color:var(--mut)}
+
+/* ---------- Detail orang ---------- */
+.pg-person{background:var(--surf);border:1px solid var(--hair,var(--line));border-radius:var(--r-lg,22px);padding:22px}
+.pg-person-h{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.pg-person-h h1{margin:6px 0 0;font:700 clamp(1.3rem,3.4vw,1.9rem)/1.2 var(--fh);letter-spacing:-.02em;color:var(--ink)}
+.pg-bio{margin:18px 0 0;color:var(--ink);font-size:.95rem;line-height:1.7}
+.pg-sub{margin:24px 0 12px;font:700 .72rem var(--fz);letter-spacing:.14em;text-transform:uppercase;color:var(--g2)}
+.pg-pos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.pg-pos li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:12px 14px;border-radius:var(--r-md,14px);background:var(--cream,var(--bg));border:1px solid var(--hair,var(--line))}
+.pg-pos b{font:700 .92rem var(--fh);color:var(--ink)}
+.pg-pos span{color:var(--ink);font-size:.88rem}
+.pg-pos small{color:var(--mut);font:600 .76rem var(--fz);margin-left:auto}
+
+@media(min-width:560px){
+  .pg-person-h{flex-direction:row;align-items:center}
+  .pg-person{padding:28px}
+  .prnu-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+}
+@media(min-width:900px){
+  .dir-f{flex:0 1 220px}
+  .org-kids{margin-left:20px;padding-left:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .org-h,.prnu-card{transition:none}
 }
