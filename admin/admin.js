@@ -118,6 +118,9 @@ function shell(title, active, body, actions) {
   if (isAdmin()) {
     nav += navSection('Pengaturan situs', Object.keys(SETS).map(function (k) { var a = active === 'set/' + k; return '<a data-nav href="#/set/' + k + '" class="' + (a ? 'on' : '') + '"' + (a ? ' aria-current="page"' : '') + '>' + esc(SETS[k].l) + '</a>'; }).join(''), active.indexOf('set/') === 0);
   }
+  if (window.MWCDIRADM && window.MWCDIRADM.visible()) {
+    nav += navSection('Direktori', window.MWCDIRADM.nav(active), active.indexOf('dir') === 0);
+  }
   if (canMembers()) {
     nav += navSection('Sistem', (canMembersView() ? '<a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '"' + (active === 'members' ? ' aria-current="page"' : '') + '>Anggota &amp; Verifikasi</a>' : '') + (isAdmin() ? '<a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '"' + (active === 'staff' ? ' aria-current="page"' : '') + '>Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '"' + (active === 'log' ? ' aria-current="page"' : '') + '>Riwayat perubahan</a>' : ''), ['members','staff','log'].indexOf(active) >= 0);
   }
@@ -147,11 +150,16 @@ function noAccess() { shell('Tidak ada akses', '', '<div class="panel empty">Per
 function fieldHTML(f, v) {
   var id = 'f' + Math.random().toString(36).slice(2, 8), h = '<div class="fld" data-k="' + f.k + '" data-t="' + f.t + '">', lab = '<label for="' + id + '">' + esc(f.l) + (f.req ? ' *' : '') + '</label>', hint = f.h ? '<small class="h">' + esc(f.h) + '</small>' : '';
   if (f.t === 'bool') return h + '<label class="chk"><input class="in" type="checkbox" ' + (v === false ? '' : 'checked') + '> ' + esc(f.l) + '</label></div>';
-  if (f.t === 'select') { var selOpts = f.o.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('');
+  if (f.t === 'select') {
+    /* Opsi boleh berupa teks atau {v,l} (nilai berbeda dari label), dipakai
+       modul direktori untuk relasi ber-UUID. */
+    var opt = function (o) { return (o && typeof o === 'object') ? { v: String(o.v), l: String(o.l) } : { v: String(o), l: String(o) }; };
+    var opts = f.o.map(opt);
+    var selOpts = opts.map(function (o) { return '<option value="' + esc(o.v) + '"' + (String(v) === o.v ? ' selected' : '') + '>' + esc(o.l) + '</option>'; }).join('');
     /* Nilai tersimpan yang tidak ada di daftar: tampilkan sebagai opsi tambahan
        agar tidak hilang/ditimpa kosong saat formulir disimpan. */
-    if (v && f.o.indexOf(v) < 0) selOpts += '<option selected>' + esc(v) + '</option>';
-    return h + lab + '<select class="in" id="' + id + '"><option value="">Pilih…</option>' + selOpts + '</select>' + hint + '<span class="em"></span></div>'; }
+    if (v && !opts.some(function (o) { return o.v === String(v); })) selOpts += '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>';
+    return h + lab + '<select class="in" id="' + id + '"><option value="">' + esc(f.empty || 'Pilih…') + '</option>' + selOpts + '</select>' + hint + '<span class="em"></span></div>'; }
   if (f.t === 'area' || f.t === 'rich') return h + lab + '<textarea class="in ' + (f.t === 'rich' ? 'rich' : '') + '" id="' + id + '">' + esc(v) + '</textarea>' + hint + '<span class="em"></span></div>';
   if (f.t === 'image') v = safeMediaURL(v);
   if (f.t === 'image') return h + '<span class="lab">' + esc(f.l) + (f.req ? ' *' : '') + '</span><div class="img" data-f="' + (f.f || 'umum') + '" data-png="' + (f.png ? 1 : '') + '" data-max="' + (f.max || 1600) + '"><div class="thumb" style="' + (v ? 'background-image:url(\'' + esc(v) + '\')' : '') + '">' + (v ? '' : 'Belum ada') + '</div><div><label class="btn s g">Pilih gambar<input type="file" accept="image/*" hidden></label> <button type="button" class="btn s o" data-act="imgdel">Hapus</button><input class="in" type="hidden" value="' + esc(v) + '"></div></div>' + hint + '<span class="em"></span></div>';
@@ -430,6 +438,7 @@ function route() {
   var params = new URLSearchParams(qi < 0 ? '' : hash.slice(qi + 1));
   var p = (qi < 0 ? hash : hash.slice(0, qi)).split('/');
   if (!p[0]) return viewHome();
+  if (p[0] === 'dir' && window.MWCDIRADM) return window.MWCDIRADM.route(p[1] || '', p[2] || '');
   if (p[0] === 'set') return viewSet(p[1]);
   if (p[0] === 'staff') return viewStaff();
   if (p[0] === 'members') return viewMembers(params.get('status') || '');
@@ -445,6 +454,14 @@ document.addEventListener('click', function (e) {
 }, true);
 window.addEventListener('beforeunload', function (e) { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
 window.addEventListener('hashchange', route);
+
+/* Jembatan untuk modul admin tambahan (direktori organisasi, FASE 5).
+   Hanya meneruskan fungsi yang sudah ada; tidak mengubah perilaku admin.js. */
+window.MWCADM = {
+  sb: sb, state: S, shell: shell, toast: toast, esc: esc, fd: fd,
+  isAdmin: isAdmin, errMsg: errMsg, roleName: roleName,
+  formHTML: formHTML, readForm: readForm, validate: validate, bindForm: bindForm
+};
 
 async function boot() {
   if (!sb) return setup();

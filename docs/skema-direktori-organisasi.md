@@ -403,3 +403,54 @@ Dua celah desain ditemukan **lewat uji ini** dan sudah diperbaiki sebelum ekseku
 2. Policy tulis `organizational_units` semula menolak pembuatan unit turunan → kini mengizinkan pembuatan unit `prnu_code` null ber-kind selain `mwc`/`prnu` di bawah unit yang dikelolanya, dengan tetap menolak klaim kode PRNU lain (H2–H4).
 
 Idempotensi juga terverifikasi: file dijalankan **dua kali** berturut-turut tanpa error.
+
+---
+
+## 12. Panel Admin Direktori (FASE 5)
+
+Berkas: `admin/direktori.js` (dimuat **sebelum** `admin.js`), disambungkan lewat
+`window.MWCADM` yang dipasang `admin.js` tepat sebelum `boot()`.
+
+| Rute | Isi | Boleh diubah |
+|---|---|---|
+| `#/dir/unit` | Unit organisasi (induk, jenis, kode PRNU, urutan, publik) | Super Admin semua; Pengurus unit rantingnya + turunannya |
+| `#/dir/jabatan` | Jabatan per unit | mengikuti unitnya |
+| `#/dir/profil` | Profil publik direktori (slug, foto, bio, publik) | Super Admin |
+| `#/dir/kepengurusan` | Orang × jabatan × masa khidmat | mengikuti unit jabatannya |
+| `#/dir/masa` | Masa khidmat (satu yang aktif) | Super Admin |
+
+### Batasan hak kolom yang mengikat kode admin
+
+Migrasi bagian 9 hanya memberi `authenticated` hak **kolom publik** pada
+`organizational_units` dan `organizational_profiles`. Konsekuensinya:
+
+- `select('*')` pada kedua tabel → `permission denied`. Semua kueri memakai
+  daftar kolom eksplisit.
+- `.select()` setelah `insert`/`update` (return=representation) juga meminta
+  kolom terlarang. Penulisan karena itu **tidak** memakai `.select()`.
+- `linked_staff_email` **tidak** ditampilkan di panel: kolom itu tidak terbaca
+  oleh `authenticated`. Menampilkannya butuh `grant select (linked_staff_email)`
+  tambahan — belum dilakukan dan perlu persetujuan tersendiri.
+
+### Perilaku yang diuji (Chromium, klien Supabase tiruan)
+
+| # | Uji | Hasil |
+|---|---|---|
+| A | Menu Direktori muncul untuk Super Admin (5 tautan) | ✅ |
+| B | Daftar unit: 19 baris (14 seed + 5 banom), chip status | ✅ |
+| C | Ubah nama unit → tersimpan, kembali ke daftar | ✅ |
+| D | Tambah unit turunan (Lembaga) di bawah MWC | ✅ 20 baris |
+| E | Daftar profil + chip Tampil/Tersembunyi | ✅ |
+| F | Slug otomatis dari nama, gelar dibuang (`ahmad-fauzi`) | ✅ |
+| G | Form kepengurusan: 3 select relasi terisi (profil/jabatan/masa) | ✅ |
+| H | Mengaktifkan masa khidmat lain menonaktifkan yang lama | ✅ |
+| I | Hapus jabatan tak terpakai | ✅ |
+| J | Isian wajib kosong ditolak (2 field ditandai + pesan) | ✅ |
+| K | Tabel belum ada → pesan "jalankan migrasi", bukan layar kosong | ✅ |
+| L | Pengurus: hanya 3 menu (Profil & Masa disembunyikan) | ✅ |
+| M | Pengurus: unit rantingnya bisa diubah, unit lain "Hanya baca" | ✅ |
+| N | Mobile 390×844 tanpa overflow horizontal | ✅ |
+| O | Regresi admin lama: Ringkasan, Berita, form Berita, Pengaturan, Anggota, Riwayat, Pengelola, hash tak dikenal | ✅ 0 error |
+
+Catatan: `select` pada form admin kini menerima opsi `{v,l}` (nilai UUID
+berbeda dari label). Opsi teks biasa tetap bekerja seperti sebelumnya.
