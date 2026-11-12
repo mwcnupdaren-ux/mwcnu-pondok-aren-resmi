@@ -199,7 +199,7 @@
     var rt = rantingList().length || 11;
     var rows = [['Pengurus', p.length], ['Syuriyah', sy], ['Tanfidziyah', tf], ['Ranting NU', rt]];
     el.innerHTML = rows.map(function (x) {
-      return '<div class="sk-stat"><b>' + x[1] + ' &nbsp;' + x[0] + '</b><small>' + x[1] + '</small></div>';
+      return '<div class="sk-stat"><b>' + x[1] + '</b><small>' + x[0] + '</small></div>';
     }).join('');
   }
   /* Ambil alih #tabs/#panel/#sq dari app.js: ganti node panel agar listener

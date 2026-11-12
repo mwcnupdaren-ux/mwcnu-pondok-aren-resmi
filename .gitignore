@@ -28,3 +28,4 @@ dev.log
 # Artefak QA internal (skrip & tangkapan layar) - tidak ikut di-push
 _qa-*
 _qa-*.png
+.audit/

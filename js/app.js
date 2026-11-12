@@ -83,7 +83,7 @@ var el=document.getElementById('skStats');if(!el)return;
 var tot=0;Object.keys(T).forEach(function(k){tot+=T[k].length});
 var rant=(MW.raw('ranting')||[]).length||11;
 var rows=[['Pengurus',tot],['Syuriyah',T['Syuriyah'].length],['Tanfidziyah',T['Tanfidziyah'].length],['Ranting NU',rant]];
-put(el,rows.map(function(x){return '<div class="sk-stat"><b>'+x[1]+' &nbsp;'+x[0]+'</b><small>'+x[1]+'</small></div>'}).join(''))}
+put(el,rows.map(function(x){return '<div class="sk-stat"><b>'+x[1]+'</b><small>'+x[0]+'</small></div>'}).join(''))}
 document.addEventListener('keydown',function(e){
 if(e.key!='/'||e.ctrlKey||e.metaKey||e.altKey)return;
 var t=e.target||{};if(t.tagName&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;if(t.isContentEditable)return;
@@ -173,10 +173,7 @@ fill('kc',KC.map(function(k){
     + '<small class="kloc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>'+esc(k[2])+'</small>'
     + '</div></a>';
 }).join(''));
-fill('cats',[['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1','Profil','Sejarah & Struktur','#sejarah'],['M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4zm19-13H1c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1h22c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1z','Berita','Kabar & Warta NU','#berita'],['M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2 M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z M9 12h6 M9 16h6','Program','Lima program khidmat','#program'],[ICN.phone,'Layanan','Ambulans & UPZ','#ambulans'],['M9 3H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z M19 3h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z M9 13H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2z M19 13h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2z','Banom','Badan Otonom NU','#banom'],['M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z','Galeri','Foto dan Video','#galeri'],[ICN.pin,'Ranting','11 Kelurahan NU','#ranting'],['M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M22 6l-10 7L2 6','Kontak','Sekretariat & medsos','#kontak']].map(function(c){return '<a href="'+c[3]+'"><span class="cc">'+sv(c[0])+'</span><span class="ct"><b>'+c[1]+'</b><small>'+c[2]+'</small></span></a>'}).join(''));
-var _rtN=(MW.raw&&((MW.raw('ranting')||[]).length))||11,_bnN=(MW.raw&&((MW.raw('banom')||[]).length))||4,_med=MW.set('medsos')||{},_yt=(MW.safeSocial?MW.safeSocial(_med.youtube,'youtube'):'')||'https://www.youtube.com/@TVNUPondokAren';
-fill('strow',[[ICN.pin,String(_rtN),'Kelurahan'],[I[4],String(_rtN),'Ranting NU'],[I[2],String(_bnN),'Badan otonom'],[ICN.cal,'2025-2030','Masa khidmat']].map(function(c){return '<div class="stc"><span class="fic">'+sv(c[0])+'</span><span><b>'+c[1]+'</b><small>'+c[2]+'</small></span></div>'}).join('')+'<div class="stc"><small>Tonton kami</small><a class="fic" href="'+_yt+'" target="_blank" rel="noopener" aria-label="YouTube TVNU Pondok Aren">'+sv('M5 3l14 9-14 9z')+'</a></div>');
-function go(h){if(location.hash==h)route();else location.hash=h}
+/* fill(cats) dihapus — seksi #jelajahi tidak lagi ada di beranda (T7) */function go(h){if(location.hash==h)route();else location.hash=h}
 document.getElementById('sb').onclick=function(){var r=document.getElementById('rq').value.trim(),sv=document.getElementById('rs').value;
 if(r){q.value=r;draw();go('#ranting')}else if(sv.indexOf('|')>-1){var pp=sv.split('|');drawG(pp[1]);go(pp[0])}else go(sv)};
 document.getElementById('rq').onkeydown=function(e){if(e.key=='Enter')document.getElementById('sb').click()};
@@ -379,6 +376,10 @@ scrollTo({top:t.getBoundingClientRect().top+scrollY-off,behavior:'smooth'})});
 var SITE_TITLE=document.title;
 function route(){var h=decodeURIComponent(location.hash.slice(1)),m='',anchorTarget=null,bIndex=-1;
 if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/);if(pm)h='banom'+(pm[1]?'/'+pm[1]:'')}
+/* FASE T5: alias rute lama halaman banom statis → halaman direktori dinamis.
+   Hash di URL diubah langsung agar tautan lama tetap berfungsi. */
+var LEGACY_BANOM={'banom-gpansor':'gp-ansor','banom-fatayat':'fatayat-nu','banom-ipnu':'ipnu','banom-ippnu':'ippnu'};
+if(LEGACY_BANOM[h]){location.replace('#banom/'+LEGACY_BANOM[h]);return}
 var bm=h.match(/^\/?banom(?:\/([^\/]+))?\/?$/);
 if(bm){var bslug=bm[1]||'';if(bslug)BANOM.forEach(function(b,i){if(bpSlug(b.name)===bslug)bIndex=i});h=bIndex>=0?'banom-profile':'banom-page'}
 var target=h&&document.getElementById(h),parent=target&&target.closest('.vw');if(parent&&target!==parent){if(parent.hidden){anchorTarget=target;h=parent.id}else{target.scrollIntoView({behavior:'smooth',block:'start'});mark(parent.id);closeDD();return}}
