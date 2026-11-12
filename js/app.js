@@ -584,7 +584,7 @@ function profFetch(){var C=authCfg(),s=sesGet();if(!C.url||!C.key||!s||!s.user||
    dengan sesi milik pengguna (RLS membatasi ke barisnya sendiri). */
 if(!s.access_token)return Promise.resolve(profGet());
 return fetch(C.url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(s.user.id)+'&select=*',{headers:{apikey:C.key,Authorization:'Bearer '+s.access_token}}).then(function(r){return r.ok?r.json():[]}).then(function(a){var p=a&&a[0];if(p){var l=profGet()||{};var m={nama:p.nama||l.nama||'',hp:p.hp||l.hp||'',email:p.email||s.user.email||'',nia:p.nia||'',status:p.status||'pending',issued_at:p.issued_at||null,signers:p.signers||null,wadah:p.wadah||'',tingkat:p.tingkat||'',ranting:p.ranting||'',alamat:p.alamat||'',tempat_lahir:p.tempat_lahir||'',tanggal_lahir:p.tanggal_lahir||'',jk:p.jk||'',pekerjaan:p.pekerjaan||''};try{localStorage.setItem('mwc_profile_'+profKey(),JSON.stringify(m))}catch(e){}return m}return profGet()}).catch(function(){return profGet()})}
-function authMsg(t,bad){var m=$('kAuthMsg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
+function authMsg(t,bad,ok){var m=$('kAuthMsg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':(ok?'#1F7A4D':'')}}
 function applyProf(){var p=profGet();if(!p)return;function set(id,v){var e=$(id);if(e&&v&&!e.value)e.value=v}set('k-nama',p.nama);set('k-hp',p.hp);set('k-wadah',p.wadah);set('k-tingkat',p.tingkat);set('k-alamat',p.alamat);set('k-tmp',p.tempat_lahir);set('k-tgl',p.tanggal_lahir);set('k-jk',p.jk);set('k-kerja',p.pekerjaan);try{if(p.tingkat)$('k-tingkat').dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}set('k-rt',p.ranting)}
 function toggleAuth(){var s=sesGet(),ok=!!(s&&s.user),p=profGet();
 /* Tautan menu Profil hanya untuk sesi server; sesi lokal/offline diarahkan ke laman Daftar. */
@@ -603,11 +603,11 @@ if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return authMsg('Mohon isi email yang v
 if(pw.length<6)return authMsg('Kata sandi minimal 6 karakter.',1);
 if(isUp){if(!nm)return authMsg('Mohon isi nama lengkap untuk membuat profil.',1);if(hp.replace(/\D/g,'').length<9)return authMsg('Mohon isi nomor HP yang valid.',1)}
 authMsg('Memproses…');$('kAuthBtn').disabled=true;
-sbAuth(isUp?'signup':'token?grant_type=password',isUp?{email:em,password:pw,options:{data:{name:nm}}}:{email:em,password:pw}).then(function(j){
+sbAuth(isUp?'signup':'token?grant_type=password',isUp?{email:em,password:pw,options:{data:{name:nm},email_redirect_to:location.origin+'/'}}:{email:em,password:pw}).then(function(j){
   $('kAuthBtn').disabled=false;
-  if(j&&!j.user&&!j.access_token&&!j.session){authMsg('Akun perlu konfirmasi. Periksa email Anda, lalu masuk.',1);return}
+  if(j&&!j.user&&!j.access_token&&!j.session){authMsg('Pendaftaran berhasil. Kami mengirim tautan konfirmasi ke email Anda — cek juga folder Spam/Promotions. Setelah email dikonfirmasi, masuk kembali di tab Masuk.',0,1);return}
   var u=(j&&j.user)||(j&&j.session&&j.session.user);if(!u){authMsg('Server tidak mengembalikan sesi. Coba lagi.',1);return}
-  if(!u.email_confirmed_at){authMsg('Email belum dikonfirmasi. Buka tautan konfirmasi di kotak masuk Anda, lalu masuk kembali.',1);return}
+  if(!u.email_confirmed_at){authMsg('Email Anda belum dikonfirmasi. Buka tautan konfirmasi di email (cek juga folder Spam/Promotions), lalu masuk kembali.');return}
   finishLogin(u,(j.access_token||(j.session&&j.session.access_token)),{nama:nm,hp:hp},(j.refresh_token||(j.session&&j.session.refresh_token)||''));authMsg('Berhasil masuk.')
 }).catch(function(err){$('kAuthBtn').disabled=false;
   var m=String(err||'');
@@ -622,10 +622,34 @@ $('kForgot').addEventListener('click',function(){var C=authCfg(),em=v('a-email')
   if(!C.url){authMsg('Layanan akun belum tersedia — hubungi sekretariat.',1);return}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){authMsg('Isi email Anda di kolom Email, lalu klik lagi tombol ini.',1);return}
   authMsg('Mengirim tautan reset…');
-  fetch(C.url+'/auth/v1/recover',{method:'POST',headers:{apikey:C.key,'Content-Type':'application/json'},body:JSON.stringify({email:em})})
+  fetch(C.url+'/auth/v1/recover',{method:'POST',headers:{apikey:C.key,'Content-Type':'application/json'},body:JSON.stringify({email:em,redirect_to:location.origin+'/'})})
   .then(function(r){authMsg('Jika email terdaftar, tautan reset sudah dikirim. Periksa kotak masuk (dan folder spam).')})
   .catch(function(){authMsg('Gagal mengirim. Periksa koneksi lalu coba lagi.',1)})
 });
+/* Tautan konfirmasi/reset dari email mendarat di beranda dengan
+   #access_token=... (Supabase tidak mengizinkan fragment di Redirect URL).
+   Sesi dibuat langsung agar warga tidak perlu mengetik ulang kata sandi,
+   lalu diarahkan ke halaman Kartu Anggota. */
+(function confirmFragment(){
+  var h=(location.hash||'').replace(/^#/,'');
+  if(!h||h.indexOf('access_token=')<0)return;
+  var C=authCfg();if(!C.url||!C.key)return;
+  var q={};h.split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0)q[kv.slice(0,i)]=kv.slice(i+1)});
+  var tok=q.access_token,rt=q.refresh_token||'';
+  if(!tok)return;
+  history.replaceState(null,'',location.pathname+location.search);
+  fetch(C.url+'/auth/v1/user',{headers:{apikey:C.key,Authorization:'Bearer '+tok}})
+  .then(function(r){return r.json().then(function(j){if(!r.ok)throw sbErr(j);return j})})
+  .then(function(u){
+    finishLogin(u,tok,{nama:(u.user_metadata&&u.user_metadata.name)||''},rt);
+    location.hash='#daftar';
+    authMsg('Berhasil masuk. Email Anda telah dikonfirmasi — silakan lanjut mengisi Kartu Anggota.',0,1)
+  })
+  .catch(function(){
+    location.hash='#daftar';
+    authMsg('Tautan konfirmasi kedaluwarsa atau tidak valid. Silakan masuk dengan email dan kata sandi Anda.')
+  })
+})();
 function v(id){return($(id).value||'').trim()}
 function fmt(d){return d.getDate()+' '+BL[d.getMonth()]+' '+d.getFullYear()}
 function fmtIso(s){var a=String(s).split('-');return a.length==3&&a[0]?parseInt(a[2],10)+' '+BL[parseInt(a[1],10)-1]+' '+a[0]:''}
