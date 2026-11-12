@@ -12,6 +12,7 @@
   var esc = function (s) { return window.mwcEsc(s); };
   var D = { rows: null, units: null, ok: false, busy: false, tried: false };
   var F = { tab: '', q: '', jab: '', unit: '', rt: '' };
+  var WA = '6285161033689'; /* sekretariat MWCNU Pondok Aren */
 
   /* ---------- util ---------- */
   function get(path) {
@@ -290,6 +291,9 @@
   }
 
   /* ---------- direktori ranting ---------- */
+  function waHref(text) {
+    return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(text);
+  }
   function renderRanting() {
     var box = document.getElementById('dir-ranting');
     if (!box) return;
@@ -302,10 +306,16 @@
     list.forEach(function (u) {
       var n = memberCount(u.code);
       var nama = u.name.replace(/^PRNU\s+/, '');
-      h += '<button type="button" class="prnu-card" data-prnu="' + esc(u.prnu_code) + '">'
-        + '<span class="prnu-code">' + esc(u.prnu_code) + '</span>'
+      var ketua = (D.rows || []).filter(function (r) {
+        return r.unit_code === u.code && r.position_name === 'Ketua';
+      })[0];
+      var sub = n
+        ? (ketua ? ketua.full_name.replace(/^Ust\.\s+/i, '') + ' · Ketua' : n + ' pengurus')
+        : 'Pengurus belum dimasukkan';
+      h += '<button type="button" class="prnu-card" data-prnu="' + esc(u.prnu_code || u.code) + '">'
+        + '<span class="prnu-code">' + esc(u.prnu_code || '—') + '</span>'
         + '<b>' + esc(nama) + '</b>'
-        + '<small>' + (n ? n + ' pengurus' : 'Pengurus belum dimasukkan') + '</small>'
+        + '<small>' + esc(sub) + '</small>'
         + '<i aria-hidden="true">&rarr;</i></button>';
     });
     h += '</div>';
@@ -319,7 +329,67 @@
       box.addEventListener('click', function (e) {
         var b = e.target.closest('[data-prnu]');
         if (!b) return;
-        F.rt = b.getAttribute('data-prnu'); F.tab = ''; F.q = ''; F.jab = '';
+        location.hash = '#ranting/' + b.getAttribute('data-prnu');
+      });
+    }
+  }
+
+  /* ---------- detail ranting (#ranting/<kode>) ---------- */
+  function renderRantingDetail(key) {
+    var box = document.getElementById('dir-ranting-detail');
+    if (!box) return;
+    if (!D.ok) {
+      box.innerHTML = '<div class="empty-sk"><b>Direktori belum tersedia</b><p>Data unit organisasi belum dapat dimuat. Silakan coba lagi atau hubungi sekretariat.</p><a class="btn o2" href="#ranting">Buka direktori ranting</a></div>';
+      return;
+    }
+    var u = (D.units || []).filter(function (x) { return x.prnu_code === key || x.code === key; })[0];
+    if (!u) {
+      box.innerHTML = '<div class="empty-sk"><b>Ranting tidak ditemukan</b><p>Kode ranting tidak dikenal. Kembali ke direktori untuk memilih PRNU.</p><a class="btn o2" href="#ranting">Buka direktori ranting</a></div>';
+      return;
+    }
+    var seen = {}, list = [];
+    (D.rows || []).filter(function (r) { return r.unit_code === u.code; })
+      .sort(function (a, b) {
+        return (a.position_rank - b.position_rank) || String(a.full_name).localeCompare(String(b.full_name));
+      })
+      .forEach(function (r) { if (!seen[r.slug]) { seen[r.slug] = 1; list.push(r); } });
+
+    var nama = u.name.replace(/^PRNU\s+/, '');
+    var h = '<div class="pg-person"><div class="pg-person-h">'
+      + '<span class="prnu-code lg" aria-hidden="true">' + esc(u.prnu_code || '—') + '</span>'
+      + '<div><span class="pd-kick">PRNU · Kecamatan Pondok Aren</span><h1>PRNU ' + esc(nama) + '</h1>'
+      + '<p class="pd-role">Pengurus Ranting Nahdlatul Ulama</p></div></div>'
+      + '<div class="prnu-facts">'
+      + '<div><b>' + esc(u.prnu_code || '—') + '</b><small>Kode PRNU</small></div>'
+      + '<div><b>' + list.length + '</b><small>Pengurus terdata</small></div>'
+      + '<div><b>' + esc(terms() || '—') + '</b><small>Masa khidmat</small></div>'
+      + '</div>';
+
+    if (list.length) {
+      h += '<h2 class="pg-sub">Pengurus</h2><ul class="pg-pos prnu-people">';
+      list.forEach(function (r) {
+        h += '<li><a href="#pengurus/' + esc(r.slug) + '"><b>' + esc(r.full_name) + '</b></a>'
+          + '<span>' + esc(r.position_name) + '</span>'
+          + '<small>' + esc(r.term_label || '') + (r.is_current ? ' · aktif' : '') + '</small></li>';
+      });
+      h += '</ul>';
+    } else {
+      h += '<div class="empty-sk prnu-empty"><b>Pengurus belum dimasukkan</b><p>Data pengurus PRNU ini belum dihimpun. Sekretariat sedang melengkapi data dari pengurus ranting.</p></div>';
+    }
+
+    var wa = waHref("Assalamu'alaikum, saya ingin melengkapi data pengurus PRNU " + nama
+      + " (kode " + (u.prnu_code || '-') + ").");
+    h += '<div class="pd-act"><a class="btn" href="' + esc(wa) + '" target="_blank" rel="noopener">Lengkapi data lewat WhatsApp</a>'
+      + '<button type="button" class="btn o2" data-rt-jump="' + esc(u.prnu_code || '') + '">Lihat di direktori pengurus</button></div>'
+      + '<p class="pd-note">Data direktori MWCNU Pondok Aren. Perubahan data dilakukan oleh pengurus melalui sekretariat.</p>';
+    box.innerHTML = h;
+    try { document.title = 'PRNU ' + nama + ' — Direktori MWCNU Pondok Aren'; } catch (e) {}
+    if (!box._dirBound) {
+      box._dirBound = 1;
+      box.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-rt-jump]');
+        if (!b) return;
+        F.rt = b.getAttribute('data-rt-jump'); F.tab = ''; F.q = ''; F.jab = '';
         location.hash = '#struktur';
         setTimeout(function () { renderTabs(); renderFilters(); renderPanel(); }, 60);
       });
@@ -366,6 +436,7 @@
        supaya tidak pernah muncul halaman kosong. */
     if (view === 'pengurus') { renderDetail(slug); return; }
     if (view === 'struktur-organisasi') { renderStructure(); return; }
+    if (view === 'ranting-detail') { renderRantingDetail(slug); return; }
     if (view === 'ranting') { renderRanting(); return; }
     if (!D.ok) return;
     if (view === 'struktur') { renderTabs(); renderFilters(); renderPanel(); renderStats(); }
@@ -377,7 +448,8 @@
       else if (window.console) console.info('[direktori] data DB belum tersedia, memakai daftar bawaan.');
       var h = (location.hash || '').replace(/^#/, '');
       var m = h.match(/^pengurus\/([a-z0-9-]+)$/);
-      route(m ? 'pengurus' : h.split('/')[0], m ? m[1] : '');
+      var rm = h.match(/^ranting\/([a-z0-9-]+)$/);
+      route(m ? 'pengurus' : rm ? 'ranting-detail' : h.split('/')[0], m ? m[1] : rm ? rm[1] : '');
     });
   }
 

@@ -454,3 +454,57 @@ Migrasi bagian 9 hanya memberi `authenticated` hak **kolom publik** pada
 
 Catatan: `select` pada form admin kini menerima opsi `{v,l}` (nilai UUID
 berbeda dari label). Opsi teks biasa tetap bekerja seperti sebelumnya.
+
+---
+
+## 13. FASE 3 — Direktori Ranting (11 PRNU)
+
+### Data
+
+`supabase/seed-direktori-ranting.sql` memindahkan **data yang sudah tayang**
+di halaman `#ranting` (konten CMS `ranting`) ke tabel direktori:
+
+- 11 jabatan `Ketua` (rank 1) — satu per unit PRNU.
+- 11 profil publik. Dua profil **dipakai ulang** karena namanya sama persis
+  dengan pengurus MWC: `nasuha-i` (PRNU 07) dan `aprianif` (PRNU 08).
+  Keduanya kini tampil dengan dua jabatan (MWC + ranting).
+- 11 kepengurusan pada masa khidmat `2025–2030`.
+
+Tidak ada jabatan lain yang di-seed karena belum ada data resminya. Wakil
+Ketua, Sekretaris, Bendahara, dan seterusnya diisi lewat panel admin setelah
+sekretariat menerima data dari pengurus ranting.
+
+`Ust. Zakariaa` (PRNU 01) tidak digabung otomatis dengan `Zakaria Muslim,
+S.Pd.I.` (Wakil Katib Syuriyah) karena nama tertulis berbeda. Bila terbukti
+orang yang sama, gabungkan lewat panel admin.
+
+### Halaman publik
+
+| Rute | Isi |
+|---|---|
+| `#ranting` | 11 kartu PRNU; subjudul menampilkan nama ketua bila sudah ada |
+| `#ranting/<kode>` | Detail PRNU: kode, jumlah pengurus, masa khidmat, daftar pengurus (tautan ke `#pengurus/<slug>`), CTA WhatsApp untuk melengkapi data, dan tautan ke direktori pengurus dengan filter ranting |
+
+Kartu PRNU sekarang membuka halaman detail (sebelumnya langsung memfilter
+`#struktur`). Filter ranting di `#struktur` otomatis muncul setelah data
+kepengurusan PRNU tersedia.
+
+### Perbaikan regresi
+
+Tautan "Kembali" ganda pada `#struktur-organisasi`, `#pengurus`, dan
+`#ranting` dihapus dengan memasukkan keempat halaman tersebut (termasuk
+`#ranting-detail`) ke `VWnoback` di `js/app.js`, sehingga app.js tidak lagi
+menyuntikkan tautan kembali tambahan di atas tautan yang sudah ada di
+`index.html`.
+
+### Uji
+
+- `#ranting` → 11 kartu, subjudul ketua benar (setelah seed).
+- `#ranting/08` → detail PRNU Pondok Kacang Barat, 1 pengurus, tautan
+  `#pengurus/aprianif` menampilkan 2 jabatan.
+- `#ranting/99` → pesan "Ranting tidak ditemukan".
+- `#ranting` sebelum seed → kartu "Pengurus belum dimasukkan" dan halaman
+  detail menampilkan CTA WhatsApp (bukan halaman kosong).
+- Mobile 390×844 → tanpa overflow; `.prnu-facts` menjadi satu kolom.
+- `#struktur` → filter ranting muncul; 11 tab PRNU masing-masing 1 orang.
+

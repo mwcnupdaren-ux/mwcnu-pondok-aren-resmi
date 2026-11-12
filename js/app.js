@@ -181,8 +181,8 @@ document.getElementById('sb').onclick=function(){var r=document.getElementById('
 if(r){q.value=r;draw();go('#ranting')}else if(sv.indexOf('|')>-1){var pp=sv.split('|');drawG(pp[1]);go(pp[0])}else go(sv)};
 document.getElementById('rq').onkeydown=function(e){if(e.key=='Enter')document.getElementById('sb').click()};
 document.getElementById('nb').onclick=function(){var t=document.getElementById('nm').value.trim();window.open('https://wa.me/6285161033689'+(t?'?text='+encodeURIComponent(t):''),'_blank','noopener')};
-var VW=['program','banom-page','banom-profile','struktur','struktur-organisasi','pengurus','agenda','berita','baca','galeri','ranting','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
-var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','banom-profile','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
+var VW=['program','banom-page','banom-profile','struktur','struktur-organisasi','pengurus','ranting','ranting-detail','agenda','berita','baca','galeri','sejarah','visi','layanan','majelis','konsultasi','kontak','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
+var VWnoback=['sejarah','visi','layanan','majelis','konsultasi','kontak','banom-page','banom-profile','ambulans','zis','daftar','profil','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu','struktur-organisasi','pengurus','ranting','ranting-detail'];VW.forEach(function(id){if(id=='baca'||VWnoback.indexOf(id)>=0)return;document.getElementById(id).insertAdjacentHTML('afterbegin','<div class="wrap vb"><a class="back" href="#top">&larr; Kembali ke beranda</a></div>')});
 [].forEach.call(document.querySelectorAll('.sl'),function(e,i){e.style.backgroundImage='url('+PH[HS[i%HS.length]]+')'});
 var LSV=MW.md('layanan',function(x){return x.tampil===false?null:{title:x.judul,desc:x.deskripsi||'',icon:ICONS[x.ikon]||ICONS.info,link:x.tautan||'#layanan'}},[
 {title:'Ambulans 24/7',desc:'Layanan ambulans gratis untuk warga NU Pondok Aren',icon:'<path d="M10 10H6"/><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14"/><path d="M8 8v4"/><path d="M9 18h6"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',link:'#ambulans'},
@@ -386,17 +386,18 @@ if(h=='kontak'){var contact=document.getElementById('kontak');if(contact){var ft
 if(h=='video'){h='galeri';m='Video'}else if(h=='galeri')m='Foto';
 var mm=h.match(/^berita\/(\d+)$/);if(mm)h='baca';
 var dm=h.match(/^pengurus\/([a-z0-9-]+)$/);if(dm)h='pengurus';
+var rm=h.match(/^ranting\/([a-z0-9-]+)$/);if(rm)h='ranting-detail';
 var v=VW.indexOf(h)>=0?h:'';
 var footer=document.getElementById('site-footer');if(footer)footer.hidden=false;
 VW.forEach(function(id){document.getElementById(id).hidden=id!=v});
 [].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=!!v});document.body.classList.toggle('inview',!!v);
-if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':((v=='banom-page'||v=='banom-profile')?'banom':((v=='struktur-organisasi'||v=='pengurus')?'struktur':(v||'top'))));closeDD();
+if(m)setG(m);if(mm)renderArticle(+mm[1]);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':((v=='banom-page'||v=='banom-profile')?'banom':((v=='struktur-organisasi'||v=='pengurus')?'struktur':(v=='ranting-detail'?'ranting':(v||'top')))));closeDD();
 if(v=='banom-profile')bpRender(bIndex);
 if(v=='sejarah')pgRenderSejarah();
 if(v=='visi')pgRenderVisi();
 if(v=='struktur')skStats();
-if(window.MWCDIR)window.MWCDIR.route(v,dm?dm[1]:'');
-if(v!='baca'&&v!='banom-profile'&&v!='pengurus'&&document.title!==SITE_TITLE){try{document.title=SITE_TITLE}catch(e){}}}
+if(window.MWCDIR)window.MWCDIR.route(v,dm?dm[1]:rm?rm[1]:'');
+if(v!='baca'&&v!='banom-profile'&&v!='pengurus'&&v!='ranting-detail'&&document.title!==SITE_TITLE){try{document.title=SITE_TITLE}catch(e){}}}
 addEventListener('hashchange',route);route();
 // Dialog, berita, galeri
 var dlg=document.getElementById('dlg'),db=document.getElementById('dlgBody');

@@ -6692,3 +6692,20 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
 .kt-lock{margin:12px 0 0;padding:12px 14px;border-radius:var(--r-md,14px);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--ink);font-size:.84rem;line-height:1.6}
 .kt-lock[hidden]{display:none}
 .kt-lock b{color:var(--ink)}
+
+/* ---------- Detail ranting (FASE 3) ---------- */
+/* main h2 memakai !important (baris 4246) sehingga .pg-sub ikut besar;
+   aturan ini mengembalikan ukuran label kecil untuk kedua halaman detail. */
+main .pg-sub{font:700 .72rem var(--fz)!important;letter-spacing:.14em!important;text-transform:uppercase!important;color:var(--g2)!important;line-height:1.4!important;margin:24px 0 12px!important}
+.prnu-code.lg{width:64px;height:64px;border-radius:18px;font-size:1.15rem;flex:0 0 auto}
+.prnu-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 0}
+.prnu-facts>div{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:var(--r-md,14px);background:var(--cream,var(--bg));border:1px solid var(--hair,var(--line))}
+.prnu-facts b{font:700 1rem/1.2 var(--fh);color:var(--ink)}
+.prnu-facts small{color:var(--mut);font:600 .7rem var(--fz)}
+.prnu-people a{text-decoration:none;color:inherit}
+.prnu-people a:hover b,.prnu-people a:focus-visible b{text-decoration:underline}
+.prnu-empty{margin-top:18px}
+@media(max-width:420px){
+  .prnu-facts{grid-template-columns:1fr}
+  .prnu-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
