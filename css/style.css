@@ -6687,3 +6687,8 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
 @media(prefers-reduced-motion:reduce){
   .org-h,.prnu-card{transition:none}
 }
+
+/* KTA terkunci sampai terverifikasi (FASE 4) */
+.kt-lock{margin:12px 0 0;padding:12px 14px;border-radius:var(--r-md,14px);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--ink);font-size:.84rem;line-height:1.6}
+.kt-lock[hidden]{display:none}
+.kt-lock b{color:var(--ink)}
