@@ -6,10 +6,10 @@ var C = window.MWC_CFG || {};
 var sb = window.__SB__ || ((window.supabase && C.supabaseUrl && C.supabaseKey) ? window.supabase.createClient(C.supabaseUrl, C.supabaseKey) : null);
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
-function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var esc = window.mwcEsc;
 var BL = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 function fd(iso) { var p = String(iso || '').split('-'); return p.length == 3 && +p[0] ? (+p[2]) + ' ' + BL[+p[1] - 1] + ' ' + p[0] : (iso || ''); }
-var RT = ['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
+var RT = window.MWC_RT;
 var TOPIK = ['Ibadah','Akidah','Akhlak & tasawuf','Muamalah','Keluarga','Waris & wasiat','Amaliyah NU','Lainnya'];
 var HARI = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad','Beberapa hari dalam sepekan'];
 var BIDANG = ['Kepemudaan','Perempuan','Pelajar','Seni Bela Diri','Sosial & Dakwah','Lainnya'];

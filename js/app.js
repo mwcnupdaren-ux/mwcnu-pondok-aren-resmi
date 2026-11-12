@@ -2,7 +2,7 @@
 (function(){
 var PH=["/assets/img/img-a40aafe9.webp","/assets/img/img-897feccb.webp","/assets/img/img-6e2f9266.webp","/assets/img/img-da3baea3.webp","/assets/img/img-1a2f09f7.webp","/assets/img/img-5d1ae212.webp","/assets/img/img-6d655717.webp","/assets/img/img-ffb9a380.webp"];
 var MW=window.MWC||{md:function(t,f,d){return d},set:function(){return null},grp:function(d){return d},tok:function(s){return s},raw:function(){return[]}};
-function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+function esc(s){return window.mwcEsc(s)}
 function safeURL(s){s=String(s||'').trim();if(s.charAt(0)=='#'||(s.charAt(0)=='/'&&s.charAt(1)!='/'))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'||u.protocol=='http:'||u.protocol=='mailto:'||u.protocol=='tel:')return u.href}catch(e){}return '#'}
 function imgURL(s){s=String(s||'').trim();if(/^\/(?!\/)[^\\"'<>]*$/.test(s))return s;try{var u=new URL(s,location.href);if(u.protocol=='https:'&&u.origin!==location.origin)return u.href}catch(e){}return ''}
 function cleanHTML(html){var t=document.createElement('template'),tags='A ARTICLE B BR BUTTON CIRCLE DD DIV DL DT EM FIGCAPTION FIGURE H1 H2 H3 H4 IFRAME IMG LI MARK OL OPTION P PATH POLYGON POLYLINE RECT SMALL SPAN STRONG SVG TABLE TBODY TD TH THEAD TR UL'.split(' '),attrs='class id role aria-label aria-hidden aria-live aria-selected href src alt title target rel allowfullscreen viewbox d points cx cy r x y width height fill stroke-width stroke-linecap stroke-linejoin stroke-dasharray preserveaspectratio loading referrerpolicy style' .split(' ');t.innerHTML=String(html||'');[].forEach.call(t.content.querySelectorAll('*'),function(e){var tag=e.tagName.toUpperCase();if(tags.indexOf(tag)<0){e.replaceWith(document.createTextNode(e.textContent||''));return}if(tag=='IFRAME'&&!/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(e.getAttribute('src')||'')){e.remove();return}if(tag=='SVG'&&e.querySelector('script,foreignObject')){e.remove();return}/* Snapshot statis: e.attributes itu live — menghapus atribut saat iterasi menyusutkan koleksi dan forEach melompati atribut berikutnya (onerror bisa lolos). */[].forEach.call([].slice.call(e.attributes),function(a){var n=a.name.toLowerCase(),v=a.value.trim();if(attrs.indexOf(n)<0&& !/^data-[a-z0-9_-]+$/i.test(n)){e.removeAttribute(a.name);return}if(n.slice(0,2)=='on'||n=='srcdoc'||n=='formaction'){e.removeAttribute(a.name);return}if(n=='href'||n=='src'){var ok=n=='href'?/^(#|https?:\/|mailto:|tel:)/i.test(v):/^(https?:\/|\/[^/])/i.test(v);if(tag=='IFRAME')ok=n=='src'&&/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}(?:[?#].*)?$/.test(v);if(ok&&n=='href')try{var u=new URL(v,location.href);ok=/^(https?:|mailto:|tel:)$/.test(u.protocol)||v.charAt(0)=='#'}catch(ex){ok=false}if(!ok)e.removeAttribute(a.name)}if(n=='style'&&/(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:|@import|[<>])/i.test(v))e.removeAttribute(a.name)});if(tag=='A'&&e.getAttribute('target')=='_blank')e.setAttribute('rel','noopener noreferrer')});return t.innerHTML}
@@ -548,7 +548,7 @@ var W=1011,H=638;
 var MWK=window.MWC||{set:function(){return null},tok:function(s){return s}};var CFG={domain:'https://mwcnupondokaren.or.id',pejabat:(MWK.set('kartu')&&MWK.set('kartu').pejabat)||[{j:'Rois Syuriyah',n:'K.H. Mohommad Toha, S.Ag',ttd:''},{j:'Ketua Tanfidziyah',n:'H. Fathur Rahman',ttd:''}],wa:'6285161033689',
 alamat:(MWK.set('kontak')&&MWK.set('kontak').alamat)||'Jl. Garuda Raya No. 107A, Jurangmangu Timur, Kec. Pondok Aren, Kota Tangerang Selatan',kontak:MWK.tok('WA 0851-6103-3689  |  mwcnu.pdaren@gmail.com'),web:'mwcnupondokaren.or.id'};
 var LW='/assets/img/img-592fc43a.png';
-var RT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
+var RT=window.MWC_RT;
 var BL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 var HF='"Plus Jakarta Sans",system-ui,sans-serif',BF='"Inter",system-ui,sans-serif';
 var S={photo:null,rand:null,imgs:null};
@@ -625,7 +625,7 @@ $('kForgot').addEventListener('click',function(){var C=authCfg(),em=v('a-email')
 function v(id){return($(id).value||'').trim()}
 function fmt(d){return d.getDate()+' '+BL[d.getMonth()]+' '+d.getFullYear()}
 function fmtIso(s){var a=String(s).split('-');return a.length==3&&a[0]?parseInt(a[2],10)+' '+BL[parseInt(a[1],10)-1]+' '+a[0]:''}
-function cd(s){var d=s.replace(/\D/g,''),t=0;for(var i=0;i<d.length;i++)t+=(+d[d.length-1-i])*(i%2?3:1);return(10-t%10)%10}
+function cd(s){return window.MWC_NIA_CD(s)}
 function lvl(){return v('k-tingkat')}
 /* NIA diterbitkan server (issue_nia di supabase-profiles.sql) setelah pengurus
    memverifikasi. Klien hanya membaca — tidak pernah membuat atau mengubahnya. */
@@ -742,11 +742,11 @@ window.addEventListener('load',function(){toggleAuth();profFetch().then(function
    kebijakan yang sama ditegakkan RLS di supabase-profiles.sql. */
 (function(){
 var PR=document.getElementById('profil');if(!PR)return;
-var PRT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
+var PRT=window.MWC_RT;
 var PROLES={super_admin:'Admin MWC',pengurus:'Pengurus ranting',jurnalis:'Jurnalis',ustadz:'Ustadz'};
 var PBL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 /* esc lokal: modul ini berada di IIFE modul KTA — esc milik IIFE utama tidak terlihat dari sini. */
-function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var esc=window.mwcEsc;
 function pmsg(t,bad){var m=$('pr-msg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
 function pwmsg(t,bad){var m=$('pr-pw-msg');if(m){m.textContent=t;m.style.color=bad?'#D9534F':''}}
 function ptgl(iso){if(!iso)return '—';var a=String(iso).slice(0,10).split('-');return a.length==3&&a[0]?(+a[2])+' '+PBL[(+a[1])-1]+' '+a[0]:String(iso)}
@@ -873,7 +873,7 @@ var put=(window.MWCUI&&window.MWCUI.put)||function(el,html){if(el)el.innerHTML=h
 var QA=window.MWC_QA||[];
 /* Isi QA dengan data nyata, contoh: {k:'Ibadah',q:'Pertanyaan ...',a:'Jawaban ...'} */
 var C=[['Ibadah','Shalat, puasa, zakat, haji'],['Akidah','Keyakinan dan keimanan'],['Akhlak & tasawuf','Adab dan pembinaan diri'],['Muamalah','Jual beli dan ekonomi syariah'],['Keluarga','Pernikahan dan rumah tangga'],['Waris & wasiat','Pembagian harta peninggalan'],['Amaliyah NU','Tahlil, maulid, ziarah, qunut'],['Lainnya','Pertanyaan di luar topik lain']];
-function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var esc=window.mwcEsc;
 put($('ka-cats'),C.map(function(c,i){return '<button type="button" class="mt-f" data-i="'+i+'"><b>'+esc(c[0])+'</b><small>'+esc(c[1])+'</small></button>'}).join(''));
 [].forEach.call($('ka-cats').querySelectorAll('button'),function(b,i){b.setAttribute('data-i',i);b.setAttribute('aria-controls','ka-kat');b.setAttribute('aria-label','Pilih topik '+C[i][0])});
 $('ka-kat').textContent='';$('ka-fk').textContent='';[['ka-kat','Pilih topik'],['ka-fk','Semua topik']].forEach(function(x){var o=document.createElement('option');o.value='';o.textContent=x[1];$(x[0]).appendChild(o);C.forEach(function(c){var q=document.createElement('option');q.textContent=c[0];$(x[0]).appendChild(q)})});
@@ -898,9 +898,9 @@ var $=function(i){return document.getElementById(i)};if(!$('majelis'))return;
 var put=(window.MWCUI&&window.MWCUI.put)||function(el,html){if(el)el.innerHTML=html};
 var MT=window.MWC_MT||[];
 /* Isi MT dengan data nyata, contoh: {nama:'Majelis Taklim ...',asuh:'Ust. ...',hari:'Kamis',jam:'19.30',tempat:'...',ranting:'Pondok Karya',hp:'628...'} */
-var RT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
+var RT=window.MWC_RT;
 var fr=$('mt-ranting');fr.textContent='';var all=document.createElement('option');all.value='';all.textContent='Semua ranting';fr.appendChild(all);RT.forEach(function(r){var o=document.createElement('option');o.textContent=r;fr.appendChild(o)});
-function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var esc=window.mwcEsc;
 function card(m){var jd=[m.hari,m.jam].filter(Boolean).join(' · '),hp=String(m.hp||'').replace(/\D/g,'');if(hp.charAt(0)=='0')hp='62'+hp.slice(1);if(!/^62\d{8,13}$/.test(hp))hp='';return '<div class="mt-c"><b>'+esc(m.nama)+'</b>'+(m.asuh?'<p>Pengasuh: '+esc(m.asuh)+'</p>':'')+(jd?'<p>'+esc(jd)+'</p>':'')+(m.tempat?'<p>'+esc(m.tempat)+'</p>':'')+(m.ranting?'<p>Ranting '+esc(m.ranting)+'</p>':'')+(hp?'<a class="loc-btn" href="https://wa.me/'+hp+'" target="_blank" rel="noopener">Hubungi</a>':'')+'</div>'}
 function draw(){var r=fr.value,q=$('mt-q').value.trim().toLowerCase(),L=MT.filter(function(m){return(!r||m.ranting==r)&&(!q||(m.nama+' '+(m.asuh||'')+' '+(m.tempat||'')).toLowerCase().indexOf(q)>-1)});
 put($('mt-list'),L.length?L.map(card).join(''):'<div class="mt-e"><span>'+(MT.length?'Tidak ada majelis yang cocok dengan pencarian Anda.':'Data majelis taklim sedang dihimpun. Pengasuh dan pengurus ranting dapat mendaftarkan majelisnya melalui formulir di bawah.')+'</span><button type="button" class="loc-btn" data-go="mt-daftar">Daftarkan majelis</button></div>');$('mt-n').textContent=MT.length?L.length+' majelis':''}
@@ -924,7 +924,7 @@ if(!$('zk-calc'))return;
 function put(el,html){if(el)el.innerHTML=(window.MWCUI&&window.MWCUI.cleanHTML?window.MWCUI.cleanHTML(html):html)}
 function imgURL(s){s=String(s||'').trim();if(/^\/(?!\/)[^\\"'<>]*$/.test(s))return s;try{var u=new URL(s,location.href);if(u.protocol==='https:'&&u.origin!==location.origin)return u.href}catch(e){}return ''}
 var PAY=window.MWC_PAY||{banks:[],qris:''};
-function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var esc=window.mwcEsc;
 function dig(v){return parseInt(String(v).replace(/\D/g,''),10)||0}
 function dot(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
 function rp(n){return 'Rp '+dot(n)}
@@ -968,7 +968,7 @@ m.textContent='Membuka WhatsApp…';window.open('https://wa.me/6285161033689?tex
 }catch(e){}})();
 /* ===== FORM & KARTU LAYANAN ===== */
 (function(){try{
-var WA='6285161033689',RT=['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama'];
+var WA='6285161033689',RT=window.MWC_RT;
 [].forEach.call(document.querySelectorAll('select[data-rt]'),function(x){x.textContent='';var o=document.createElement('option');o.value='';o.textContent='Pilih ranting / kelurahan';x.appendChild(o);RT.forEach(function(r){var q=document.createElement('option');q.textContent=r;x.appendChild(q)})});
 var grid=document.getElementById('svgrid'),sel=document.getElementById('sv-layanan'),src=document.querySelectorAll('#lyscroll .lycard');
 if(grid&&sel&&src.length){[].forEach.call(src,function(c){var n=c.cloneNode(true),h=c.getAttribute('href'),tt=c.querySelector('b,h3,strong'),t=tt?tt.textContent:'Layanan';n.className='lycard';n.removeAttribute('style');var g=document.createElement('span');g.className='sv-go';g.textContent=h=='#layanan'?'Ajukan layanan →':'Buka layanan →';n.appendChild(g);n.setAttribute('data-t',t);grid.appendChild(n)});sel.textContent='';var choices=['Pilih jenis permintaan'].concat([].slice.call(grid.querySelectorAll('.lycard[data-t]')).filter(function(a){return a.getAttribute('href')=='#layanan'}).map(function(a){return a.getAttribute('data-t')}).concat(['Permintaan informasi','Saran dan masukan','Layanan lainnya']));choices.forEach(function(c,i){var opt=document.createElement('option');opt.value=i?'': '';opt.textContent=c;if(i>0)opt.value=c;sel.appendChild(opt)});
@@ -1051,4 +1051,4 @@ document.addEventListener('pointermove',function(ev){var c=ev.target.closest&&ev
 
 
 /* Fallback-safe bootstrap for the question-topic flow. Also handles a slow CMS startup. */
-(function(){var kc=document.getElementById('ka-cats'),form=document.getElementById('ka-form'),cats=[['Ibadah','Shalat, puasa, zakat, haji'],['Akidah','Keyakinan dan keimanan'],['Akhlak & tasawuf','Adab dan pembinaan diri'],['Muamalah','Jual beli dan ekonomi syariah'],['Keluarga','Pernikahan dan rumah tangga'],['Waris & wasiat','Pembagian harta peninggalan'],['Amaliyah NU','Tahlil, maulid, ziarah, qunut'],['Lainnya','Pertanyaan di luar topik lain']];if(!kc||!form)return;if(!kc.querySelector('.mt-f'))kc.innerHTML=cats.map(function(c,i){return '<button type="button" class="mt-f" data-i="'+i+'" aria-controls="ka-kat" aria-label="Pilih topik '+c[0]+'"><b>'+c[0]+'</b><small>'+c[1]+'</small></button>'}).join('');function fillSelect(id,label,values){var s=document.getElementById(id);if(!s||s.options.length>1)return;var o=document.createElement('option');o.value='';o.textContent=label;s.appendChild(o);values.forEach(function(v){var q=document.createElement('option');q.value=v;q.textContent=v;s.appendChild(q)})}var names=cats.map(function(c){return c[0]});fillSelect('ka-kat','Pilih topik',names);fillSelect('ka-fk','Semua topik',names);fillSelect('ka-rt','Pilih ranting / kelurahan',['Pondok Aren','Jurangmangu Barat','Jurangmangu Timur','Pondok Betung','Pondok Karya','Pondok Jaya','Pondok Pucung','Pondok Kacang Barat','Pondok Kacang Timur','Parigi Baru','Parigi Lama']);if(kc.dataset.topicBound)return;kc.dataset.topicBound='1';kc.addEventListener('click',function(e){var b=e.target.closest('.mt-f');if(!b)return;var i=+b.dataset.i;if(!cats[i])return;var select=document.getElementById('ka-kat');if(select){select.value=cats[i][0];select.classList.remove('err');select.dispatchEvent(new Event('change',{bubbles:true}))}var header=document.querySelector('header');if(header)header.classList.add('sc');form.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});setTimeout(function(){form.scrollIntoView({behavior:'auto',block:'start'});var q=document.getElementById('ka-q');if(q)q.focus({preventScroll:true})},650)})})();
+(function(){var kc=document.getElementById('ka-cats'),form=document.getElementById('ka-form'),cats=[['Ibadah','Shalat, puasa, zakat, haji'],['Akidah','Keyakinan dan keimanan'],['Akhlak & tasawuf','Adab dan pembinaan diri'],['Muamalah','Jual beli dan ekonomi syariah'],['Keluarga','Pernikahan dan rumah tangga'],['Waris & wasiat','Pembagian harta peninggalan'],['Amaliyah NU','Tahlil, maulid, ziarah, qunut'],['Lainnya','Pertanyaan di luar topik lain']];if(!kc||!form)return;if(!kc.querySelector('.mt-f'))kc.innerHTML=cats.map(function(c,i){return '<button type="button" class="mt-f" data-i="'+i+'" aria-controls="ka-kat" aria-label="Pilih topik '+c[0]+'"><b>'+c[0]+'</b><small>'+c[1]+'</small></button>'}).join('');function fillSelect(id,label,values){var s=document.getElementById(id);if(!s||s.options.length>1)return;var o=document.createElement('option');o.value='';o.textContent=label;s.appendChild(o);values.forEach(function(v){var q=document.createElement('option');q.value=v;q.textContent=v;s.appendChild(q)})}var names=cats.map(function(c){return c[0]});fillSelect('ka-kat','Pilih topik',names);fillSelect('ka-fk','Semua topik',names);fillSelect('ka-rt','Pilih ranting / kelurahan',window.MWC_RT);if(kc.dataset.topicBound)return;kc.dataset.topicBound='1';kc.addEventListener('click',function(e){var b=e.target.closest('.mt-f');if(!b)return;var i=+b.dataset.i;if(!cats[i])return;var select=document.getElementById('ka-kat');if(select){select.value=cats[i][0];select.classList.remove('err');select.dispatchEvent(new Event('change',{bubbles:true}))}var header=document.querySelector('header');if(header)header.classList.add('sc');form.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});setTimeout(function(){form.scrollIntoView({behavior:'auto',block:'start'});var q=document.getElementById('ka-q');if(q)q.focus({preventScroll:true})},650)})})();

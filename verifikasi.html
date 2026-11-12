@@ -18,14 +18,14 @@ a{color:var(--gold);font-weight:700}small{color:#6B7F75}
 <p id="t"></p>
 <p><small>Pencocokan dilakukan ke data anggota MWCNU Pondok Aren. Jika nomor belum terdaftar, hubungi sekretariat.</small></p>
 <p><a href="/">&larr; Kembali ke situs MWCNU Pondok Aren</a></p></main>
-<script src="/js/config.js"></script>
+<script src="/js/config.js?v=22"></script>
 <script>
 (function(){
 var raw='';
 try{raw=decodeURIComponent((location.pathname.split('/v/')[1]||'')).trim().toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40)}catch(e){raw=(location.pathname.split('/v/')[1]||'').replace(/%[0-9a-fA-F]{2}/g,'').replace(/[^A-Z0-9-]/g,'').trim().toUpperCase().slice(0,40)}
 var n=document.getElementById('n'),s=document.getElementById('s'),t=document.getElementById('t');
 n.textContent=raw||'(nomor tidak ditemukan)';
-function cd(x){x=x.replace(/\D/g,'');var tt=0;for(var i=0;i<x.length;i++)tt+=(+x[x.length-1-i])*(i%2?3:1);return(10-tt%10)%10}
+var cd=window.MWC_NIA_CD;
 var m=/^MWC-(\d{2})-(\d{2})-(\d{6})-(\d)$/.exec(raw);
 if(!m){s.className='s bad';s.textContent='Format nomor induk tidak dikenali.';t.textContent='Pastikan QR dipindai dari kartu anggota MWCNU Pondok Aren yang asli.';return}
 if(cd(m[1]+m[2]+m[3])!==+m[4]){s.className='s bad';s.textContent='Angka cek tidak cocok. Nomor ini kemungkinan salah ketik atau tidak asli.';return}
