@@ -68,7 +68,7 @@ kategori saat penugasan tiket dilakukan Edge Function (Phase 2).
 | Kolom | Tipe | Null | Ketentuan |
 |---|---|---|---|
 | id | uuid | ✗ | PK |
-| nomor_tiket | text | ✗ | unik; otomatis `KON-YYMMDD-XXXXXX` (t), tidak boleh diubah (t) |
+| nomor_tiket | text | ✗ | unik; otomatis `KON-YYMMDD-<kode base-32>` dari sequence `consultation_nomor_tiket_seq` (t), tidak boleh diubah (t) |
 | kategori_id | uuid | ✗ | FK → categories, ON DELETE RESTRICT; kategori harus aktif saat insert (t) |
 | judul | text | ✗ | trim 5–150 |
 | isi_pertanyaan | text | ✗ | trim 10–10000 |
@@ -254,13 +254,19 @@ mekanisme otomatis di Phase 1 (dicatat sebagai risiko/dependency).
 
 | Fungsi trigger | Tabel | Menegakkan |
 |---|---|---|
-| `consultation_ticket_before` | tickets | nomor otomatis, kategori aktif, transisi status, SLA pause/resume, keabadian nomor/created_at |
+| `consultation_ticket_before` | tickets | nomor otomatis dari sequence (aman transaksi bersamaan), kategori aktif, transisi status, SLA pause/resume dengan penggeseran hari-kerja-tertutup, keabadian nomor/created_at |
 | `consultation_ticket_status_log` | tickets (after) | log status otomatis |
-| `consultation_message_check` | messages | pengirim staf valid, pasangan jenis↔pengirim |
-| `consultation_review_check` | reviews | hanya jawaban konsultan, tiket cocok, anti self-approval |
+| `consultation_message_check` | messages | pengirim staf valid **sesuai role yang diklaim** (konsultan/reviewer/admin_konsultasi) & aktif, pasangan jenis↔pengirim |
+| `consultation_review_check` | reviews | hanya jawaban konsultan, tiket cocok, anti self-approval, reviewer ber-role reviewer & aktif |
+| `consultation_assignment_check` | assignments | konsultan ber-role konsultan & aktif saat menerima penugasan |
 | `consultation_attachment_check` | attachments | pengunggah staf aktif / pemohon |
+| `consultation_publication_check` | publications | kewenangan 3 persetujuan (pemohon konsisten kontak, reviewer/admin ber-role & aktif, waktu wajib, state false wajib bersih) |
 | `consultation_append_only` | messages, status_logs, audit_logs | larang update/delete manual (CASCADE masih diizinkan) |
 | `consultation_publication_before` | publications | published_at sekali |
 | `consultation_touch` | staff_roles, contacts, publications | updated_at |
-| `consultation_can_transition` (fungsi biasa) | — | daftar transisi valid (25 pasangan) |
+| `consultation_can_transition` (fungsi biasa) | — | daftar transisi valid (26 pasangan) |
 | `consultation_add_workdays` (fungsi biasa) | — | tenggat hari kerja WIB minus libur |
+| `consultation_hari_kerja_tertutup` (fungsi biasa) | — | hitung hari kerja yang tertutup penuh interval jeda |
+| `consultation_shift_deadline` (fungsi biasa) | — | geser tanggal tenggat N hari kerja, hasil selalu EOD hari kerja valid |
+| `consultation_waktu` (fungsi biasa) | — | now() atau override GUC `app.waktu_sistem` (seam pengujian; produksi tidak mengeset) |
+| `consultation_kode_nomor` (fungsi biasa) | — | bigint → kode base-32 bijektif (lebar 6, memanjang bila melebihi 32⁶) |

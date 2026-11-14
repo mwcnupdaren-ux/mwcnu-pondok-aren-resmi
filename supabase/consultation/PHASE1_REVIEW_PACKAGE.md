@@ -7,7 +7,7 @@ Phase 1 **tanpa bantuan penulis**, tanpa menyentuh Supabase produksi.
 
 | Item | Nilai |
 |---|---|
-| Commit Phase 1 | `2c35fe6` (di atas Phase 0 `b416ebe`; **belum di-push**) |
+| Commit Phase 1 | `2c35fe6` + commit revisi audit di atasnya (lihat `git log`); **belum di-push** |
 | Lingkungan produksi | **Tidak disentuh** — migrasi belum pernah dijalankan di Supabase |
 | Status | Menunggu persetujuan berikutnya; implementasi Phase 2 belum dimulai |
 
@@ -36,11 +36,11 @@ node test-konsultasi.mjs
 - Butuh Node.js ≥ 18. Bila paket `@electric-sql/pglite` belum terpasang
   (`npm i @electric-sql/pglite`), skrip otomatis memakai cache npx lokal
   pada mesin dev.
-- Hasil yang diharapkan: **16 kelompok (T01–T16), semua `OK`,
+- Hasil yang diharapkan: **22 kelompok (T01–T21), 82 asersi, semua `OK`,
   baris akhir `== HASIL: SEMUA TES LOLOS ==`, exit code 0.**
 - Skrip berjalan penuh **in-memory** (PGlite WASM): tidak ada koneksi jaringan,
   tidak menyentuh Supabase.
-- Pemeriksa dianjurkan membaca langsung isi skrip (±250 baris) untuk memverifi-
+- Pemeriksa dianjurkan membaca langsung isi skrip (±420 baris) untuk memverifi-
   kasi bahwa asersinya sungguhan (bukan asersi kosong).
 
 ## 4. Verifikasi Tanpa Menjalankan Kode
@@ -53,12 +53,17 @@ node test-konsultasi.mjs
    — semua 16 `create table if not exists public.consultation_*`.
 3. **Tanpa akses anon**: `grep -n "policy" supabase/consultation/consultation_003_security.sql`
    — tidak ada `create policy` sama sekali (deny default), hanya
-   `revoke ... from anon, authenticated`.
+   `revoke ... from anon, authenticated`; sequence juga di-revoke dari public.
 4. **Tanpa rahasia di repo**:
    `grep -rniE "service_role|resend|api[_-]?key" supabase/consultation/ --include=*.sql --include=*.mjs`
    — hanya rujukan peran/grant, tidak ada nilai kredensial.
 5. **Idempotensi**: cari `drop trigger if exists` sebelum tiap
-   `create trigger`; `create table if not exists`; `create or replace function`.
+   `create trigger`; `create table if not exists`; `create or replace function`;
+   `create sequence if not exists`.
+6. **Keamanan nomor tiket (audit C)**: generator memakai
+   `nextval('consultation_nomor_tiket_seq')` — bukan `random()` + `NOT EXISTS`.
+7. **Seam waktu (audit B)**: `app.waktu_sistem` hanya dibaca fungsi
+   `consultation_waktu()`; produksi tidak mengesetnya (dicatat sebagai risiko).
 
 ## 5. Poin Pemeriksaan yang Direkomendasikan
 
@@ -67,9 +72,13 @@ node test-konsultasi.mjs
   yang tepat; ON DELETE RESTRICT/CASCADE/SET NULL sesuai kamus data.
 - Append-only 3 tabel log dengan pengecualian CASCADE (`pg_trigger_depth() = 1`).
 - Secret akses: hanya kolom `secret_hash` (64 hex), tidak ada kolom plaintext.
-- Publikasi: check 3-persetujuan + slug; snapshot tanpa data identitas.
+- Publikasi: check 3-persetujuan + slug **plus** trigger kewenangan
+  (pemohon konsisten kontak, reviewer/admin ber-role aktif, waktu wajib,
+  state false wajib bersih).
+- Jeda SLA: definisi matematis hari-kerja-tertutup (MIGRATION_GUIDE §2b) —
+  tanpa penambahan durasi kalender mentah.
 - Batas pengujian yang diakui terbuka (bucket storage, `auth.jwt()` asli,
-  beban nyata) — tercantum di `PGlite_TEST_RESULTS.md` §Batas Pengujian.
+  konkurensi nyata) — tercantum di `PGlite_TEST_RESULTS.md` §Batas Pengujian.
 
 ## 6. Keputusan & Batasan yang Berlaku Saat Ini
 

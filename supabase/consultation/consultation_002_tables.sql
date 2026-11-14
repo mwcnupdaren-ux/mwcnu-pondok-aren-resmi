@@ -58,6 +58,13 @@ create table if not exists public.consultation_consultant_categories (
     references public.consultation_staff_roles (email, role_konsultasi) on delete cascade
 );
 
+-- A5) Sequence nomor tiket — sumber keunikan yang aman terhadap transaksi
+--     bersamaan: nextval() tidak pernah mengembalikan nilai yang sama untuk
+--     dua transaksi, sehingga generator tidak pernah gagal akibat benturan
+--     (audit C). Nomor = KON-YYMMDD-<kode base-32>; nomor BUKAN rahasia
+--     akses (secret akses tetap HMAC-SHA256 di access_credentials).
+create sequence if not exists public.consultation_nomor_tiket_seq;
+
 -- ==========================================================================
 -- B. TRANSAKSI
 -- ==========================================================================
@@ -296,6 +303,85 @@ begin
   return (d + time '23:59:59') at time zone 'Asia/Jakarta';
 end $$;
 
+-- D2) Waktu sistem dengan seam pengujian: bila GUC sesi 'app.waktu_sistem'
+--     di-set, nilai itu dipakai; bila tidak, now(). Dipakai trigger tiket agar
+--     skenario kalender SLA dapat diuji di PGlite. Produksi TIDAK mengeset
+--     GUC ini; hanya service_role yang dapat memengaruhi perhitungan karena
+--     hanya itulah role yang boleh menulis tabel tiket.
+create or replace function public.consultation_waktu()
+returns timestamptz
+language sql
+stable
+as $$
+  select coalesce(nullif(current_setting('app.waktu_sistem', true), '')::timestamptz, now())
+$$;
+
+-- D3) Hari kerja yang TERTUTUP penuh oleh interval jeda (audit B):
+--     hari kerja d dengan tanggal_jeda < d < tanggal_resume (ketat di antara
+--     kedua tanggal — hari jeda dan hari resume sendiri tidak dihitung,
+--     karena jam operasional belum ditetapkan; granularitas = level hari).
+create or replace function public.consultation_hari_kerja_tertutup(pause_at timestamptz, resume_at timestamptz)
+returns integer
+language sql
+stable
+as $$
+  select count(*)::int
+  from generate_series(
+         ((pause_at at time zone 'Asia/Jakarta')::date + 1)::timestamp,
+         ((resume_at at time zone 'Asia/Jakarta')::date - 1)::timestamp,
+         interval '1 day'
+       ) as g(d)
+  where extract(isodow from g.d) < 6
+    and not exists (select 1 from public.consultation_holidays h where h.tanggal = g.d::date)
+$$;
+
+-- D4) Geser tanggal tenggat (yang selalu jatuh pada hari kerja) sebanyak N
+--     hari kerja ke depan; hasil selalu EOD (23:59:59 WIB) hari kerja valid —
+--     tidak pernah jatuh pada Sabtu/Minggu/libur.
+create or replace function public.consultation_shift_deadline(tenggat timestamptz, hari integer)
+returns timestamptz
+language plpgsql
+stable
+as $$
+declare
+  d    date := (tenggat at time zone 'Asia/Jakarta')::date;
+  sisa integer := hari;
+begin
+  if sisa <= 0 then return tenggat; end if;
+  while sisa > 0 loop
+    d := d + 1;
+    if extract(isodow from d) < 6
+       and not exists (select 1 from public.consultation_holidays h where h.tanggal = d) then
+      sisa := sisa - 1;
+    end if;
+  end loop;
+  return (d + time '23:59:59') at time zone 'Asia/Jakarta';
+end $$;
+
+-- D5) Encoder base-32 (alfabet tanpa 0/O/1/I) untuk kode nomor tiket.
+--     Mapping bigint -> kode BIJEKTIF: nilai berbeda tidak pernah menghasilkan
+--     kode sama, sehingga keunikan nomor = keunikan nilai sequence.
+--     Lebar 6 karakter (32^6 = ±1,07 miliar); bila melebihi, otomatis 7+ char.
+create or replace function public.consultation_kode_nomor(nilai bigint)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+  chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  s     text := '';
+  n     bigint := nilai;
+begin
+  if n is null or n < 0 then raise exception 'Nilai kode nomor tidak valid'; end if;
+  loop
+    s := substr(chars, (n % 32)::int + 1, 1) || s;
+    n := n / 32;
+    exit when n = 0;
+  end loop;
+  if length(s) >= 6 then return s; end if;  -- jangan memotong (lpad memotong!)
+  return lpad(s, 6, 'A');
+end $$;
+
 -- ==========================================================================
 -- E. BUCKET STORAGE PRIVAT untuk lampiran
 --    (di PGlite/lingkungan uji tanpa storage schema: dilewati dengan notice)
@@ -337,21 +423,16 @@ create trigger trg_consultation_touch_publikasi before update on public.consulta
 create or replace function public.consultation_ticket_before()
 returns trigger language plpgsql as $$
 declare
-  chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';  -- tanpa 0/O/1/I agar tak tertukar
-  s     text;
-  i     int;
+  covered integer;  -- hari kerja yang tertutup penuh oleh jeda
 begin
   if tg_op = 'INSERT' then
-    -- nomor tiket otomatis (bukan rahasia): KON-YYMMDD-XXXXXX, unik, coba ulang
+    -- nomor tiket otomatis (bukan rahasia): KON-YYMMDD-<kode base-32>.
+    -- Keunikan dijamin sequence (audit C): nextval() tidak pernah duplikat
+    -- antar transaksi bersamaan — tanpa coba-ulang, tanpa kegagalan benturan.
     if new.nomor_tiket is null or btrim(new.nomor_tiket) = '' then
-      loop
-        s := '';
-        for i in 1..6 loop
-          s := s || substr(chars, floor(random() * length(chars))::int + 1, 1);
-        end loop;
-        new.nomor_tiket := 'KON-' || to_char(now() at time zone 'Asia/Jakarta', 'YYMMDD') || '-' || s;
-        exit when not exists (select 1 from public.consultation_tickets t where t.nomor_tiket = new.nomor_tiket);
-      end loop;
+      new.nomor_tiket := 'KON-'
+        || to_char(public.consultation_waktu() at time zone 'Asia/Jakarta', 'YYMMDD')
+        || '-' || public.consultation_kode_nomor(nextval('public.consultation_nomor_tiket_seq')::bigint);
     end if;
     -- kategori harus aktif saat pengajuan
     if not exists (select 1 from public.consultation_categories c where c.id = new.kategori_id and c.aktif) then
@@ -359,7 +440,7 @@ begin
     end if;
     -- tiket yang langsung diverifikasi saat dibuat: mulai hitung SLA
     if new.sla_deadline is null and new.status in ('diverifikasi','menunggu_penugasan') then
-      new.sla_deadline := public.consultation_add_workdays(now(), 3);
+      new.sla_deadline := public.consultation_add_workdays(public.consultation_waktu(), 3);
     end if;
   else
     -- kolom identitas tidak boleh berubah
@@ -375,7 +456,7 @@ begin
         raise exception 'Transisi status tidak valid: % -> %', old.status, new.status;
       end if;
       if old.status = 'menunggu_informasi' then
-        -- keluar dari pause hanya boleh ke status asal, dan geser deadline
+        -- keluar dari pause hanya boleh ke status asal
         if new.status <> old.status_sebelum_pause then
           raise exception 'Keluar dari menunggu informasi hanya ke status sebelumnya (%)',
             coalesce(old.status_sebelum_pause, '(kosong)');
@@ -383,19 +464,28 @@ begin
         if old.sla_paused_at is null then
           raise exception 'Data jeda SLA tidak lengkap';
         end if;
-        if new.sla_deadline is not null then
-          new.sla_deadline := new.sla_deadline + (now() - old.sla_paused_at);
+        -- Jeda TIDAK memakan jatah pemohon (audit B): hanya hari kerja yang
+        -- tertutup penuh oleh jeda (level tanggal, ketat di antara hari jeda
+        -- dan hari resume) yang menggeser tanggal tenggat. Hasil selalu EOD
+        -- hari kerja valid — bukan penambahan durasi kalender mentah.
+        covered := public.consultation_hari_kerja_tertutup(old.sla_paused_at, public.consultation_waktu());
+        if covered > 0 and new.sla_deadline is not null then
+          new.sla_deadline := public.consultation_shift_deadline(new.sla_deadline, covered);
+        end if;
+        -- jatah minimal: saat resume, tenggat tidak boleh sudah lewat
+        if new.sla_deadline is null or new.sla_deadline <= public.consultation_waktu() then
+          new.sla_deadline := public.consultation_add_workdays(public.consultation_waktu(), 1);
         end if;
         new.sla_paused_at := null;
         new.status_sebelum_pause := null;
       elsif new.status = 'menunggu_informasi' then
         -- masuk pause: simpan status asal + waktu mulai jeda (SLA berhenti dihitung)
         new.status_sebelum_pause := old.status;
-        new.sla_paused_at := now();
+        new.sla_paused_at := public.consultation_waktu();
       end if;
       -- mulai SLA saat pertama kali diverifikasi / masuk antrean (target 3 hari kerja)
       if new.sla_deadline is null and new.status in ('diverifikasi','menunggu_penugasan') then
-        new.sla_deadline := public.consultation_add_workdays(now(), 3);
+        new.sla_deadline := public.consultation_add_workdays(public.consultation_waktu(), 3);
       end if;
     elsif (new.sla_paused_at is distinct from old.sla_paused_at)
        or (new.status_sebelum_pause is distinct from old.status_sebelum_pause)
@@ -436,14 +526,20 @@ create trigger trg_consultation_ticket_status_log
 create or replace function public.consultation_message_check()
 returns trigger language plpgsql as $$
 begin
+  -- Identitas pengirim harus cocok dengan role yang DIKLAIM (audit D):
+  -- nilai pengirim_jenis identik dengan nilai role_konsultasi yang sah,
+  -- dan role tersebut harus aktif. Konsultan tidak dapat menyamar sebagai
+  -- reviewer/admin, dan sebaliknya.
   if new.pengirim_jenis in ('konsultan','reviewer','admin_konsultasi') then
     if new.pengirim_email is null then
       raise exception 'Pengirim staf wajib memiliki email';
     end if;
     new.pengirim_email := lower(new.pengirim_email);
     if not exists (select 1 from public.consultation_staff_roles r
-                   where r.email = new.pengirim_email and r.aktif) then
-      raise exception 'Pengirim bukan staf konsultasi yang aktif';
+                   where r.email = new.pengirim_email
+                     and r.role_konsultasi = new.pengirim_jenis
+                     and r.aktif) then
+      raise exception 'Pengirim tidak memiliki role % yang aktif', new.pengirim_jenis;
     end if;
   elsif new.pengirim_email is not null then
     raise exception 'Pengirim non-staf tidak boleh menyertakan email';
@@ -489,6 +585,13 @@ begin
   end if;
   if m.pengirim_email = lower(new.reviewer_email) then
     raise exception 'Reviewer tidak dapat menyetujui jawabannya sendiri';
+  end if;
+  -- Reviewer wajib ber-role reviewer DAN aktif (audit E): FK komposit hanya
+  -- menjamin keberadaan baris role, bukan status aktifnya.
+  if not exists (select 1 from public.consultation_staff_roles r
+                 where r.email = lower(new.reviewer_email)
+                   and r.role_konsultasi = 'reviewer' and r.aktif) then
+    raise exception 'Reviewer harus ber-role reviewer dan aktif';
   end if;
   return new;
 end $$;
@@ -554,3 +657,81 @@ drop trigger if exists trg_consultation_publication_before on public.consultatio
 create trigger trg_consultation_publication_before
   before update on public.consultation_publications
   for each row execute function public.consultation_publication_before();
+
+-- F9) Penugasan: konsultan wajib ber-role konsultan DAN aktif saat menerima
+--     penugasan baru (audit E). FK komposit hanya menjamin keberadaan baris
+--     role, bukan status aktifnya.
+create or replace function public.consultation_assignment_check()
+returns trigger language plpgsql as $$
+begin
+  if not exists (select 1 from public.consultation_staff_roles r
+                 where r.email = lower(new.konsultan_email)
+                   and r.role_konsultasi = 'konsultan' and r.aktif) then
+    raise exception 'Konsultan harus ber-role konsultan dan aktif';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_consultation_assignment_check on public.consultation_assignments;
+create trigger trg_consultation_assignment_check
+  before insert on public.consultation_assignments
+  for each row execute function public.consultation_assignment_check();
+
+-- F10) Publikasi: verifikasi KEWENANGAN ketiga persetujuan (audit F) —
+--      nilai boolean true saja BUKAN bukti otorisasi:
+--        * pemohon : harus konsisten dengan persetujuan_publikasi pada
+--                    consultation_requester_contacts tiket yang sama + waktu;
+--        * reviewer: email staf ber-role reviewer aktif + waktu;
+--        * admin   : email staf ber-role admin_konsultasi aktif + waktu;
+--        * nilai false wajib "bersih" (tanpa identitas/waktu) agar tidak ada
+--          sisa persetujuan yang menyesatkan.
+--      Aturan terbit (3 persetujuan + slug) tetap pada constraint ccp_*.
+create or replace function public.consultation_publication_check()
+returns trigger language plpgsql as $$
+declare kontak boolean;
+begin
+  if new.persetujuan_pemohon then
+    select c.persetujuan_publikasi into kontak
+      from public.consultation_requester_contacts c where c.ticket_id = new.ticket_id;
+    if kontak is distinct from true then
+      raise exception 'Persetujuan pemohon belum tercatat pada data kontak tiket';
+    end if;
+    if new.persetujuan_pemohon_at is null then
+      raise exception 'Persetujuan pemohon wajib menyertakan waktu';
+    end if;
+  elsif new.persetujuan_pemohon_at is not null then
+    raise exception 'Persetujuan pemohon bernilai false tetapi waktu terisi';
+  end if;
+
+  if new.disetujui_reviewer then
+    if new.disetujui_reviewer_oleh is null or new.disetujui_reviewer_at is null then
+      raise exception 'Persetujuan reviewer wajib menyertakan identitas dan waktu';
+    end if;
+    if not exists (select 1 from public.consultation_staff_roles r
+                   where r.email = lower(new.disetujui_reviewer_oleh)
+                     and r.role_konsultasi = 'reviewer' and r.aktif) then
+      raise exception 'Penyetuju reviewer tidak memiliki role reviewer yang aktif';
+    end if;
+  elsif new.disetujui_reviewer_oleh is not null or new.disetujui_reviewer_at is not null then
+    raise exception 'Persetujuan reviewer bernilai false tetapi identitas/waktu terisi';
+  end if;
+
+  if new.disetujui_admin then
+    if new.disetujui_admin_oleh is null or new.disetujui_admin_at is null then
+      raise exception 'Persetujuan admin wajib menyertakan identitas dan waktu';
+    end if;
+    if not exists (select 1 from public.consultation_staff_roles r
+                   where r.email = lower(new.disetujui_admin_oleh)
+                     and r.role_konsultasi = 'admin_konsultasi' and r.aktif) then
+      raise exception 'Penyetuju admin tidak memiliki role admin_konsultasi yang aktif';
+    end if;
+  elsif new.disetujui_admin_oleh is not null or new.disetujui_admin_at is not null then
+    raise exception 'Persetujuan admin bernilai false tetapi identitas/waktu terisi';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_consultation_publication_check on public.consultation_publications;
+create trigger trg_consultation_publication_check
+  before insert or update on public.consultation_publications
+  for each row execute function public.consultation_publication_check();

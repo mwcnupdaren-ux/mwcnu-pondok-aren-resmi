@@ -70,8 +70,10 @@ stateDiagram-v2
     menunggu_penugasan --> ditolak
     ditugaskan --> menunggu_review : konsultan kirim jawaban
     ditugaskan --> menunggu_informasi : minta info (SLA pause)
+    terjawab --> menunggu_informasi : minta info (SLA pause)
     ditugaskan --> menunggu_penugasan : dilepas
     menunggu_informasi --> ditugaskan : resume (ke status asal)
+    menunggu_informasi --> terjawab : resume (ke status asal)
     menunggu_review --> terjawab : disetujui reviewer
     menunggu_review --> ditugaskan : minta revisi
     terjawab --> ditugaskan : pemohon membalas
@@ -84,8 +86,12 @@ stateDiagram-v2
 Aturan penegakan:
 - Transisi divalidasi `consultation_can_transition()` + trigger tiket (002_tables).
 - Keluar dari `menunggu_informasi` **hanya** ke `status_sebelum_pause`;
-  deadline SLA digeser sebesar durasi jeda.
+  tenggat SLA digeser sejumlah hari kerja yang tertutup penuh jeda
+  (definisi matematis: `MIGRATION_GUIDE.md` §2b).
 - SLA mulai dihitung saat status pertama kali `diverifikasi` /
   `menunggu_penugasan` (target 3 hari kerja, kalender libur memengaruhi).
+- Nomor tiket di-generate trigger dari sequence
+  `consultation_nomor_tiket_seq` — unik dijamin sequence, aman terhadap
+  transaksi bersamaan; format `KON-YYMMDD-<kode base-32>`.
 
 Detail kolom per tabel: lihat `DATABASE_DICTIONARY.md`.

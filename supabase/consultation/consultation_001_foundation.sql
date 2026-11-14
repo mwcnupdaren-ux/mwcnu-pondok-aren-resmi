@@ -36,8 +36,9 @@ as $$
     -- jawaban terkirim: pemohon membalas (proses lanjut) / butuh info / diselesaikan
     when from_status = 'terjawab'           and to_status in ('ditugaskan','menunggu_informasi','selesai') then true
     -- keluar dari "menunggu informasi" — target sebenarnya dikunci oleh trigger
-    -- tiket (harus sama dengan status_sebelum_pause)
-    when from_status = 'menunggu_informasi' and to_status in ('ditugaskan','menunggu_review') then true
+    -- tiket (harus sama dengan status_sebelum_pause). 'terjawab' sah karena
+    -- tiket 'terjawab' boleh masuk jeda (audit A).
+    when from_status = 'menunggu_informasi' and to_status in ('ditugaskan','menunggu_review','terjawab') then true
     -- tiket selesai dapat dibuka kembali oleh admin konsultasi
     when from_status = 'selesai'            and to_status = 'ditugaskan' then true
     else false

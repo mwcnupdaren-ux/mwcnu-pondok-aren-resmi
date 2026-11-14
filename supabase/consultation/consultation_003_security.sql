@@ -50,31 +50,47 @@ revoke all on public.consultation_categories,
               public.consultation_rate_hits
   from anon, authenticated;
 
--- 3) HAK FUNGSI: hanya service_role (dipanggil dari Edge Functions) -----------
+-- 3) HAK FUNGSI & SEQUENCE: hanya service_role (dipanggil dari Edge Functions)
 revoke all on function
   public.consultation_can_transition(text, text),
   public.consultation_add_workdays(timestamptz, integer),
+  public.consultation_waktu(),
+  public.consultation_hari_kerja_tertutup(timestamptz, timestamptz),
+  public.consultation_shift_deadline(timestamptz, integer),
+  public.consultation_kode_nomor(bigint),
   public.consultation_touch(),
   public.consultation_ticket_before(),
   public.consultation_ticket_status_log(),
   public.consultation_message_check(),
   public.consultation_review_check(),
+  public.consultation_assignment_check(),
   public.consultation_attachment_check(),
   public.consultation_append_only(),
-  public.consultation_publication_before()
+  public.consultation_publication_before(),
+  public.consultation_publication_check()
   from public, anon, authenticated;
+
+-- Sequence nomor tiket: USAGE dipakai trigger saat insert tiket.
+revoke all on sequence public.consultation_nomor_tiket_seq from public, anon, authenticated;
+grant usage, select on sequence public.consultation_nomor_tiket_seq to service_role;
 
 grant execute on function
   public.consultation_can_transition(text, text),
   public.consultation_add_workdays(timestamptz, integer),
+  public.consultation_waktu(),
+  public.consultation_hari_kerja_tertutup(timestamptz, timestamptz),
+  public.consultation_shift_deadline(timestamptz, integer),
+  public.consultation_kode_nomor(bigint),
   public.consultation_touch(),
   public.consultation_ticket_before(),
   public.consultation_ticket_status_log(),
   public.consultation_message_check(),
   public.consultation_review_check(),
+  public.consultation_assignment_check(),
   public.consultation_attachment_check(),
   public.consultation_append_only(),
-  public.consultation_publication_before()
+  public.consultation_publication_before(),
+  public.consultation_publication_check()
   to service_role;
 
 -- 4) BUCKET PRIVAT ------------------------------------------------------------
@@ -100,3 +116,7 @@ grant execute on function
 --   4) Fungsi hanya untuk service_role:
 --      select proname, proacl from pg_proc
 --       where proname like 'consultation_%';
+--   5) Sequence nomor tiket hanya untuk service_role:
+--      select has_sequence_privilege('anon','public.consultation_nomor_tiket_seq','USAGE'),
+--             has_sequence_privilege('service_role','public.consultation_nomor_tiket_seq','USAGE');
+--      → anon = false, service_role = true.

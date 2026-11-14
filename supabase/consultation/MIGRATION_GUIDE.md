@@ -12,8 +12,8 @@ sukses sebelum lanjut):
 | Urut | File | Isi |
 |---|---|---|
 | 1 | `consultation_001_foundation.sql` | Fungsi `consultation_can_transition` (mesin status 25 pasangan transisi) |
-| 2 | `consultation_002_tables.sql` | 16 tabel, indeks, FK (termasuk FK komposit), bucket privat, 10 trigger/fungsi trigger, fungsi SLA |
-| 3 | `consultation_003_security.sql` | RLS 16/16 tanpa policy (deny default), revoke seluruh hak dari anon/authenticated, fungsi hanya untuk service_role |
+| 2 | `consultation_002_tables.sql` | 16 tabel, indeks, FK (termasuk FK komposit), sequence nomor tiket, bucket privat, 12 trigger/fungsi trigger, fungsi SLA |
+| 3 | `consultation_003_security.sql` | RLS 16/16 tanpa policy (deny default), revoke seluruh hak dari anon/authenticated, fungsi & sequence hanya untuk service_role |
 
 Prasyarat yang **sudah tersedia bawaan Supabase** (tidak perlu dibuat):
 peran `service_role`, `anon`, `authenticated`; schema `auth` dengan
@@ -52,12 +52,53 @@ select grantee, table_name from information_schema.role_table_grants
 select id, public, file_size_limit, allowed_mime_types
   from storage.buckets where id = 'consultation-attachments';
 
--- (5) Fungsi terdaftar
+-- (5) Fungsi terdaftar (14 buah)
 select proname from pg_proc where proname like 'consultation_%' order by proname;
+
+-- (6) Sequence nomor tiket hanya untuk service_role
+select has_sequence_privilege('anon','public.consultation_nomor_tiket_seq','USAGE') anon,
+       has_sequence_privilege('service_role','public.consultation_nomor_tiket_seq','USAGE') svc;
 ```
 
 Hasil yang diharapkan: (1) 16 baris semua `true`; (2) 0 baris; (3) 0 baris;
-(4) 1 baris, `public = false`, limit 5 MB, 4 mime; (5) 11 fungsi.
+(4) 1 baris, `public = false`, limit 5 MB, 4 mime; (5) 14 fungsi;
+(6) `anon = false`, `svc = true`.
+
+## 2b. Definisi Matematis Jeda SLA (hasil audit)
+
+Perhitungan jeda **tidak memakai penambahan durasi kalender mentah**
+(`deadline + (now() - paused_at)` yang dilarang audit), melainkan
+**penggeseran tanggal tenggat sejumlah hari kerja yang tertutup penuh jeda**.
+
+Notasi:
+- Tenggat `D` = EOD (23:59:59 WIB) suatu hari kerja `X`.
+- Interval jeda `[P, R]` (instan masuk & keluar `menunggu_informasi`).
+- `HK(d)` = predikat hari kerja: Senin–Jumat dan bukan anggota
+  `consultation_holidays`.
+- `C` = himpunan hari kerja yang tertutup jeda:
+  `C = { d | d > tanggal(P)  dan  d < tanggal(R)  dan  HK(d) }`
+  (ketat di antara kedua tanggal — hari jeda dan hari resume sendiri tidak
+  dihitung, karena jam operasional belum ditetapkan; granularitas = level hari).
+- Aturan resume: `X_baru = geser(X, |C| hari kerja ke depan)`;
+  `D_baru = EOD(X_baru)`.
+- Aturan jatah minimal: bila `D_baru ≤ R`, maka `D_baru = EOD(hari kerja
+  pertama setelah R)` — pemohon selalu mendapat minimal 1 hari kerja segar.
+- Invarian: `X_baru ≥ X` (tenggat tidak pernah maju/memendek), dan `D_baru`
+  selalu EOD hari kerja valid (tidak pernah Sabtu/Minggu/libur).
+
+Contoh kasus (window awal: Senin → tenggat Kamis, 3 hari kerja):
+
+| Kasus | Jeda [P → R] | C (hari kerja tertutup) | Tenggat baru |
+|---|---|---|---|
+| Jeda & lanjut hari sama | Sel 10:00 → Sel 15:00 | ∅ | Kamis (tetap) |
+| Lewat akhir pekan | Jum 10:00 → Sen 09:00 | ∅ (Sabtu/Minggu bukan hari kerja) | tetap |
+| Lewat hari libur | Sel 10:00 → Kam 09:00 (Rabu libur) | ∅ (Rabu libur) | tetap |
+| Lewat akhir pekan + libur | Jum 10:00 → Sel 09:00 (Mon libur) | ∅ | tetap |
+| Beberapa hari kerja | Sel 10:00 → Sen depan 09:00 | {Rabu, Kamis, Jumat} | Kamis + 3 hari kerja = Selasa depan |
+| Tenggat lewat selama jeda | Kam 10:00 → Jum 10:00 | ∅ tetapi D ≤ R | Jatah minimal: Senin depan |
+
+Kasus-kasus ini diuji otomatis (T18 S1–S6) memakai seam waktu
+`app.waktu_sistem` (lihat risiko #8).
 
 ## 3. Rollback Guide
 
@@ -84,7 +125,7 @@ Rollback hanya dilakukan atas keputusan eksplisit pengguna.
 | RLS | Aktif 16/16, **0 policy** → deny default ke anon & authenticated |
 | Akses data | Hanya `service_role` dalam Edge Functions (frontend tidak pernah memegangnya) |
 | Secret tiket | CSPRNG 32 byte di Edge Function → disimpan sebagai HMAC-SHA256 (pepper di function secrets); plaintext tidak pernah disentuh DB |
-| Nomor tiket | Di-generate trigger (`KON-YYMMDD-XXXXXX`) — bukan rahasia, bukan token akses |
+| Nomor tiket | Di-generate trigger dari sequence (`KON-YYMMDD-<kode base-32>`) — unik dijamin sequence, aman transaksi bersamaan; bukan rahasia, bukan token akses |
 | Role staf | `consultation_staff_roles` terpisah dari role CMS `staff.role` |
 | Lampiran | Bucket privat tanpa policy storage; signed URL pendek dari function |
 | Append-only | `messages`, `status_logs`, `audit_logs` dilindungi trigger; CASCADE tiket tetap diizinkan via `pg_trigger_depth()` |
@@ -101,17 +142,23 @@ Rollback hanya dilakukan atas keputusan eksplisit pengguna.
 3. **Purge `consultation_rate_hits` tidak otomatis**: tabel tersedia sejak
    Phase 1, pembersihan berkala belum ada — butuh pg_cron atau scheduled
    function (C2/C7).
-4. **Nomor tiket memakai `random()`**: bukan kripto — memang disengaja
-   (bukan rahasia); keunikan dijaga loop + unique constraint.
-5. **`menunggu_informasi` memperlama SLA mekanis**: deadline digeser persis
-   sebesar durasi jeda; kebijakan SLA aktual (target hari) masih bisa diubah
-   tanpa migrasi karena hanya konstanta di trigger/fungsi.
+4. **Nomor tiket dari sequence**: keunikan aman terhadap transaksi bersamaan
+   (nextval tidak pernah duplikat); kode base-32 6 karakter menampung ±1,07
+   miliar tiket sebelum memanjang ke 7 karakter. Ada gap nilai bila transaksi
+   di-rollback — wajar dan tidak berbahaya.
+5. **`menunggu_informasi` memperlama SLA sebesar hari kerja yang tertutup
+   jeda**: lihat definisi matematis §2b; penghitungan level hari (bukan jam)
+   karena jam operasional belum ditetapkan.
 6. **Jam operasional belum dimodelkan** — kebijakan resmi belum ditetapkan;
    tidak ada objek yang perlu diubah bila nanti ditetapkan (menjadi aturan
    Edge Function).
 7. **Email staf = sumber identitas**: `consultation_staff_roles.email` harus
    persis (lowercase) sama dengan email Google staf di `auth.users`;
    ketidakcocokan akan tampak sebagai penolakan di Edge Function, bukan error DB.
+8. **Seam waktu `app.waktu_sistem`**: GUC sesi untuk meng-override `now()`
+   pada perhitungan SLA/nomor (dipakai uji T18). Produksi tidak mengesetnya;
+   dampaknya terbatas karena hanya service_role (Edge Functions) yang boleh
+   menulis tabel tiket. Tetap dicatat sebagai permukaan yang harus diawasi.
 
 ## 6. Dependency Keputusan C1–C7 (dikerjakan di Phase 2)
 

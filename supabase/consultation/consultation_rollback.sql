@@ -7,7 +7,9 @@
 -- ============================================================================
 
 -- 1) Trigger & fungsi
+drop trigger if exists trg_consultation_publication_check on public.consultation_publications;
 drop trigger if exists trg_consultation_publication_before on public.consultation_publications;
+drop trigger if exists trg_consultation_assignment_check on public.consultation_assignments;
 drop trigger if exists trg_consultation_message_append    on public.consultation_messages;
 drop trigger if exists trg_consultation_auditlog_append   on public.consultation_audit_logs;
 drop trigger if exists trg_consultation_statuslog_append  on public.consultation_status_logs;
@@ -20,7 +22,13 @@ drop trigger if exists trg_consultation_touch_publikasi   on public.consultation
 drop trigger if exists trg_consultation_touch_contacts    on public.consultation_requester_contacts;
 drop trigger if exists trg_consultation_touch_roles       on public.consultation_staff_roles;
 
+drop function if exists public.consultation_publication_check();
 drop function if exists public.consultation_publication_before();
+drop function if exists public.consultation_assignment_check();
+drop function if exists public.consultation_kode_nomor(bigint);
+drop function if exists public.consultation_shift_deadline(timestamptz, integer);
+drop function if exists public.consultation_hari_kerja_tertutup(timestamptz, timestamptz);
+drop function if exists public.consultation_waktu();
 drop function if exists public.consultation_append_only();
 drop function if exists public.consultation_attachment_check();
 drop function if exists public.consultation_review_check();
@@ -56,3 +64,6 @@ begin
     delete from storage.buckets where id = 'consultation-attachments';
   end if;
 end $$;
+
+-- 4) Sequence nomor tiket
+drop sequence if exists public.consultation_nomor_tiket_seq;

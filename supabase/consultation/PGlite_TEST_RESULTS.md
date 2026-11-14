@@ -1,8 +1,26 @@
-# Hasil Pengujian PGlite — Migrasi Konsultasi Agama (Phase 1)
+# Hasil Pengujian PGlite — Migrasi Konsultasi Agama (Phase 1, Revisi Audit)
 
 - Lingkungan: PGlite (Postgres WASM in-memory), Node.js v24, Windows.
-- Skrip: `test-konsultasi.mjs` (di temp folder sesi, tidak ikut repo).
-- Hasil akhir: **SEMUA TES LOLOS** (exit code 0), 45 asersi dalam 16 kelompok.
+- Skrip: `tests/test-konsultasi.mjs` (dalam repo, dapat dijalankan pemeriksa).
+- Hasil akhir: **SEMUA TES LOLOS** (exit code 0) — **82 asersi, 0 gagal**.
+
+## Riwayat Pengujian
+
+| Tahap | Kelompok | Asersi | Hasil |
+|---|---|---|---|
+| Sebelum revisi (commit `2c35fe6`) | T01–T16 | 50 | ✅ semua lolos |
+| Sesudah revisi audit | T01–T21/T22 | **82** | ✅ semua lolos, 0 gagal |
+
+Perubahan terhadap asersi lama (didokumentasikan, karena premisnya berubah
+oleh revisi — bukan penghapusan cakupan):
+- **T03**: pasangan transisi 25 → **26** (`menunggu_informasi → terjawab`
+  kini sah, hasil audit A).
+- **T08a**: semantik jeda berubah (audit B). Semula mengharuskan tenggat
+  bergeser setelah jeda 50 ms; kini menguji hal yang benar: jeda < 1 hari
+  kerja **tidak** memakan jatah (tenggat tetap). Penggeseran penuh diuji T18.
+- **T09b/T10b**: pesan error yang diharapkan diperbarui mengikuti validasi
+  baru audit D/E (tetap menguji penolakan yang sama, dengan presisi lebih
+  tinggi).
 
 ## Metodologi
 
@@ -10,66 +28,68 @@
    pembuatan peran `service_role` (BYPASSRLS), `anon`, `authenticated`
    **sebelum** `003_security` (di produksi ketiganya sudah ada bawaan).
 2. Eksekusi 001 → 002 → 003 berurutan, lalu dijalankan **ulang ketiganya**
-   untuk membuktikan idempotensi.
-3. Seri asersi perilaku (T03–T16) memakai data uji: 4 kategori, 1 tiket
-   lengkap dialurkan dari `baru` sampai `selesai`.
+   (idempotensi).
+3. **Seam waktu** `app.waktu_sistem` (GUC sesi) memungkinkan uji skenario
+   kalender SLA lintas hari/akhir pekan/libur tanpa menunggu waktu nyata
+   (T18); produksi tidak mengeset GUC ini.
+4. Uji rollback ad-hoc terpisah: migrasi penuh → rollback **dua kali** →
+   hasil `tabel 16→0, fungsi 0, trigger 0, sequence 0` (idempotent, mencakup
+   seluruh objek baru).
 
-## Catatan Kejujuran: Perbaikan Selama Pengujian
-
-Dua temuan muncul saat pengujian dan diperbaiki **pada skrip uji** (bukan pada
-migrasi SQL — migrasi tidak berubah karena temuan ini):
-
-1. **T11d awalnya "lolos" tanpa error** — tabel `consultation_audit_logs`
-   masih kosong sehingga `DELETE` mengenai 0 baris dan trigger `FOR EACH ROW`
-   tidak pernah berjalan. Bukan cacat trigger; perbaikannya: sisipkan satu
-   baris audit uji terlebih dahulu, baru uji delete → kini terbukti ditolak.
-2. **T14b/c/d error `25P02` (transaction aborted)** — pola
-   `begin; set local role ...; <dibatalkan>; rollback;` dalam satu `exec`
-   berhenti di error pertama sehingga `rollback` tak pernah dieksekusi dan
-   sesi tertinggal di transaksi aborted (yang lalu juga menggagalkan T15).
-   Bukan cacat RLS; perbaikannya: uji hak akses memakai `SET ROLE` level sesi
-   + `RESET ROLE` di `finally`. Kini keempat uji role terbukti ditolak dengan
-   `permission denied` dan sesi tetap bersih.
-
-Keduanya masalah harness pengujian, bukan migrasi. Hasil di bawah adalah hasil
-setelah perbaikan.
-
-## Hasil per Kelompok
+## Hasil per Kelompok (sesudah revisi)
 
 | Kelompok | Asersi | Hasil |
 |---|---|---|
-| T01 | Migrasi 001→002→003 berurutan + ketiganya dijalankan ulang (idempotensi) | ✅ 6/6 |
-| T02 | 16 tabel ada; RLS aktif 16/16; 0 policy (deny default) | ✅ 3/3 |
-| T03 | Mesin status: 25 pasangan transisi valid/ilegal | ✅ |
-| T04 | Nomor tiket otomatis `KON-YYMMDD-XXXXXX`; status awal `baru`; SLA belum jalan | ✅ 3/3 |
-| T04b | Kategori non-aktif ditolak saat insert tiket | ✅ |
-| T05 | Transisi ilegal `baru → terjawab` ditolak oleh trigger | ✅ |
-| T06 | Kontak pemohon: tanpa WA & email ditolak (`ccr_min_satu_kontak`); WA saja lolos | ✅ |
-| T07 | Alur lengkap: SLA terisi saat `diverifikasi` (akhir hari kerja ke-3, 23:59 WIB); penugasan + pelepasan; dua penugasan aktif ditolak (unik parsial); email non-konsultan ditolak (FK komposit) | ✅ 5/5 |
-| T08 | Pause/resume: deadline bergeser setelah jeda; kolom pause dibersihkan; perubahan SLA manual ditolak | ✅ 3/3 |
-| T09 | Pesan: `catatan_internal` wajib tersembunyi; pengirim tak terdaftar ditolak; jenis↔pengirim divalidasi | ✅ 3/3 |
-| T10 | Review: anti self-approval; non-reviewer ditolak (FK komposit); enum keputusan | ✅ 3/3 |
-| T11 | Append-only: update/delete `status_logs`, update `messages`, delete `audit_logs` semua ditolak | ✅ 4/4 |
-| T12 | Publikasi: terbit tanpa persetujuan ditolak; terbit tanpa slug/persetujuan penuh ditolak; `published_at` terisi otomatis | ✅ 3/3 |
-| T13 | SLA hari kerja dihitung; hari libur dilewati | ✅ |
-| T14 | Deny default: anon select/insert tiket, authenticated select credentials, anon select attachments — semua `permission denied`; sesi kembali normal | ✅ 5/5 |
-| T15 | Kredensial: secret non-hash-64-hex ditolak; path di luar `tickets/` ditolak; mime di luar whitelist ditolak; notifikasi & rate_hits terisi | ✅ 4/4 |
-| T16 | Log status otomatis: riwayat 8 transisi tepat urut (`baru>diverifikasi>…>selesai`) | ✅ |
+| T01 | Migrasi 001→002→003 + dijalankan ulang (idempotensi) | ✅ 6 |
+| T02 | 16 tabel; RLS 16/16; 0 policy (deny default) | ✅ 3 |
+| T03 | Mesin status: **26** pasangan transisi valid/ilegal | ✅ 1 |
+| T04 | Nomor `KON-YYMMDD-<base32>`; status awal; SLA belum jalan; nomor eksplisit dipertahankan | ✅ 4 |
+| T04b | Kategori non-aktif ditolak saat insert | ✅ 1 |
+| T05 | Transisi ilegal `baru → terjawab` ditolak | ✅ 1 |
+| T06 | Kontak minimal satu; WA saja lolos | ✅ 2 |
+| T07 | Alur penuh; SLA = EOD hari kerja ke-3 WIB; penugasan/pelepasan; unik parsial; non-konsultan ditolak | ✅ 5 |
+| T08 | Jeda < 1 hari kerja: tenggat tetap (audit B); kolom pause bersih; edit SLA manual ditolak | ✅ 3 |
+| T09 | Pesan: catatan internal tersembunyi; email asing ditolak per role; jenis↔pengirim | ✅ 3 |
+| T10 | Review: anti self-approval; non-reviewer ditolak; enum keputusan | ✅ 3 |
+| T11 | Append-only 4/4 (update/delete status_logs, update messages, delete audit_logs) | ✅ 4 |
+| T12 | Publikasi: terbit dini ditolak; tanpa slug/persetujuan ditolak; **kewenangan 3 persetujuan** (pemohon≠kontak, reviewer oleh konsultan/asing, admin oleh reviewer/asing, tanpa waktu, state false kotor) semua ditolak; terbit valid + published_at | ✅ 11 |
+| T13 | SLA hari kerja; libur dilewati | ✅ 2 |
+| T14 | Deny default: anon/authenticated semua `permission denied`; sesi pulih | ✅ 5 |
+| T15 | Kredensial hash-only; prefix path; whitelist mime; notifikasi & rate | ✅ 4 |
+| T16 | Log status otomatis: 8 transisi tepat urut | ✅ 1 |
+| **T17 (A)** | `terjawab → jeda → terjawab` sah; keluar jeda ke status lain ditolak (2 kasus); status_sebelum_pause tepat | ✅ 4 |
+| **T18 (B)** | SLA seluruh kasus kalender: S1 hari sama, S2 lewat akhir pekan, S3 lewat libur, S4 akhir pekan+libur, S5 beberapa hari kerja (+3 hari kerja), S6 tenggat lewat selama jeda (jatah minimal) | ✅ 6 |
+| **T19 (C)** | 100 nomor berturut semua unik; format konsisten; paralel dijamin sequence (tidak teruji penuh di PGlite) | ✅ 3 |
+| **T20 (D)** | Pengirim: konsultan↛admin/reviewer; reviewer↛konsultan/admin; admin↛konsultan; staf nonaktif; pemohon tanpa email staf | ✅ 7 |
+| **T21 (E)** | Konsultan nonaktif tak menerima penugasan; reviewer nonaktif tak bisa review; status dipulihkan | ✅ 3 |
+
+Total: **82 asersi, 82 lolos, 0 gagal.**
+
+## Catatan Kejujuran
+
+1. **Perbaikan harness pada pengujian awal** (sebelum revisi): T11d butuh
+   baris data agar DELETE memicu trigger; T14b/c/d butuh `SET ROLE` level
+   sesi (bukan `begin…rollback` dalam satu exec). Keduanya masalah skrip uji,
+   bukan migrasi — dijelaskan di versi dokumen sebelumnya.
+2. **Perubahan asersi karena revisi** (T03/T08a/T09b/T10b) tercantum di
+   riwayat di atas — cakupan tidak berkurang, justru menajam.
+3. **Uji transaksi paralel nomor tiket tidak dimungkinkan di PGlite**
+   (satu koneksi, database in-memory per instans). Keamanan paralel dijamin
+   mekanisme `sequence` (`nextval()` tidak pernah mengembalikan nilai sama
+   untuk dua transaksi — perilaku bawaan PostgreSQL); verifikasi penuh
+   membutuhkan Postgres nyata.
 
 ## Batas Pengujian (apa yang TIDAK teruji di PGlite)
 
 - Bucket Storage `consultation-attachments`: schema storage tidak ada di
-  PGlite → pembuatan bucket hanya berjalan saat migrasi produksi (ada notice).
-  Verifikasi produksi wajib (lihat `MIGRATION_GUIDE.md` §2).
-- `auth.jwt()` asli Supabase (diuji dengan stub null; perilaku pengisian
-  `oleh` dari email JWT belum teruji di lingkungan asli).
-- Ekstensi/policy Supabase lain dan concurrent write di bawah beban nyata.
+  PGlite → wajib diverifikasi saat migrasi produksi (MIGRATION_GUIDE §2).
+- `auth.jwt()` asli Supabase (pengisian `oleh` pada log status dari JWT).
+- Konkurensi nyata multi-koneksi (nomor tiket paralel; beban nyata).
 - Edge Functions, rate-limit, SMTP: bukan scope Phase 1 (dependency C1–C7).
 
 ## Kesimpulan
 
-Migrasi 001–003 idempotent, membangun 16 tabel dengan RLS deny-by-default,
-mesin status & SLA berfungsi, seluruh penjaga integritas (trigger, check,
-FK komposit, append-only, aturan publikasi) terbukti menolak input invalid,
-dan tidak ada satu pun jalan baca/tulis bagi `anon`/`authenticated`.
-Siap diterapkan ke produksi setelah persetujuan pengguna.
+Seluruh temuan audit (A–F) memiliki penegakan di level database dan terbukti
+oleh pengujian otomatis: migrasi idempotent, RLS deny-by-default utuh,
+seluruh penjaga integritas berfungsi, rollback mencakup semua objek baru,
+dan tidak ada jalan akses bagi `anon`/`authenticated`.
