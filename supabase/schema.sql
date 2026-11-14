@@ -100,7 +100,16 @@ language plpgsql as $$
 begin
   new.updated_at := now();
   new.updated_by := lower(coalesce(auth.jwt() ->> 'email', current_user));
-  if tg_table_name = 'content_items' and tg_op = 'INSERT' and new.created_by is null then new.created_by := new.updated_by; end if;
+  /* Pemeriksaan via to_jsonb, bukan kondisi guarded biasa: referensi
+     new.created_by di dalam IF tetap di-resolve PL/pgSQL sebelum
+     evaluasi kondisi berhenti di tg_table_name, sehingga tabel tanpa
+     kolom itu (mis. site_settings) tetap gagal 42703. Mencari kunci
+     di JSON aman untuk tabel apa pun — hanya menghasilkan NULL. */
+  if tg_table_name = 'content_items' and tg_op = 'INSERT' then
+    if to_jsonb(new) ->> 'created_by' is null then
+      new.created_by := new.updated_by;
+    end if;
+  end if;
   return new;
 end $$;
 
