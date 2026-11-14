@@ -330,7 +330,7 @@ async function viewList(key, q, flt, pub) {
       if (b.hasAttribute('data-del')) { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat menghapus konten.'); if (!confirm('Hapus data ini? Tindakan ini tidak dapat dibatalkan.')) return; var r = await sb.from('content_items').delete().eq('id', b.getAttribute('data-del')); if (r.error) throw r.error; toast('Dihapus.'); }
       else if (b.hasAttribute('data-dup')) { var s = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-dup'); })[0]; var d = JSON.parse(JSON.stringify(s.data)); if (d.judul) d.judul += ' (salinan)'; var mx = S.items[key].reduce(function (m, x) { return Math.max(m, x.sort); }, 0); var r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: false }).select('id').single(); if (r2.error) throw r2.error; toast('Disalin sebagai draf.'); }
       else if (b.hasAttribute('data-pub')) { var s2 = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-pub'); })[0]; if (!isAdmin() && S.me.role !== 'pengurus' && S.me.role !== 'editor' && s2.created_by !== (S.user.email || '').toLowerCase()) throw new Error('Anda hanya dapat menerbitkan konten yang Anda buat.'); var r3 = await sb.from('content_items').update({ published: !s2.published }).eq('id', s2.id).select('id').single(); if (r3.error) throw r3.error; toast(s2.published ? 'Disembunyikan.' : 'Diterbitkan.'); }
-      else { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat mengubah urutan konten.'); var id = b.getAttribute('data-id'), dir = +b.getAttribute('data-mv'), vis = shown, i = vis.findIndex(function (x) { return x.id === id; }), j = i + dir; if (j < 0 || j >= vis.length) return; var A = vis[i], B = vis[j], sa = A.sort, sbv = B.sort; if (sa === sbv) { sbv = sa + dir; } var u1 = await sb.from('content_items').update({ sort: sbv }).eq('id', A.id).select('id').single(), u2 = await sb.from('content_items').update({ sort: sa }).eq('id', B.id).select('id').single(); if (u1.error || u2.error) throw (u1.error || u2.error); viewList(key, $('#q') && $('#q').value, $('#flt') && $('#flt').value, $('#pubFilter') && $('#pubFilter').value); }
+      else { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat mengubah urutan konten.'); var id = b.getAttribute('data-id'), dir = +b.getAttribute('data-mv'), vis = shown, i = vis.findIndex(function (x) { return x.id === id; }), j = i + dir; if (j < 0 || j >= vis.length) return; var A = vis[i], B = vis[j], sa = A.sort, sbv = B.sort; if (sa === sbv) { sbv = sa + dir; } var u1 = await sb.from('content_items').update({ sort: sbv }).eq('id', A.id).select('id').single(), u2 = await sb.from('content_items').update({ sort: sa }).eq('id', B.id).select('id').single(); if (u1.error || u2.error) throw (u1.error || u2.error); }
       viewList(key, $('#q') && $('#q').value, $('#flt') && $('#flt').value, $('#pubFilter') && $('#pubFilter').value);
     } catch (er) { toast(errMsg(er), 1); }
   });
@@ -466,11 +466,24 @@ function route() {
 var routeLastHash = location.hash, routeGuardSkip = false;
 document.addEventListener('click', function (e) {
   var a = e.target.closest('[data-nav]'); if (a && S.dirty && !confirm('Perubahan belum disimpan. Tinggalkan halaman ini?')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-  if (a && routeGuardSkip !== undefined && S.dirty) routeGuardSkip = true; /* sudah dikonfirmasi di atas */
+  if (a && S.dirty) routeGuardSkip = true; /* sudah dikonfirmasi di atas; jangan tanya dua kali */
   if (a && $('#side')) { $('#side').classList.remove('open'); if ($('#burger')) $('#burger').setAttribute('aria-expanded', 'false'); }
 }, true);
 window.addEventListener('beforeunload', function (e) { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
-window.addEventListener('hashchange', route);
+/* Penjaga khusus navigasi hash". Klik ber-[data-nav] ditangani listener capture di atas;
+   ini menutup jalur lain: tombol Back/Forward browser, tautan hash biasa, dan
+   perubahan hash dari skrip. Tanpa ini, guard hanya berjalan untuk klik. */
+window.addEventListener('hashchange', function () {
+  var to = location.hash;
+  if (S.dirty && !routeGuardSkip && !confirm('Perubahan belum disimpan. Tinggalkan halaman ini?')) {
+    routeGuardSkip = false;
+    location.hash = routeLastHash;
+    return;
+  }
+  routeGuardSkip = false;
+  routeLastHash = to;
+  route();
+});
 
 /* Jembatan untuk modul admin tambahan (direktori organisasi, FASE 5).
    Hanya meneruskan fungsi yang sudah ada; tidak mengubah perilaku admin.js. */
