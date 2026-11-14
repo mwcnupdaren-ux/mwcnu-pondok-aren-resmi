@@ -119,17 +119,18 @@ function homeAgendaDraw(){
 }
 homeAgendaDraw();
 // Program unggulan
-var P=MW.md('program',function(x){return{t:x.judul||'',s:x.deskripsi||'',k:MW.lines(x.kegiatan),a:[x.tombol||'Tanya tentang program',safeURL(x.tautan||'#berita')]}},[{t:"Dakwah dan pengajian Aswaja",s:"Majelis rutin yang menguatkan amaliyah Ahlussunnah wal Jama'ah An-Nahdliyah bersama warga.",k:["Lailatul Ijtima'","Yasin dan tahlil","Pengajian Aswaja","Doa penutup"],a:["Lihat kabar kegiatan","#berita"]},
-{t:"Penguatan ranting",s:"Pendampingan dan konsolidasi pengurus ranting di 11 kelurahan se-Pondok Aren.",k:["Tawaqufan di ranting","Silaturahmi pengurus dan ranting","11 PRNU"],a:["Lihat daftar ranting","#ranting"]},
-{t:"Media dan dakwah digital",s:"Informasi dan narasi keislaman yang menyejukkan, ramah, dan memersatukan di ruang digital.",k:["Media Center NU Pondok Aren","TVNU Pondok Aren","NUPA Media"],a:["Lihat TVNU Pondok Aren","#video"]},
-{t:"Silaturahmi dan tradisi",s:"Pertemuan keluarga besar NU untuk merawat kebersamaan dan menjaga tradisi.",k:["Halal Bi Halal keluarga besar NU","Ramah tamah"],a:["Lihat galeri","#galeri"]},
-{t:"Badan otonom",s:"Kaderisasi dan gerakan bersama badan otonom di tingkat kecamatan.",k:["GP Ansor","Fatayat NU","IPNU","IPPNU"],a:["Lihat badan otonom","#struktur"]}]);
+var P=MW.md('program',function(x){return{t:x.judul||'',s:x.deskripsi||'',k:MW.lines(x.kegiatan),a:[x.tombol||'Tanya tentang program',safeURL(x.tautan||'#berita')]}},[{t:"Dakwah dan pengajian Aswaja",s:"Menguatkan pemahaman dan amaliah Ahlussunnah wal Jama'ah An-Nahdliyah melalui dakwah dan pengajian bersama warga.",k:["Lailatul Ijtima'","Yasin dan tahlil","Pengajian Aswaja","Doa penutup"],a:["Lihat berita kegiatan","#berita"]},
+{t:"Penguatan ranting",s:"Mendampingi dan memperkuat koordinasi Pengurus Ranting NU di 11 kelurahan se-Pondok Aren.",k:["Tawaqufan di ranting","Silaturahmi pengurus dan ranting","11 Pengurus Ranting NU"],a:["Cari Pengurus Ranting","#ranting"]},
+{t:"Media dan dakwah digital",s:"Menyebarkan informasi dan dakwah Islam yang menyejukkan, ramah, dan mempersatukan melalui kanal digital.",k:["Media Center NU Pondok Aren","TVNU Pondok Aren","NUPA Media"],a:["Tonton TVNU Pondok Aren","#video"]},
+{t:"Silaturahmi dan tradisi",s:"Merawat kebersamaan keluarga besar NU serta tradisi keagamaan yang hidup di tengah masyarakat.",k:["Halal Bi Halal keluarga besar NU","Ramah tamah"],a:["Lihat dokumentasi kegiatan","#galeri"]},
+{t:"Kaderisasi badan otonom",s:"Menguatkan kaderisasi dan kolaborasi badan otonom NU di tingkat Kecamatan Pondok Aren.",k:["GP Ansor","Fatayat NU","IPNU","IPPNU"],a:["Kenali badan otonom","#banom"]}]);
 if(!P.length)P=[{t:'Program khidmat',s:'Informasi program akan diumumkan melalui MWCNU Pondok Aren.',k:[],a:['Lihat kabar kegiatan','#berita']}];
 var PI=[I[0],I[4],'M2 4h20v13H2z M8 21h8 M12 17v4',I[3],I[2]];
 var pl=document.getElementById('pl'),pd=document.getElementById('program-panel'),pi='';
+pd.tabIndex=0;
 function sv(d){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+d+'"/></svg>'}
 function pshow(i,anim){var p=P[i];if(!p)return;pi=String(i);
-[].forEach.call(pl.children,function(b,j){var selected=j==i;b.setAttribute('aria-selected',selected);b.tabIndex=selected?0:-1});
+[].forEach.call(pl.children,function(b,j){var selected=j==i;b.setAttribute('aria-selected',selected);b.tabIndex=selected?0:-1;if(selected&&pl.scrollWidth>pl.clientWidth){var bb=b.getBoundingClientRect(),rb=pl.getBoundingClientRect();if(bb.left<rb.left||bb.right>rb.right)pl.scrollTo({left:b.offsetLeft-(pl.clientWidth-b.offsetWidth)/2,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}});
 pd.setAttribute('aria-labelledby','program-tab-'+i);
 pd.setAttribute('aria-describedby','program-description-'+i);
 var url=p.a[1],urlOK=/^#[-\w/]+$/.test(url)||/^https:\/\/(?:[\w-]+\.)+[\w-]+(?:[/?#][^\s]*)?$/i.test(url);if(!urlOK)url='#berita';
@@ -137,7 +138,7 @@ put(pd,'<div class="program-panel-top"><span class="program-step">Program '+('0'
 var programDescription=pd.querySelector('p');if(programDescription)programDescription.id='program-description-'+i;
 if(anim){pd.classList.remove('sw');void pd.offsetWidth;pd.classList.add('sw')}}
 P.forEach(function(p,i){var b=document.createElement('button');b.id='program-tab-'+i;b.setAttribute('role','tab');b.setAttribute('aria-controls','program-panel');b.setAttribute('aria-selected',i===0);b.tabIndex=i===0?0:-1;
-put(b,'<span class="program-tab-num">'+('0'+(i+1)).slice(-2)+'</span><span class="pi">'+sv(PI[i%PI.length])+'</span><span class="program-tab-copy"><b>'+esc(p.t)+'</b><small>'+esc(p.k.slice(0,2).join(' · ')||'Program khidmat MWCNU')+'</small></span><span class="program-tab-arrow" aria-hidden="true">→</span>');
+put(b,'<span class="program-tab-num">'+('0'+(i+1)).slice(-2)+'</span><span class="pi">'+sv(PI[i%PI.length])+'</span><span class="program-tab-copy"><b>'+esc(p.t)+'</b><small>'+esc(p.s)+'</small></span><span class="program-tab-arrow" aria-hidden="true">→</span>');
 b.onclick=function(){pshow(i,1)};b.onkeydown=function(e){var next=e.key==='ArrowDown'||e.key==='ArrowRight'?i+1:e.key==='ArrowUp'||e.key==='ArrowLeft'?i-1:e.key==='Home'?0:e.key==='End'?P.length-1:-1;if(next<0)return;e.preventDefault();next=(next+P.length)%P.length;pshow(next,1);pl.children[next].focus()};pl.appendChild(b)});
 pshow(0,0);
 // Video TVNU Pondok Aren: tambahkan baris [idVideo, judul, tanggal] di sini
@@ -1022,8 +1023,11 @@ var I=[[home,'Beranda',`<path d='M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8'/><p
 var tb=document.createElement('div');tb.id='tabbar';tb.setAttribute('role','navigation');tb.setAttribute('aria-label','Navigasi cepat');
 I.forEach(function(x){var a=document.createElement('a'),href=x[0];a.setAttribute('href',href.charAt(0)=='#'?href:'#top');var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.innerHTML=x[2];var span=document.createElement('span');span.textContent=x[1];a.appendChild(svg);a.appendChild(span);tb.appendChild(a)});
 document.body.appendChild(tb);
-function act(){var h=location.hash.slice(1).split('/')[0],k=(h==''||h=='beranda'||h=='top')?0:(h=='berita'||h=='baca')?1:h=='agenda'?2:h=='galeri'?3:h=='kontak'?4:-1;[].forEach.call(tb.children,function(a,i){var on=i==k;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});tb.classList.remove('banom-active')}
-addEventListener('hashchange',act);act();
+function act(){var h=location.hash.slice(1).split('/')[0],k=(h==''||h=='beranda'||h=='top')?0:(h=='berita'||h=='baca')?1:h=='agenda'?2:h=='galeri'?3:h=='kontak'?4:-1;[].forEach.call(tb.children,function(a,i){var on=i==k;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});tb.classList.remove('banom-active');tb.classList.toggle('nav-covered',document.body.classList.contains('nav-open'))}
+addEventListener('hashchange',act);
+/* Hash statis berubah tanpa mutasi DOM: paksa bilah kembali terlihat, tanpa menunggu scroll. */
+addEventListener('hashchange',function(){tb.classList.remove('hide','nav-covered')});
+act();
 var ly=0,scrollQueued=false;addEventListener('scroll',function(){if(scrollQueued)return;scrollQueued=true;requestAnimationFrame(function(){var y=scrollY;if(document.body.classList.contains('nav-open'))tb.classList.remove('hide');else if(y>ly+8&&y>240)tb.classList.add('hide');else if(y<ly-8||y<120)tb.classList.remove('hide');ly=y;scrollQueued=false})},{passive:true});
 addEventListener('hashchange',function(){tb.classList.remove('hide')});
 var navButton=document.getElementById('mb'),navEl=document.getElementById('nv');if('IntersectionObserver' in window){var bo=new IntersectionObserver(function(entries){if(location.hash=='#top'||!location.hash){var active=entries.some(function(x){return x.isIntersecting});tb.classList.toggle('banom-active',active);[].forEach.call(tb.children,function(a,i){var on=active?i==2:(location.hash==''||location.hash=='#top')?i==0:false;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current',active?'location':'page');else a.removeAttribute('aria-current')})}else tb.classList.remove('banom-active')},{threshold:[.2,.6]});var bs=document.getElementById('banom');if(bs)bo.observe(bs)}

@@ -36,16 +36,19 @@
   function friendly(e) {
     var m = (e && (e.message || e.error_description)) || String(e || '');
     var code = (e && (e.code || e.status)) || '';
+    var detail = e && e.details ? ' Detail: ' + e.details : '';
+    var hint = e && e.hint ? ' Petunjuk: ' + e.hint : '';
+    var suffix = detail + hint;
     if (code === 'PGRST205' || /schema cache|does not exist|tidak ada/i.test(m)) {
       return 'Tabel direktori belum tersedia. Jalankan supabase/direktori-organisasi.sql di SQL Editor Supabase, lalu muat ulang halaman ini.';
     }
     if (code === '42501' || /permission denied|row-level security/i.test(m)) {
-      return 'Server menolak perubahan ini. Anda hanya dapat mengubah unit di ranting Anda' + (isAdmin() ? '.' : ' (periksa kolom prnu pada menu Pengelola).');
+      return 'Server menolak perubahan ini. Anda hanya dapat mengubah unit di ranting Anda' + (isAdmin() ? '.' : ' (periksa kolom prnu pada menu Pengelola).') + suffix;
     }
-    if (code === '23505' || /duplicate key|sudah ada/i.test(m)) return 'Data dengan kunci yang sama sudah ada: ' + m;
-    if (code === '23503' || /foreign key|masih dipakai/i.test(m)) return 'Data ini masih dipakai data lain sehingga tidak dapat dihapus. Hapus turunannya lebih dulu.';
-    if (code === '23514' || /violates check constraint/i.test(m)) return 'Isian tidak memenuhi aturan data: ' + m;
-    return m || 'Terjadi kesalahan.';
+    if (code === '23505' || /duplicate key|sudah ada/i.test(m)) return 'Data dengan kunci yang sama sudah ada: ' + m + suffix;
+    if (code === '23503' || /foreign key|masih dipakai/i.test(m)) return 'Data ini masih dipakai data lain sehingga tidak dapat dihapus. Hapus turunannya lebih dulu.' + suffix;
+    if (code === '23514' || /violates check constraint/i.test(m)) return 'Isian tidak memenuhi aturan data: ' + m + suffix;
+    return (m || 'Terjadi kesalahan.') + (code ? ' (kode ' + code + ')' : '') + suffix;
   }
 
   /* ---------- olah unit: siapa yang boleh mengubah ---------- */

@@ -95,7 +95,16 @@ function can(c, data) {
   return false;
 }
 function roleName(role) { return ({super_admin:'Super Admin',admin:'Super Admin (legacy)',pengurus:'Pengurus / Editor',editor:'Pengurus / Editor (legacy)',jurnalis:'Jurnalis (Literasi & Opini)',ustadz:'Ustadz (Tanya Jawab)'})[role] || role; }
-function errMsg(e) { return (e && (e.message || e.error_description)) || String(e); }
+function errMsg(e) {
+  if (!e) return 'Kesalahan tidak diketahui.';
+  var parts = [];
+  var message = e.message || e.error_description || '';
+  if (message) parts.push(message);
+  if (e.code) parts.push('kode ' + e.code);
+  if (e.details) parts.push(String(e.details));
+  if (e.hint) parts.push('Petunjuk: ' + e.hint);
+  return parts.join(' · ') || String(e);
+}
 
 /* ---------- layar awal ---------- */
 function screen(h) { root.innerHTML = '<div class="center"><div class="card">' + h + '</div></div>'; }
@@ -344,13 +353,16 @@ async function viewEdit(key, id) {
     e.preventDefault(); var d = readForm(form, fields); if (!can(c, d) || (key === 'berita' && !fields.filter(function (f) { return f.k === 'kategori'; })[0].o.includes(d.kategori))) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
     var btn = $('#save'); btn.disabled = true; var pub = $('#pub').checked, r2;
     try {
-      if (item) r2 = await sb.from('content_items').update({ data: d, published: pub }).eq('id', item.id).select().single();
-      else { var all = await sb.from('content_items').select('sort').eq('type', key); if (all.error) throw all.error; var mx = (all.data || []).reduce(function (m, x) { return Math.max(m, x.sort || 0); }, 0); r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: pub }).select().single(); }
+      /* Kembalikan hanya kunci utama: hindari payload JSON besar, tetapi
+         .single() tetap mendeteksi bila RLS tidak mengizinkan baris tersimpan
+         untuk dibaca atau tidak ada baris yang cocok pada UPDATE. */
+      if (item) r2 = await sb.from('content_items').update({ data: d, published: pub }).eq('id', item.id).select('id').single();
+      else { var all = await sb.from('content_items').select('sort').eq('type', key); if (all.error) throw all.error; var mx = (all.data || []).reduce(function (m, x) { return Math.max(m, x.sort || 0); }, 0); r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: pub }).select('id').single(); }
       if (r2.error) throw r2.error; S.dirty = false; toast('Tersimpan.'); location.hash = '#/' + key;
     } catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); btn.disabled = false; }
   });
 }
-function saveSet(key, value) { return sb.from('site_settings').upsert({ key: key, value: value }, { onConflict: 'key' }).select().single().then(function (r) { if (r.error) throw r.error; S.set[key] = value; return r; }); }
+function saveSet(key, value) { return sb.from('site_settings').upsert({ key: key, value: value }, { onConflict: 'key' }).select('key').single().then(function (r) { if (r.error) throw r.error; S.set[key] = value; return r; }); }
 function viewSet(key) {
   var c = SETS[key]; if (!c) return viewHome(); if (!isAdmin()) return noAccess();
   var data = S.set[key] || {};
@@ -359,8 +371,9 @@ function viewSet(key) {
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); var d = readForm(form, c.F); if (!isAdmin()) { toast('Hanya Super Admin dapat mengubah pengaturan situs.', 1); return; } if (!validate(form, c.F, d)) { toast('Periksa isian yang ditandai merah.', 1); return; }
     var btn = $('#save'); btn.disabled = true;
-    try { await saveSet(key, Object.assign({}, data, d)); S.dirty = false; toast('Tersimpan. Muat ulang situs untuk melihat hasilnya.'); } catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); }
-    btn.disabled = false;
+    try { await saveSet(key, Object.assign({}, data, d)); S.dirty = false; toast('Tersimpan. Muat ulang situs untuk melihat hasilnya.'); }
+    catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); }
+    finally { btn.disabled = false; }
   });
 }
 async function viewStaff() {
