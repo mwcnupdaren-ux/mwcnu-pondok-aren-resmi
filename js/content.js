@@ -131,18 +131,25 @@
   /* Penanda sekali pakai: mencegah halaman memuat ulang berulang saat data CMS berubah. */
   function syncFlag(v) { try { if (v) sessionStorage.setItem('mwc_sync', '1'); else sessionStorage.removeItem('mwc_sync'); } catch (e) {} }
   function synced() { try { return sessionStorage.getItem('mwc_sync') === '1'; } catch (e) { return true; } }
+  /* Data yang sudah pernah dimuat ulang pada kunjungan ini (bertahan meski
+     flag mwc_sync sekali pakai sudah dikonsumsi). */
+  function syncedData() { try { return sessionStorage.getItem('mwc_sync_data'); } catch (e) { return null; } }
   /* Cache dipakai lebih dulu agar halaman langsung terisi; data terbaru menyusul. */
   var timer = setTimeout(function () { go(cache); }, cache ? 0 : 3000);
   Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc,id.asc'), q('site_settings?select=key,value&order=key.asc')]).then(function (r) {
     var d = { items: {}, set: {} };
     r[0].forEach(function (x) { (d.items[x.type] = d.items[x.type] || []).push(x.data); });
     r[1].forEach(function (x) { d.set[x.key] = x.value; });
-    var next = JSON.stringify(d), prev = null;
-    try { prev = localStorage.getItem('mwc_data'); localStorage.setItem('mwc_data', next); } catch (e) {}
+    var next = JSON.stringify(d), prev = syncedData();
+    try { localStorage.setItem('mwc_data', next); } catch (e) {}
     clearTimeout(timer);
     if (!rendered) { syncFlag(false); go(d); return; } /* belum tampil: langsung pakai data terbaru */
-    if (prev === next) { syncFlag(false); return; } /* sudah sama dengan cache */
-    if (synced()) { syncFlag(false); return; }      /* sudah pernah dimuat ulang pada kunjungan ini */
+    if (prev === next || prev === null && !cache) { syncFlag(false); return; } /* sudah sama dengan data yang pernah dimuat */
+    if (synced()) {                                 /* sudah pernah dimuat ulang pada kunjungan ini */
+      syncFlag(false);
+      try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
+      return;
+    }
     /* Jangan reload saat pengguna sedang mengisi formulir yang belum dikirim,
        agar isian KTA/zakat/layanan tidak hilang tanpa konfirmasi. */
     var hasDraft = false;
@@ -160,6 +167,10 @@
     if (hasDraft && !confirm('Ada perubahan konten baru di CMS. Halaman akan dimuat ulang, tetapi isian formulir Anda yang belum dikirim akan hilang. Muat ulang sekarang?')) {
       syncFlag(false); return; /* coba lagi pada kunjungan berikutnya */
     }
-    syncFlag(true); location.reload();              /* tampilkan perubahan CMS yang baru disimpan */
+    /* Tampilkan perubahan CMS yang baru disimpan. Flag mwc_sync sekali pakai
+       hanya disetel tepat sebelum reload; salinan data terbaru disimpan
+       terpisah agar perbandingan berikutnya tetap akurat. */
+    try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
+    syncFlag(true); location.reload();
   }).catch(function () { clearTimeout(timer); go(cache); });
 })();
