@@ -20,14 +20,15 @@ var T = function (k, l, o) { o = o || {}; o.k = k; o.l = l; o.t = o.t || 'text';
 
 var COLS = {
  berita: { l: 'Berita & Jurnal', g: 'Konten', e: 'jurnalis', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.kategori || ''); }, F: [
-  T('kategori','Kategori',{t:'select',o:['Berita','Laporan','Literasi','Opini'],req:1}), T('judul','Judul',{req:1}), T('penulis','Penulis',{h:'Contoh: Redaksi MWCNU / Nama jurnalis.'}),
-  T('tanggal','Tanggal',{t:'date',req:1}), T('tag','Tag / kata kunci',{h:'Pisah dengan koma. Contoh: Halal Bi Halal, Pondok Aren'}),
-  T('featured','Sorotan beranda',{t:'bool'}),
-  T('ringkasan','Ringkasan (tampil di daftar berita)',{t:'area'}), T('foto','Foto utama',{t:'image',f:'berita'}), T('lead','Paragraf pembuka',{t:'area'}),
-  T('caption','Keterangan foto'), T('meta_judul','Judul SEO',{h:'Kosongkan bila mengikuti judul.'}), T('meta_desc','Deskripsi SEO',{t:'area',h:'1–2 kalimat untuk mesin pencari & berbagi. Kosongkan bila mengikuti ringkasan.'}),
-  T('font_artikel','Font isi artikel ini',{t:'select',o:['Ikuti pengaturan','Sans','Serif']}), T('dropcap_art','Drop cap artikel ini',{t:'bool'}),
-  T('isi','Isi berita',{t:'rich',h:'Pisahkan paragraf dengan satu baris kosong. Gunakan ## untuk judul bagian, - untuk daftar, **tebal**.'}),
-  T('info','Info kegiatan',{t:'area',h:'Satu baris satu info dengan format "Label: nilai". Contoh: Tempat: Aula MWC'}),
+  T('judul','Judul artikel',{req:1}), T('kategori','Kategori',{t:'category',o:['Berita','Laporan','Literasi','Opini'],req:1,h:'Pilih saran atau ketik kategori baru.'}),
+  T('tanggal','Tanggal terbit',{t:'date',req:1}), T('penulis','Penulis',{h:'Contoh: Redaksi MWCNU / Nama jurnalis.'}),
+  T('foto','Thumbnail / foto utama',{t:'image',f:'berita'}), T('ringkasan','Ringkasan artikel',{t:'area',h:'Dipakai sebagai cuplikan dan deskripsi SEO bila deskripsi SEO dikosongkan.'}),
+  T('isi','Isi artikel',{t:'editor',req:1}),
+  T('tag','Tag / kata kunci',{h:'Pisahkan dengan koma. Contoh: Halal Bi Halal, Pondok Aren'}), T('featured','Tampilkan sebagai sorotan',{t:'bool'}),
+  T('lead','Paragraf pembuka khusus',{t:'area'}), T('caption','Keterangan foto'),
+  T('meta_judul','Judul SEO',{h:'Idealnya 50–60 karakter. Kosongkan untuk memakai judul artikel.'}), T('meta_desc','Deskripsi SEO',{t:'area',h:'Disarankan 120–160 karakter. Kosongkan untuk memakai ringkasan artikel.'}),
+  T('font_artikel','Tipografi artikel',{t:'select',o:['Ikuti pengaturan','Sans','Serif']}), T('dropcap_art','Huruf awal besar',{t:'bool'}),
+  T('info','Info kegiatan',{t:'area',h:'Opsional. Satu baris satu info, contoh: Tempat: Aula MWC'}),
   T('foto_tambahan','Foto tambahan',{t:'images',f:'berita'}), T('video','Video terkait',{t:'area',h:'Tempel tautan atau ID YouTube video yang sudah ada di daftar Video TVNU, satu per baris.'})] },
  agenda: { l: 'Agenda', g: 'Konten', e: 'pengurus', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.lokasi || ''); }, F: [
   T('tanggal','Tanggal',{t:'date',req:1}), T('judul','Nama kegiatan',{req:1}), T('kategori','Kategori',{h:'Contoh: Lailatul Ijtima\', Rapat, Turba'}), T('lokasi','Lokasi')] },
@@ -41,8 +42,8 @@ var COLS = {
   T('nama','Nama majelis',{req:1}), T('asuh','Pengasuh / ustadz'), T('hari','Hari',{t:'select',o:HARI}), T('jam','Jam',{h:'Contoh: 19.30'}), T('tempat','Tempat'), T('ranting','Ranting / kelurahan',{t:'select',o:RT}), T('hp','Nomor HP kontak',{h:'Contoh: 0812xxxxxxx'})] },
  tanya_jawab: { l: 'Tanya Jawab Agama', g: 'Konten', e: 'ustadz', ti: function (d) { return d.q; }, su: function (d) { return d.k || ''; }, F: [
   T('k','Topik',{t:'select',o:TOPIK,req:1}), T('q','Pertanyaan',{t:'area',req:1}), T('a','Jawaban',{t:'rich',req:1,h:'Jawaban sebaiknya sudah ditinjau pengurus yang berwenang.'})] },
- layanan: { l: 'Program & Layanan', g: 'Beranda', e: 'admin', filter: null, ti: function (d) { return d.judul; }, su: function (d) { return (d.tampil === false ? 'Disembunyikan · ' : '') + (d.tautan || ''); }, F: [
-  T('judul','Judul',{req:1}), T('deskripsi','Deskripsi singkat',{t:'area'}), T('ikon','Ikon',{t:'select',o:IKON,req:1}), T('tautan','Tautan tujuan',{dl:LINKS,h:'Halaman internal (contoh #ambulans) atau alamat lengkap https://…'}), T('tampil','Tampilkan di beranda',{t:'bool'})] },
+ layanan: { l: 'Program & Layanan', g: 'Beranda', e: 'admin', filter: null, ti: function (d) { return d.judul; }, su: function (d) { return (d.tampil === false ? 'Disembunyikan · ' : '') + [d.keterangan, d.tautan].filter(Boolean).join(' · '); }, F: [
+  T('judul','Judul',{req:1}), T('deskripsi','Deskripsi singkat',{t:'area'}), T('keterangan','Keterangan',{h:'Contoh: Pengajian rutin setiap pekan atau Kitab Fathul Qarib. Tampil di kartu layanan publik.'}), T('ikon','Ikon',{t:'select',o:IKON,req:1}), T('tautan','Tautan tujuan',{dl:LINKS,h:'Halaman internal (contoh #ambulans) atau alamat lengkap https://…'}), T('tampil','Tampilkan di beranda',{t:'bool'})] },
  program: { l: 'Program Khidmat', g: 'Beranda', e: 'admin', ti: function (d) { return d.judul; }, su: function (d) { return d.tombol || ''; }, F: [
   T('judul','Judul',{req:1}), T('deskripsi','Deskripsi',{t:'area'}), T('kegiatan','Daftar kegiatan',{t:'area',h:'Satu baris satu kegiatan.'}), T('tombol','Teks tombol'), T('tautan','Tautan tombol',{dl:LINKS})] },
  pengurus: { l: 'Struktur Pengurus', g: 'Organisasi', e: 'admin', filter: 'bagian', ti: function (d) { return d.nama; }, su: function (d) { return (d.jabatan || '') + ' · ' + (d.bagian || ''); }, F: [
@@ -63,6 +64,7 @@ var COLS = {
   T('isi','Isi halaman',{t:'rich',req:1,h:'Format: "## Judul bagian", "- butir daftar", **tebal**, paragraf dipisah baris kosong.'})] }
 };
 var SETS = {
+ kas: { l: 'Laporan Kas', F: [T('tampil','Tampilkan laporan Kas di situs publik',{t:'bool',def:false,h:'Aktifkan setelah isi laporan diperiksa dan siap dipublikasikan.'}), T('periode','Periode laporan',{h:'Contoh format: Januari–Maret 2026.'}), T('pemasukan','Total pemasukan (Rp)',{t:'num',h:'Isi angka laporan yang sudah diverifikasi. Kosongkan bila tidak ingin ditampilkan.'}), T('pengeluaran','Total pengeluaran (Rp)',{t:'num',h:'Isi angka laporan yang sudah diverifikasi. Kosongkan bila tidak ingin ditampilkan.'}), T('saldo','Saldo akhir (Rp)',{t:'num',h:'Isi angka laporan yang sudah diverifikasi. Kosongkan bila tidak ingin ditampilkan.'}), T('keterangan','Keterangan laporan',{t:'area',h:'Sumber, catatan singkat, atau penjelasan tambahan untuk warga.'})] },
  kontak: { l: 'Kontak & Alamat', F: [T('alamat','Alamat sekretariat',{t:'area'}), T('wa','Nomor WhatsApp (format 62…)',{h:'Contoh: 6285161033689. Dipakai pada semua tautan WhatsApp situs.'}), T('wa_tampil','Nomor WhatsApp (tampilan)',{h:'Contoh: 0851-6103-3689'}), T('email','Email')] },
  medsos: { l: 'Media Sosial', F: [T('facebook','Facebook',{t:'url'}), T('instagram','Instagram',{t:'url'}), T('tiktok','TikTok',{t:'url'}), T('youtube','YouTube',{t:'url'})] },
  sambutan: { l: 'Sambutan Ketua', F: [T('salam1','Salam pembuka 1'), T('salam2','Salam pembuka 2'), T('kutipan','Kutipan utama',{t:'area'}), T('isi','Isi sambutan',{t:'rich',h:'Kata/kalimat yang diapit **dua bintang** akan ditandai (stabilo).'}), T('penutup','Salam penutup',{t:'area'}), T('nama','Nama pada foto'), T('jabatan','Jabatan pada foto'), T('foto','Foto ketua',{t:'image',f:'sambutan'})] },
@@ -158,7 +160,13 @@ function noAccess() { shell('Tidak ada akses', '', '<div class="panel empty">Per
 /* ---------- pembuat formulir ---------- */
 function fieldHTML(f, v) {
   var id = 'f' + Math.random().toString(36).slice(2, 8), h = '<div class="fld" data-k="' + f.k + '" data-t="' + f.t + '">', lab = '<label for="' + id + '">' + esc(f.l) + (f.req ? ' *' : '') + '</label>', hint = f.h ? '<small class="h">' + esc(f.h) + '</small>' : '';
-  if (f.t === 'bool') return h + '<label class="chk"><input class="in" type="checkbox" ' + (v === false ? '' : 'checked') + '> ' + esc(f.l) + '</label></div>';
+  if (f.t === 'bool') return h + '<label class="chk"><input class="in" type="checkbox" ' + (v === false || (v === undefined && f.def === false) ? '' : 'checked') + '> ' + esc(f.l) + '</label>' + hint + '</div>';
+  if (f.t === 'category') return h + lab + '<input class="in" id="' + id + '" type="text" list="' + id + '_options" value="' + esc(v) + '" maxlength="48" autocomplete="off"><datalist id="' + id + '_options">' + (f.o || []).map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>' + hint + '<span class="em"></span></div>';
+  if (f.t === 'editor') return h + lab + '<div class="article-editor-wrap"><div class="article-toolbar" role="toolbar" aria-label="Pemformatan isi artikel">' +
+    '<button type="button" data-editor-block="p" title="Paragraf">Paragraf</button><button type="button" data-editor-block="h2" title="Subjudul">Subjudul</button><button type="button" data-editor-block="blockquote" title="Kutipan">Kutipan</button><span></span>' +
+    '<button type="button" data-editor-cmd="bold" aria-label="Tebal" title="Tebal"><b>B</b></button><button type="button" data-editor-cmd="italic" aria-label="Miring" title="Miring"><i>I</i></button><button type="button" data-editor-cmd="insertUnorderedList" aria-label="Daftar berpoin" title="Daftar berpoin">• Daftar</button><button type="button" data-editor-cmd="insertOrderedList" aria-label="Daftar bernomor" title="Daftar bernomor">1. Daftar</button><button type="button" data-editor-cmd="createLink" aria-label="Sisipkan tautan" title="Sisipkan tautan">Tautan</button></div>' +
+    '<div class="article-editor" id="' + id + '" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Isi artikel" data-placeholder="Mulai menulis artikel di sini…"></div><textarea class="in article-source" hidden>' + esc(v) + '</textarea></div>' +
+    '<small class="h">Gunakan subjudul untuk membagi bahasan, paragraf pendek, dan daftar bila diperlukan.</small><span class="em"></span></div>';
   if (f.t === 'select') {
     /* Opsi boleh berupa teks atau {v,l} (nilai berbeda dari label), dipakai
        modul direktori untuk relasi ber-UUID. */
@@ -169,33 +177,98 @@ function fieldHTML(f, v) {
        agar tidak hilang/ditimpa kosong saat formulir disimpan. */
     if (v && !opts.some(function (o) { return o.v === String(v); })) selOpts += '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>';
     return h + lab + '<select class="in" id="' + id + '"><option value="">' + esc(f.empty || 'Pilih…') + '</option>' + selOpts + '</select>' + hint + '<span class="em"></span></div>'; }
-  if (f.t === 'area' || f.t === 'rich') return h + lab + '<textarea class="in ' + (f.t === 'rich' ? 'rich' : '') + '" id="' + id + '">' + esc(v) + '</textarea>' + hint + '<span class="em"></span></div>';
+  if (f.t === 'area' || f.t === 'rich') return h + lab + '<textarea class="in ' + (f.t === 'rich' ? 'rich' : '') + '" id="' + id + '">' + esc(v) + '</textarea>' + (f.k === 'meta_desc' ? '<small class="seo-count" data-count-for="' + id + '"></small>' : '') + hint + '<span class="em"></span></div>';
   if (f.t === 'image') v = safeMediaURL(v);
   if (f.t === 'image') return h + '<span class="lab">' + esc(f.l) + (f.req ? ' *' : '') + '</span><div class="img" data-f="' + (f.f || 'umum') + '" data-png="' + (f.png ? 1 : '') + '" data-max="' + (f.max || 1600) + '"><div class="thumb" style="' + (v ? 'background-image:url(\'' + esc(v) + '\')' : '') + '">' + (v ? '' : 'Belum ada') + '</div><div><label class="btn s g">Pilih gambar<input type="file" accept="image/*" hidden></label> <button type="button" class="btn s o" data-act="imgdel">Hapus</button><input class="in" type="hidden" value="' + esc(v) + '"></div></div>' + hint + '<span class="em"></span></div>';
   if (f.t === 'images') { v = Array.isArray(v) ? v : []; return h + '<span class="lab">' + esc(f.l) + '</span><div class="imgs" data-f="' + (f.f || 'umum') + '" data-max="' + (f.max || 0) + '" data-size="1600">' + v.map(imgItem).join('') + '<label class="btn s g">Tambah gambar<input type="file" accept="image/*" multiple hidden></label></div>' + hint + '<span class="em"></span></div>'; }
   if (f.t === 'repeat') { v = Array.isArray(v) ? v : []; while (f.fixed && v.length < f.fixed) v.push({}); return h + '<span class="lab">' + esc(f.l) + '</span>' + hint + '<div class="rep" data-fixed="' + (f.fixed || '') + '">' + v.map(function (r, i) { return rowHTML(f, r, i); }).join('') + '</div>' + (f.fixed ? '' : '<button type="button" class="btn s o" data-act="radd" data-k="' + f.k + '">+ Tambah</button>') + '</div>'; }
   if (f.t === 'color') return h + lab + '<input class="in" id="' + id + '" type="color" value="' + esc(v || '#17352A') + '">' + hint + '</div>';
   var type = f.t === 'date' ? 'date' : f.t === 'num' ? 'number' : f.t === 'url' ? 'url' : 'text';
-  return h + lab + '<input class="in" id="' + id + '" type="' + type + '" value="' + esc(v) + '"' + (f.dl ? ' list="dl_' + f.k + '"' : '') + '>' + (f.dl ? '<datalist id="dl_' + f.k + '">' + f.dl.map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>' : '') + hint + '<span class="em"></span></div>';
+  return h + lab + '<input class="in" id="' + id + '" type="' + type + '" value="' + esc(v) + '"' + (f.dl ? ' list="dl_' + f.k + '"' : '') + '>' + (f.dl ? '<datalist id="dl_' + f.k + '">' + f.dl.map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>' : '') + (f.k === 'meta_judul' ? '<small class="seo-count" data-count-for="' + id + '"></small>' : '') + hint + '<span class="em"></span></div>';
 }
 function safeMediaURL(s) { s = String(s || '').trim(); if (/^\/(?!\/)[^\\"'<>]*$/.test(s)) return s; try { var u = new URL(s, location.href); if (u.protocol === 'https:' && u.origin !== location.origin) return u.href; } catch (e) {} return ''; }
 function imgItem(u) { u = safeMediaURL(u); return '<div class="it" data-u="' + esc(u) + '" style="' + (u ? 'background-image:url(\'' + esc(u) + '\')' : '') + '"><button type="button" data-act="imgrm" title="Hapus">&times;</button></div>'; }
 function rowHTML(f, r, i) { return '<div class="rrow" data-f="' + f.k + '"><div class="rh"><span>' + esc(f.l) + ' ' + (i + 1) + '</span>' + (f.fixed ? '' : '<button type="button" class="act d" data-act="rdel">Hapus</button>') + '</div>' + f.sub.map(function (s) { return fieldHTML(s, r[s.k]); }).join('') + '</div>'; }
 function formHTML(F, data) { return F.map(function (f) { return fieldHTML(f, data[f.k]); }).join(''); }
+function articleFormHTML(F, data) {
+  var main = ['judul','kategori','tanggal','penulis','foto','ringkasan','isi'];
+  return '<div class="article-core">' + formHTML(F.filter(function (f) { return main.indexOf(f.k) >= 0; }), data) + '</div><details class="article-settings"><summary><span>SEO & pengaturan lanjutan</span><small>Tag, metadata pencarian, dan media tambahan</small></summary><div class="article-settings-grid">' + formHTML(F.filter(function (f) { return main.indexOf(f.k) < 0; }), data) + '</div></details>';
+}
+function fieldWrap(rootEl, key) {
+  var direct = [].filter.call(rootEl.children, function (c) { return c.getAttribute && c.getAttribute('data-k') === key; })[0];
+  return direct || $('[data-k="' + key + '"]', rootEl);
+}
+function articleInlineHTML(s) {
+  return esc(s).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) { return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>'; }).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
+}
+function articleMarkdownHTML(s) {
+  var blocks = String(s || '').replace(/\r/g, '').split(/\n\s*\n/).filter(function (b) { return b.trim(); });
+  return blocks.map(function (block) {
+    var lines = block.split('\n'), first = lines[0].trim(), m;
+    if ((m = first.match(/^#{2,3}\s+(.+)$/))) return '<h2>' + articleInlineHTML(m[1]) + '</h2>';
+    if (lines.every(function (line) { return /^\s*[-*]\s+/.test(line); })) return '<ul>' + lines.map(function (line) { return '<li>' + articleInlineHTML(line.replace(/^\s*[-*]\s+/, '')) + '</li>'; }).join('') + '</ul>';
+    if (lines.every(function (line) { return /^\s*\d+[.)]\s+/.test(line); })) return '<ol>' + lines.map(function (line) { return '<li>' + articleInlineHTML(line.replace(/^\s*\d+[.)]\s+/, '')) + '</li>'; }).join('') + '</ol>';
+    if (lines.every(function (line) { return /^\s*&gt;\s?/.test(esc(line)); })) return '<blockquote><p>' + lines.map(function (line) { return articleInlineHTML(line.replace(/^\s*>\s?/, '')); }).join('<br>') + '</p></blockquote>';
+    return '<p>' + lines.map(articleInlineHTML).join('<br>') + '</p>';
+  }).join('');
+}
+function articleEditorMarkdown(root) {
+  function inline(node) {
+    if (node.nodeType === 3) return node.nodeValue;
+    if (node.nodeType !== 1) return '';
+    var tag = node.tagName.toLowerCase(), body = [].map.call(node.childNodes, inline).join('');
+    if (tag === 'br') return '\n';
+    if (tag === 'strong' || tag === 'b') return '**' + body + '**';
+    if (tag === 'em' || tag === 'i') return '*' + body + '*';
+    if (tag === 'a') { var href = node.getAttribute('href') || ''; return /^https?:\/\//i.test(href) ? '[' + body + '](' + href + ')' : body; }
+    return body;
+  }
+  function block(node) {
+    if (node.nodeType === 3) return node.nodeValue.trim();
+    if (node.nodeType !== 1) return '';
+    var tag = node.tagName.toLowerCase();
+    if (tag === 'ul' || tag === 'ol') return [].map.call(node.children, function (li, i) { return (tag === 'ul' ? '- ' : (i + 1) + '. ') + inline(li).trim(); }).join('\n');
+    if (tag === 'blockquote') return inline(node).split('\n').map(function (line) { return '> ' + line; }).join('\n');
+    var value = inline(node).trim();
+    if (/^h[1-6]$/.test(tag)) return '## ' + value;
+    return value;
+  }
+  return [].map.call(root.childNodes, block).filter(Boolean).join('\n\n').trim();
+}
+function initArticleEditor(form) {
+  $$('.article-editor', form).forEach(function (editor) {
+    var wrap = editor.closest('.fld'), source = $('.article-source', wrap), toolbar = $('.article-toolbar', wrap);
+    editor.innerHTML = articleMarkdownHTML(source.value);
+    function sync() { source.value = articleEditorMarkdown(editor); source.dispatchEvent(new Event('input', { bubbles: true })); }
+    editor.addEventListener('input', sync);
+    editor.addEventListener('paste', function (e) { e.preventDefault(); var text = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, text); });
+    toolbar.addEventListener('mousedown', function (e) { if (e.target.closest('button')) e.preventDefault(); });
+    toolbar.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return; editor.focus();
+      if (b.hasAttribute('data-editor-block')) document.execCommand('formatBlock', false, b.getAttribute('data-editor-block'));
+      else {
+        var cmd = b.getAttribute('data-editor-cmd');
+        if (cmd === 'createLink') { var selected = window.getSelection().toString(); if (!selected) return toast('Pilih teks yang akan dijadikan tautan.', 1); var url = prompt('Masukkan alamat tautan (https://…)'); if (!url) return; try { var parsed = new URL(url, location.href); if (!/^https?:$/.test(parsed.protocol)) throw new Error(); url = parsed.href; } catch (_) { return toast('Alamat tautan harus menggunakan http:// atau https://.', 1); } document.execCommand(cmd, false, url); }
+        else document.execCommand(cmd, false, null);
+      }
+      sync();
+    });
+  });
+}
 function ytId(s) { s = String(s || '').trim(); var m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : s; }
 function readField(w, f) {
-  var el = $('.in', w);
+  var el = f.t === 'editor' ? $('.article-source', w) : $('.in', w);
   if (f.t === 'bool') return el.checked;
   if (f.t === 'images') return $$('.it', w).map(function (e) { return e.getAttribute('data-u'); });
   if (f.t === 'repeat') return $$('.rrow', w).map(function (row) { return readForm(row, f.sub); });
   if (f.t === 'num') return el.value === '' ? '' : Number(el.value);
   var v = el.value.trim(); if (f.k === 'youtube') v = ytId(v); return v;
 }
-function readForm(rootEl, F) { var o = {}; F.forEach(function (f) { var w = [].filter.call(rootEl.children, function (c) { return c.getAttribute && c.getAttribute('data-k') === f.k; })[0]; if (w) o[f.k] = readField(w, f); }); return o; }
+function readForm(rootEl, F) { var o = {}; F.forEach(function (f) { var w = fieldWrap(rootEl, f.k); if (w) o[f.k] = readField(w, f); }); return o; }
 function validate(rootEl, F, data) {
   var ok = true;
   F.forEach(function (f) {
-    var w = [].filter.call(rootEl.children, function (c) { return c.getAttribute && c.getAttribute('data-k') === f.k; })[0]; if (!w) return;
+    var w = fieldWrap(rootEl, f.k); if (!w) return;
     var v = data[f.k], m = '';
     var empty = v == null || v === '' || (Array.isArray(v) && !v.length);
     if (f.req && empty) m = 'Wajib diisi.';
@@ -351,10 +424,22 @@ async function viewEdit(key, id) {
   var pubLocked = S.me.role === 'jurnalis' && !pubDefault;
   var hint = (!item && S.me.role === 'jurnalis') ? '<div class="note">Penyerahan ke tinjauan: tulisan Jurnalis disimpan sebagai <b>draf</b> dan perlu ditinjau Pengurus sebelum terbit.</div>' : '';
   var fields = c.F.map(function (f) { if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; } return f; });
-  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel" id="form" novalidate>' + formHTML(fields, data) + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
+  var fieldsHTML = key === 'berita' ? articleFormHTML(fields, data) : formHTML(fields, data);
+  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel ' + (key === 'berita' ? 'article-form' : '') + '" id="form" novalidate>' + fieldsHTML + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
   var form = $('#form'); form.__F = fields; bindForm(form);
+  if (key === 'berita') {
+    initArticleEditor(form);
+    $$('.seo-count', form).forEach(function (counter) {
+      var field = $('#' + counter.getAttribute('data-count-for'), form), limit = counter.closest('.fld').getAttribute('data-k') === 'meta_judul' ? 60 : 160;
+      if (!field) return;
+      function updateCount() { var n = field.value.length; counter.textContent = n + ' karakter' + (n ? (n < limit - 20 ? ' · masih pendek' : n > limit + 10 ? ' · terlalu panjang' : ' · sesuai panjang umum') : ' · diisi otomatis bila kosong'); }
+      field.addEventListener('input', updateCount); updateCount();
+    });
+  }
   form.addEventListener('submit', async function (e) {
-    e.preventDefault(); var d = readForm(form, fields); if (!can(c, d) || (key === 'berita' && !fields.filter(function (f) { return f.k === 'kategori'; })[0].o.includes(d.kategori))) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
+    e.preventDefault(); var d = readForm(form, fields), categoryField = key === 'berita' && fields.filter(function (f) { return f.k === 'kategori'; })[0];
+    var categoryAllowed = key !== 'berita' || (!!d.kategori && (S.me.role !== 'jurnalis' || categoryField.o.indexOf(d.kategori) >= 0));
+    if (!can(c, d) || !categoryAllowed) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
     var btn = $('#save'); btn.disabled = true; var pub = $('#pub').checked, r2;
     try {
       /* Kembalikan hanya kunci utama: hindari payload JSON besar, tetapi

@@ -13,16 +13,20 @@
   M.mark = function (s) { return M.esc(s).replace(/\*\*(.+?)\*\*/g, '<mark>$1</mark>'); };
   /* teks kaya sederhana: "## Judul", "- butir", paragraf dipisah baris kosong, **tebal** */
   M.rich = function (s) {
-    var out = [], list = false;
-    String(s || '').split('\n').forEach(function (l) {
-      l = l.trim();
-      var b = M.esc(l).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      if (/^- /.test(l)) { if (!list) { out.push('<ul>'); list = true; } out.push('<li>' + b.slice(2) + '</li>'); return; }
-      if (list) { out.push('</ul>'); list = false; }
-      if (/^## /.test(l)) out.push('<h3>' + b.slice(3) + '</h3>'); else if (l) out.push('<p>' + b + '</p>');
-    });
-    if (list) out.push('</ul>');
-    return out.join('');
+    function inline(value) {
+      return M.esc(value)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) { return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>'; })
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    }
+    return String(s || '').replace(/\r/g, '').split(/\n\s*\n/).filter(function (b) { return b.trim(); }).map(function (block) {
+      var lines = block.split('\n'), first = lines[0].trim(), m;
+      if ((m = first.match(/^#{2,3}\s+(.+)$/))) return '<h3>' + inline(m[1]) + '</h3>';
+      if (lines.every(function (line) { return /^\s*[-*]\s+/.test(line); })) return '<ul>' + lines.map(function (line) { return '<li>' + inline(line.replace(/^\s*[-*]\s+/, '')) + '</li>'; }).join('') + '</ul>';
+      if (lines.every(function (line) { return /^\s*\d+[.)]\s+/.test(line); })) return '<ol>' + lines.map(function (line) { return '<li>' + inline(line.replace(/^\s*\d+[.)]\s+/, '')) + '</li>'; }).join('') + '</ol>';
+      if (lines.every(function (line) { return /^\s*>\s?/.test(line); })) return '<blockquote><p>' + lines.map(function (line) { return inline(line.replace(/^\s*>\s?/, '')); }).join('<br>') + '</p></blockquote>';
+      return '<p>' + lines.map(inline).join('<br>') + '</p>';
+    }).join('');
   };
   M.set = function (k) { var D = M.D; return D && D.set ? D.set[k] || null : null; };
   M.managed = function (t) { var D = M.D; return !!(D && D.set && D.set.managed && D.set.managed[t]); };
@@ -119,7 +123,7 @@
   function go(d) {
     if (rendered) return; rendered = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=45';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=50';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }
