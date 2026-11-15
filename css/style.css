@@ -2500,53 +2500,7 @@ header nav a.on::after{left:12px;right:12px;bottom:-2px;height:2px}
 #layanan-home .lycard>span{display:flex;flex-direction:column;gap:6px}
 #layanan-home .lycard>.lyic{margin-bottom:4px}
 
-/* ── 7. BADAN OTONOM: monogram besar, tanpa pita warna ─────────── */
-#banom{background:var(--cream)!important;padding:96px 0!important}
-#banomgrid{gap:0!important;border-top:1px solid var(--hair);border-left:1px solid var(--hair)}
-#banom .bncard{
-  border:0!important;
-  border-right:1px solid var(--hair)!important;
-  border-bottom:1px solid var(--hair)!important;
-  border-radius:0!important;
-  box-shadow:none!important;
-  background:var(--cream)!important;
-  padding:30px 26px!important;
-  gap:0!important;
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:flex-start!important;
-  transition:background .25s!important;
-}
-#banom .bncard .bnic{margin-bottom:20px!important}
-#banom .bncard::before{display:none!important}
-#banom .bncard:hover{transform:none!important;background:var(--surf)!important;box-shadow:none!important;border-color:var(--hair)!important}
-#banom .bnic{
-  margin:0!important;
-  width:52px!important;height:52px!important;
-  border-radius:50%!important;
-  border:1px solid color-mix(in srgb,var(--bc) 35%,transparent)!important;
-  background:none!important;
-  color:var(--bc)!important;
-  box-shadow:none!important;
-  font:800 .95rem var(--fz)!important;
-  letter-spacing:.02em;
-}
-#banom .bncard b{font:700 1.1rem/1.3 var(--fh)!important;letter-spacing:-.02em!important;margin-bottom:2px!important}
-#banom .bncard small{font-size:.85rem!important;line-height:1.6!important;display:block}
-#banom .bncard>span:last-child{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;justify-content:flex-start;width:100%}
-#banom .bncard>span:last-child::after{
-  content:"Lihat profil \2192";
-  font:700 .74rem var(--fz);
-  letter-spacing:.02em;
-  color:var(--g2);
-  margin-top:14px;
-  padding-top:14px;
-  border-top:1px solid var(--hair);
-  opacity:.55;
-  transition:opacity .28s,transform .38s var(--ease),border-color .28s;
-}
-#banom .bncard:hover>span:last-child::after{opacity:1;transform:translateX(4px);border-top-color:color-mix(in srgb,var(--g2) 28%,transparent)}
-#banom .bncard{min-height:210px}
+
 
 /* ── 8. KEGIATAN PILIHAN: galeri editorial di atas hijau tua ────── */
 #kegiatan{background:#062A1C!important;padding:96px 0!important}
@@ -4489,27 +4443,7 @@ footer h3{font-family:var(--fh)!important;letter-spacing:-.01em!important}
 /* = ===============================================================
    25. SAYAP ORGANISASI 2x2 DINAMIS + BERITA HOMEPAGE
    = =============================================================== */
-#banomgrid{grid-template-columns:1fr 1fr!important;grid-template-rows:auto!important;gap:16px!important}
-#banom .bncard:nth-child(n){
-  grid-column:auto!important;grid-row:auto!important;
-  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
-  justify-content:flex-start!important;gap:14px!important;
-  min-height:210px!important;padding:28px 28px 30px!important;position:relative!important;overflow:hidden;
-}
-#banom .bnic{
-  width:56px!important;height:56px!important;border-radius:16px!important;
-  background:color-mix(in srgb,var(--bc) 14%,var(--surf))!important;color:var(--bc)!important;
-  font:800 .95rem var(--fh)!important;letter-spacing:.04em!important;flex:none;
-}
-#banom .bncard b{font:700 1.05rem/1.25 var(--fh)!important;color:var(--ink)!important;letter-spacing:-.02em!important;margin:4px 0 0!important}
-#banom .bncard small{color:var(--mut)!important;font-size:.88rem!important;line-height:1.55!important}
-#banom .bncard::after{
-  content:'\2192'!important;position:absolute!important;right:22px;bottom:22px;
-  width:36px;height:36px;border-radius:99px;display:grid!important;place-items:center;
-  background:var(--acc-soft)!important;color:var(--acc-deep)!important;font-weight:600;
-  opacity:0;transform:translate(-8px,4px);transition:opacity .3s var(--ease),transform .3s var(--ease);
-}
-#banom .bncard:hover::after{opacity:1!important;transform:none!important}
+
 .bn-anim{opacity:0;transform:translateY(24px) scale(.97);animation:bnIn .75s cubic-bezier(.22,.61,.21,1) forwards}
 @keyframes bnIn{to{opacity:1;transform:none}}
 
@@ -4554,10 +4488,7 @@ footer h3{font-family:var(--fh)!important;letter-spacing:-.01em!important}
 }
 
 /* Perbaikan layer 25: monogram tanpa garis bawah lama, jarak rapat */
-#banom .bncard .bnic{border:0!important;border-bottom:0!important;background:color-mix(in srgb,var(--bc) 14%,var(--surf))!important;border-radius:16px!important}
-#banom .bncard:hover .bnic{background:var(--bc)!important;color:#fff!important;transform:translateY(-3px) scale(1.04)}
-#banom .bncard .bnic{margin-bottom:0!important}
-#banom .bncard>span:last-child{margin-top:0!important;width:100%}
+
 
 
 
@@ -6607,7 +6538,7 @@ button.person:focus-visible{outline:3px solid color-mix(in srgb,var(--g2) 42%,tr
   .vquote{padding:24px 22px 24px 26px}
   .sk-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .prin{grid-template-columns:1fr}
-  .pd{flex-direction:column;align-items:flex-start;gap:12px}
+  .person.pd,.person .pd{flex-direction:column;align-items:flex-start;gap:12px}
   .pd-act .btn{flex:1 1 100%;justify-content:center}
 }
 @media(prefers-reduced-motion:reduce){
@@ -6786,4 +6717,1367 @@ main .pg-sub{font:700 .72rem var(--fz)!important;letter-spacing:.14em!important;
 @media(max-width:420px){
   .prnu-facts{grid-template-columns:1fr}
   .prnu-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
+
+/* ==========================================================================
+   HOMEPAGE CONTEMPORARY INSTITUTIONAL EDITORIAL (PHASE 1 & 2)
+   Design System Tokens & 11 Section Modular Architecture
+   ========================================================================== */
+:root {
+  --cie-green-900: #08241A;
+  --cie-green-800: #0C3B2B;  /* Deep NU Green */
+  --cie-green-700: #12543E;
+  --cie-green-600: #168250;  /* Emerald Accent */
+  --cie-green-500: #1E9E64;
+  --cie-green-100: #E6F3EC;
+  --cie-green-50:  #F0F8F3;
+
+  --cie-gold-700:  #997312;
+  --cie-gold-600:  #C79A1E;  /* Warm Institutional Gold */
+  --cie-gold-500:  #E5B229;
+  --cie-gold-100:  #FDF6E2;
+
+  --cie-bg:        #F8FAF8;
+  --cie-surface:   #FFFFFF;
+  --cie-surface-alt:#F1F5F2;
+  --cie-ink:       #0F1F17;  /* High contrast readable ink */
+  --cie-ink-soft:  #2D3F35;
+  --cie-muted:     #52685C;
+  --cie-border:    #DCE5DF;
+  --cie-border-subtle: #E9EFEA;
+
+  --cie-font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --cie-font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --cie-font-arabic:  'Amiri', serif;
+
+  --cie-section-sp-desktop: 104px;
+  --cie-section-sp-mobile:  64px;
+  --cie-container-max:      1240px;
+  --cie-gutter-desktop:     40px;
+  --cie-gutter-mobile:      20px;
+
+  --cie-radius-sm:  8px;
+  --cie-radius-md:  12px;
+  --cie-radius-lg:  16px;
+  --cie-radius-xl:  24px;
+  --cie-radius-pill:999px;
+
+  --cie-shadow-sm:  0 2px 8px -2px rgba(12, 59, 43, 0.06);
+  --cie-shadow-md:  0 10px 28px -10px rgba(12, 59, 43, 0.10);
+  --cie-shadow-lg:  0 20px 48px -14px rgba(12, 59, 43, 0.14);
+
+  --cie-trans-fast: 180ms ease;
+  --cie-trans-norm: 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="dark"],
+@media(prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cie-bg:        #08140F;
+    --cie-surface:   #0E2018;
+    --cie-surface-alt:#132B21;
+    --cie-ink:       #EDF5F0;
+    --cie-ink-soft:  #D0E0D6;
+    --cie-muted:     #95AEA0;
+    --cie-border:    #1F3D30;
+    --cie-border-subtle: #173026;
+  }
+}
+
+/* Base Container & Section Spacing */
+.cie-wrap {
+  width: 100%;
+  max-width: var(--cie-container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--cie-gutter-desktop);
+  padding-right: var(--cie-gutter-desktop);
+}
+@media (max-width: 768px) {
+  .cie-wrap {
+    padding-left: var(--cie-gutter-mobile);
+    padding-right: var(--cie-gutter-mobile);
+  }
+}
+
+.cie-section {
+  padding-top: var(--cie-section-sp-desktop);
+  padding-bottom: var(--cie-section-sp-desktop);
+  position: relative;
+}
+@media (max-width: 768px) {
+  .cie-section {
+    padding-top: var(--cie-section-sp-mobile);
+    padding-bottom: var(--cie-section-sp-mobile);
+  }
+}
+
+/* Typography Helpers */
+.cie-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--cie-font-heading);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cie-green-600);
+  margin-bottom: 12px;
+}
+.cie-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cie-gold-600);
+  box-shadow: 0 0 0 4px rgba(199, 154, 30, 0.2);
+}
+.cie-heading {
+  font-family: var(--cie-font-heading);
+  font-size: clamp(1.9rem, 3.8vw, 2.7rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--cie-ink);
+  letter-spacing: -0.03em;
+  margin: 0 0 16px;
+}
+.cie-lead {
+  font-family: var(--cie-font-body);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--cie-muted);
+  max-width: 60ch;
+  margin: 0 0 32px;
+}
+.cie-sec-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+.cie-sec-header-copy {
+  max-width: 64ch;
+}
+.cie-sec-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--cie-font-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--cie-green-600);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 8px 16px;
+  border-radius: var(--cie-radius-pill);
+  background: color-mix(in srgb, var(--cie-green-600) 10%, transparent);
+  transition: all var(--cie-trans-fast);
+}
+.cie-sec-link:hover {
+  background: var(--cie-green-600);
+  color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   01 — HEADER & GLOBAL NAVIGATION
+   -------------------------------------------------------------------------- */
+.topbar {
+  height: 32px;
+  line-height: 32px;
+  font-size: 0.78rem;
+  background: var(--cie-green-900);
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.topbar .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: color var(--cie-trans-fast);
+}
+.topbar a:hover {
+  color: var(--cie-gold-500);
+}
+header.cie-header {
+  height: 80px;
+  background: color-mix(in srgb, var(--cie-surface) 92%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--cie-border-subtle);
+  transition: all var(--cie-trans-norm);
+}
+header.cie-header .header-inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.cie-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--cie-ink);
+}
+.cie-brand-logo {
+  height: 38px;
+  aspect-ratio: 520/341;
+  background: var(--cie-green-700);
+  -webkit-mask: var(--nu) center/contain no-repeat;
+  mask: var(--nu) center/contain no-repeat;
+}
+.cie-brand-text {
+  font-family: var(--cie-font-heading);
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.cie-brand-text small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cie-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Navigation Actions */
+.btn-kta-digital {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, var(--cie-gold-600), var(--cie-gold-700));
+  color: #FFFFFF !important;
+  font-family: var(--cie-font-heading);
+  font-size: 0.86rem;
+  font-weight: 700;
+  border-radius: var(--cie-radius-pill);
+  text-decoration: none;
+  box-shadow: 0 4px 14px -3px rgba(199, 154, 30, 0.45);
+  transition: all var(--cie-trans-fast);
+}
+.btn-kta-digital:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -4px rgba(199, 154, 30, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   02 — HERO / BRAND STATEMENT (EDITORIAL SPLIT 55:45)
+   -------------------------------------------------------------------------- */
+.cie-hero {
+  background: radial-gradient(1000px 600px at 85% 20%, rgba(22, 130, 80, 0.06), transparent 70%),
+              linear-gradient(180deg, var(--cie-surface) 0%, var(--cie-bg) 100%);
+  padding-top: 56px;
+  padding-bottom: 72px;
+  border-bottom: 1px solid var(--cie-border-subtle);
+  overflow: hidden;
+}
+.cie-hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 52px;
+  align-items: center;
+  min-height: 520px;
+}
+@media (max-width: 960px) {
+  .cie-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+.cie-hero-content {
+  display: flex;
+  flex-direction: column;
+}
+.cie-hero-title {
+  font-family: var(--cie-font-heading);
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: var(--cie-ink);
+  margin: 0 0 20px;
+}
+.cie-hero-title .accent {
+  color: var(--cie-green-600);
+}
+.cie-hero-desc {
+  font-family: var(--cie-font-body);
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--cie-muted);
+  max-width: 52ch;
+  margin: 0 0 32px;
+}
+.cie-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+.cie-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  background: var(--cie-green-700);
+  color: #FFFFFF !important;
+  font-family: var(--cie-font-heading);
+  font-size: 0.94rem;
+  font-weight: 700;
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  box-shadow: 0 8px 20px -6px rgba(12, 59, 43, 0.35);
+  transition: all var(--cie-trans-fast);
+}
+.cie-btn-primary:hover {
+  background: var(--cie-green-800);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -6px rgba(12, 59, 43, 0.45);
+}
+.cie-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  background: var(--cie-surface);
+  color: var(--cie-ink) !important;
+  font-family: var(--cie-font-heading);
+  font-size: 0.94rem;
+  font-weight: 600;
+  border: 1.5px solid var(--cie-border);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  transition: all var(--cie-trans-fast);
+}
+.cie-btn-secondary:hover {
+  background: var(--cie-surface-alt);
+  border-color: var(--cie-green-600);
+}
+.cie-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.82rem;
+  color: var(--cie-muted);
+  padding-top: 20px;
+  border-top: 1px solid var(--cie-border-subtle);
+}
+.cie-hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cie-hero-meta-item strong {
+  color: var(--cie-ink);
+}
+
+/* Hero Documentary Visual */
+.cie-hero-visual {
+  position: relative;
+}
+.cie-hero-figure {
+  margin: 0;
+  position: relative;
+  border-radius: var(--cie-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--cie-shadow-lg);
+  border: 1px solid var(--cie-border);
+  background: var(--cie-surface);
+}
+.cie-hero-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--cie-trans-norm);
+}
+.cie-hero-figure:hover .cie-hero-img {
+  transform: scale(1.02);
+}
+.cie-hero-caption {
+  padding: 14px 18px;
+  font-family: var(--cie-font-body);
+  font-size: 0.84rem;
+  color: var(--cie-muted);
+  background: var(--cie-surface);
+  border-top: 1px solid var(--cie-border-subtle);
+}
+.cie-hero-caption strong {
+  color: var(--cie-ink);
+}
+
+/* --------------------------------------------------------------------------
+   03 — SERVICE ACCESS (5 HORIZONTAL FAST-NAV ITEMS)
+   -------------------------------------------------------------------------- */
+.cie-service-nav {
+  padding-top: 36px;
+  padding-bottom: 44px;
+  background: var(--cie-surface);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-service-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1024px) {
+  .cie-service-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .cie-service-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.cie-service-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: var(--cie-bg);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  color: var(--cie-ink);
+  transition: all var(--cie-trans-fast);
+  position: relative;
+}
+.cie-service-card:hover {
+  transform: translateY(-2px);
+  background: var(--cie-surface);
+  border-color: var(--cie-green-600);
+  box-shadow: var(--cie-shadow-md);
+}
+.cie-service-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--cie-radius-sm);
+  background: color-mix(in srgb, var(--cie-green-600) 12%, transparent);
+  color: var(--cie-green-700);
+  margin-bottom: 12px;
+}
+.cie-service-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.cie-service-card b {
+  font-family: var(--cie-font-heading);
+  font-size: 0.94rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.cie-service-card small {
+  font-family: var(--cie-font-body);
+  font-size: 0.78rem;
+  color: var(--cie-muted);
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   04 — LEADERSHIP INTRODUCTION (SAMBUTAN EDITORIAL)
+   -------------------------------------------------------------------------- */
+.cie-leadership {
+  background: var(--cie-surface);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-leadership-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 60px;
+  align-items: center;
+}
+@media (max-width: 960px) {
+  .cie-leadership-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+.cie-portrait-wrap {
+  position: relative;
+}
+.cie-portrait-card {
+  margin: 0;
+  border-radius: var(--cie-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--cie-shadow-lg);
+  border: 1px solid var(--cie-border);
+  background: var(--cie-surface-alt);
+}
+.cie-portrait-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  display: block;
+}
+.cie-portrait-caption {
+  padding: 16px 20px;
+  background: var(--cie-surface);
+  border-top: 1px solid var(--cie-border-subtle);
+}
+.cie-portrait-caption b {
+  display: block;
+  font-family: var(--cie-font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--cie-ink);
+}
+.cie-portrait-caption span {
+  font-size: 0.82rem;
+  color: var(--cie-muted);
+}
+.cie-leadership-copy .cie-heading {
+  margin-bottom: 20px;
+}
+.cie-quote-box {
+  position: relative;
+  padding-left: 24px;
+  border-left: 3px solid var(--cie-gold-600);
+  margin-bottom: 24px;
+}
+.cie-quote-text {
+  font-family: var(--cie-font-body);
+  font-size: 1.15rem;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.65;
+  color: var(--cie-ink-soft);
+  margin: 0 0 14px;
+}
+.cie-quote-author {
+  font-family: var(--cie-font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cie-green-700);
+}
+.cie-sambutan-body {
+  font-family: var(--cie-font-body);
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: var(--cie-muted);
+  margin-bottom: 28px;
+}
+
+/* --------------------------------------------------------------------------
+   05 — PROGRAM & LAYANAN (NUMBERED INDEX 01–05)
+   -------------------------------------------------------------------------- */
+.cie-programs {
+  background: var(--cie-bg);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-program-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cie-program-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 24px 28px;
+  background: var(--cie-surface);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  color: var(--cie-ink);
+  transition: all var(--cie-trans-fast);
+}
+.cie-program-item:hover {
+  transform: translateX(4px);
+  border-color: var(--cie-green-600);
+  box-shadow: var(--cie-shadow-md);
+}
+@media (max-width: 640px) {
+  .cie-program-item {
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    padding: 18px 20px;
+  }
+  .cie-program-arrow {
+    display: none;
+  }
+}
+.cie-program-num {
+  font-family: var(--cie-font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--cie-gold-600);
+  line-height: 1;
+}
+.cie-program-body h3 {
+  font-family: var(--cie-font-heading);
+  font-size: 1.18rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--cie-ink);
+}
+.cie-program-body p {
+  font-family: var(--cie-font-body);
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--cie-muted);
+  margin: 0;
+}
+.cie-program-arrow {
+  color: var(--cie-green-600);
+  font-size: 1.4rem;
+  transition: transform var(--cie-trans-fast);
+}
+.cie-program-item:hover .cie-program-arrow {
+  transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   06 — BERITA TERBARU (LEAD STORY EDITORIAL LAYOUT)
+   -------------------------------------------------------------------------- */
+.cie-news {
+  background: var(--cie-surface);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-news-editorial-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 40px;
+}
+@media (max-width: 960px) {
+  .cie-news-editorial-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+/* Lead Story Card */
+.cie-lead-story {
+  display: flex;
+  flex-direction: column;
+  background: var(--cie-bg);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--cie-ink);
+  transition: all var(--cie-trans-fast);
+}
+.cie-lead-story:hover {
+  border-color: var(--cie-green-600);
+  box-shadow: var(--cie-shadow-lg);
+  transform: translateY(-2px);
+}
+.cie-lead-story-media {
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  position: relative;
+  background: var(--cie-surface-alt);
+}
+.cie-lead-story-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--cie-trans-norm);
+}
+.cie-lead-story:hover .cie-lead-story-img {
+  transform: scale(1.03);
+}
+.cie-lead-story-body {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.cie-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: var(--cie-muted);
+}
+.cie-cat-badge {
+  font-family: var(--cie-font-heading);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: var(--cie-radius-pill);
+  background: color-mix(in srgb, var(--cie-green-600) 14%, transparent);
+  color: var(--cie-green-700);
+}
+.cie-lead-story-title {
+  font-family: var(--cie-font-heading);
+  font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--cie-ink);
+  margin: 0 0 12px;
+}
+.cie-lead-story-excerpt {
+  font-family: var(--cie-font-body);
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--cie-muted);
+  margin: 0 0 20px;
+  flex: 1;
+}
+.cie-story-cta {
+  font-family: var(--cie-font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cie-green-600);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Supporting Stories List */
+.cie-supporting-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cie-supporting-item {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 18px;
+  padding: 16px;
+  background: var(--cie-bg);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  color: var(--cie-ink);
+  transition: all var(--cie-trans-fast);
+}
+.cie-supporting-item:hover {
+  border-color: var(--cie-green-600);
+  background: var(--cie-surface);
+  transform: translateX(3px);
+  box-shadow: var(--cie-shadow-sm);
+}
+.cie-supporting-thumb {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: var(--cie-radius-sm);
+  overflow: hidden;
+  background: var(--cie-surface-alt);
+}
+.cie-supporting-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cie-supporting-copy h4 {
+  font-family: var(--cie-font-heading);
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--cie-ink);
+  margin: 4px 0 6px;
+}
+.cie-supporting-copy time {
+  font-size: 0.78rem;
+  color: var(--cie-muted);
+}
+
+/* --------------------------------------------------------------------------
+   07 — AGENDA MWCNU (CHRONOLOGICAL EVENT LISTING & PREVIEW)
+   -------------------------------------------------------------------------- */
+.cie-agenda {
+  background: var(--cie-bg);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-agenda-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 36px;
+}
+@media (max-width: 960px) {
+  .cie-agenda-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.cie-agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cie-agenda-item {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 20px;
+  padding: 18px 22px;
+  background: var(--cie-surface);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  color: var(--cie-ink);
+  transition: all var(--cie-trans-fast);
+}
+.cie-agenda-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--cie-green-600);
+  box-shadow: var(--cie-shadow-md);
+}
+.cie-date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--cie-green-800);
+  color: #FFFFFF;
+  border-radius: var(--cie-radius-sm);
+  padding: 10px 4px;
+  text-align: center;
+}
+.cie-date-block b {
+  font-family: var(--cie-font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.cie-date-block small {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--cie-gold-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+.cie-agenda-copy h4 {
+  font-family: var(--cie-font-heading);
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--cie-ink);
+}
+.cie-agenda-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--cie-muted);
+}
+.cie-agenda-details span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Featured Agenda Card */
+.cie-featured-agenda {
+  padding: 32px;
+  background: linear-gradient(135deg, var(--cie-green-900), var(--cie-green-800));
+  color: #FFFFFF;
+  border-radius: var(--cie-radius-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--cie-shadow-lg);
+}
+.cie-featured-agenda h3 {
+  font-family: var(--cie-font-heading);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #FFFFFF;
+  margin: 12px 0 16px;
+}
+.cie-featured-agenda p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.96rem;
+  line-height: 1.65;
+  margin: 0 0 24px;
+}
+
+/* --------------------------------------------------------------------------
+   08 — ORGANIZATIONAL DIRECTORY (BANOM & LEMBAGA)
+   -------------------------------------------------------------------------- */
+.cie-org {
+  background: var(--cie-surface);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-org-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.cie-org-tab {
+  padding: 8px 18px;
+  border-radius: var(--cie-radius-pill);
+  font-family: var(--cie-font-heading);
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: 1px solid var(--cie-border);
+  background: var(--cie-surface);
+  color: var(--cie-muted);
+  cursor: pointer;
+  transition: all var(--cie-trans-fast);
+}
+.cie-org-tab.active,
+.cie-org-tab:hover {
+  background: var(--cie-green-700);
+  border-color: var(--cie-green-700);
+  color: #FFFFFF;
+}
+.cie-org-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+@media (max-width: 960px) {
+  .cie-org-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .cie-org-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.cie-org-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: var(--cie-bg);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  color: var(--cie-ink);
+  transition: all var(--cie-trans-fast);
+}
+.cie-org-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cie-green-600);
+  background: var(--cie-surface);
+  box-shadow: var(--cie-shadow-md);
+}
+.cie-org-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cie-org-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--cie-radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--cie-surface);
+  border: 1px solid var(--cie-border);
+  font-family: var(--cie-font-heading);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--cie-green-700);
+}
+.cie-org-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--cie-radius-pill);
+  background: var(--cie-surface);
+  border: 1px solid var(--cie-border);
+  color: var(--cie-muted);
+}
+.cie-org-card h3 {
+  font-family: var(--cie-font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--cie-ink);
+}
+.cie-org-card p {
+  font-family: var(--cie-font-body);
+  font-size: 0.88rem;
+  color: var(--cie-muted);
+  line-height: 1.55;
+  margin: 0 0 16px;
+  flex: 1;
+}
+.cie-org-link {
+  font-family: var(--cie-font-heading);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--cie-green-600);
+}
+
+/* --------------------------------------------------------------------------
+   09 — DOCUMENTARY SHOWCASE (ASYMMETRIC GALLERY & TVNU VIDEO)
+   -------------------------------------------------------------------------- */
+.cie-showcase {
+  background: var(--cie-bg);
+  border-bottom: 1px solid var(--cie-border-subtle);
+}
+.cie-showcase-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 36px;
+}
+@media (max-width: 960px) {
+  .cie-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Asymmetric Gallery */
+.cie-doc-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.cie-doc-gallery-item {
+  border-radius: var(--cie-radius-md);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--cie-border);
+  background: var(--cie-surface);
+  aspect-ratio: 4/3;
+  display: block;
+}
+.cie-doc-gallery-item.featured {
+  grid-column: span 2;
+  aspect-ratio: 16/9;
+}
+.cie-doc-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--cie-trans-norm);
+}
+.cie-doc-gallery-item:hover img {
+  transform: scale(1.03);
+}
+.cie-doc-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(8, 36, 26, 0.85) 0%, transparent 60%);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  color: #FFFFFF;
+}
+.cie-doc-overlay b {
+  font-family: var(--cie-font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* TVNU Video Card */
+.cie-video-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--cie-surface);
+  border: 1px solid var(--cie-border);
+  border-radius: var(--cie-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--cie-shadow-md);
+  text-decoration: none;
+  color: var(--cie-ink);
+}
+.cie-video-thumb-wrap {
+  width: 100%;
+  aspect-ratio: 16/9;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+.cie-video-thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+  transition: transform var(--cie-trans-norm);
+}
+.cie-video-card:hover .cie-video-thumb-wrap img {
+  transform: scale(1.03);
+}
+.cie-video-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--cie-gold-600);
+  color: #FFFFFF;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform var(--cie-trans-fast);
+}
+.cie-video-card:hover .cie-video-play-btn {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+.cie-video-info {
+  padding: 24px;
+}
+.cie-video-info small {
+  display: block;
+  font-family: var(--cie-font-heading);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #E52D27; /* YouTube Red Accent */
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.cie-video-info h3 {
+  font-family: var(--cie-font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--cie-ink);
+  margin: 0 0 10px;
+}
+.cie-video-info p {
+  font-family: var(--cie-font-body);
+  font-size: 0.88rem;
+  color: var(--cie-muted);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   10 — CTA PARTISIPASI (FULL-WIDTH ENGAGEMENT BAND)
+   -------------------------------------------------------------------------- */
+.cie-engagement {
+  background: linear-gradient(135deg, var(--cie-green-900), var(--cie-green-800));
+  color: #FFFFFF;
+  padding: 72px 0;
+  position: relative;
+  overflow: hidden;
+}
+.cie-engagement::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pat);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.cie-engagement-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+}
+@media (max-width: 840px) {
+  .cie-engagement-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+.cie-engagement-copy h2 {
+  font-family: var(--cie-font-heading);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0 0 12px;
+}
+.cie-engagement-copy p {
+  font-family: var(--cie-font-body);
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 54ch;
+  margin: 0;
+}
+.cie-engagement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+.cie-btn-engage-gold {
+  height: 48px;
+  padding: 0 24px;
+  background: var(--cie-gold-600);
+  color: #FFFFFF !important;
+  font-family: var(--cie-font-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 18px -4px rgba(199, 154, 30, 0.5);
+  transition: all var(--cie-trans-fast);
+}
+.cie-btn-engage-gold:hover {
+  background: var(--cie-gold-700);
+  transform: translateY(-2px);
+}
+.cie-btn-engage-outline {
+  height: 48px;
+  padding: 0 24px;
+  background: transparent;
+  color: #FFFFFF !important;
+  font-family: var(--cie-font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--cie-radius-md);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--cie-trans-fast);
+}
+.cie-btn-engage-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   11 — FOOTER KELEMBAGAAN (4-COLUMN INSTITUTIONAL FOOTER)
+   -------------------------------------------------------------------------- */
+footer.cie-footer {
+  background: #061A13;
+  color: #D2E3DA;
+  padding: 64px 0 32px;
+  border-top: 1px solid #143527;
+}
+.cie-footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr 1fr;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+@media (max-width: 1024px) {
+  .cie-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .cie-footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.cie-footer-col h4 {
+  font-family: var(--cie-font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 16px;
+  letter-spacing: 0.02em;
+}
+.cie-footer-col p {
+  font-family: var(--cie-font-body);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #9DB5A8;
+  margin: 0 0 16px;
+}
+.cie-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--cie-font-heading);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 14px;
+}
+.cie-footer-slogan {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--cie-radius-pill);
+  background: rgba(199, 154, 30, 0.15);
+  color: var(--cie-gold-500);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.cie-footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cie-footer-links a {
+  color: #BCD3C6;
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: color var(--cie-trans-fast);
+}
+.cie-footer-links a:hover {
+  color: var(--cie-gold-500);
+}
+.cie-footer-contact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+.cie-footer-contact li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #BCD3C6;
+}
+.cie-footer-contact svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--cie-gold-600);
+  margin-top: 3px;
+}
+.cie-footer-social {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.cie-footer-social a {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: grid;
+  place-items: center;
+  color: #FFFFFF;
+  transition: all var(--cie-trans-fast);
+}
+.cie-footer-social a:hover {
+  background: var(--cie-green-600);
+  transform: translateY(-2px);
+}
+.cie-footer-bottom {
+  padding-top: 24px;
+  border-top: 1px solid #143527;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #799487;
+}
+.cie-footer-bottom a {
+  color: #BCD3C6;
+  text-decoration: none;
+}
+.cie-footer-bottom a:hover {
+  color: var(--cie-gold-500);
 }
