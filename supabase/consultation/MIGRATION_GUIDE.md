@@ -1,8 +1,9 @@
-# Migration Guide — Modul Konsultasi Agama (Phase 1)
+# Migration Guide — Modul Konsultasi Agama (Phase 1 & 2)
 
-Panduan penerapan 3 file migrasi database modul Konsultasi Agama di Supabase
+Panduan penerapan 4 file migrasi database modul Konsultasi Agama di Supabase
 **produksi**. Migrasi ini BELUM dijalankan di produksi — seluruh pengujian
-dilakukan lokal via PGlite (lihat `PGlite_TEST_RESULTS.md`).
+dilakukan lokal via PGlite (lihat `PGlite_TEST_RESULTS.md` dan
+`PHASE2_TEST_RESULTS.md`).
 
 ## 1. File & Urutan Eksekusi
 
@@ -13,7 +14,8 @@ sukses sebelum lanjut):
 |---|---|---|
 | 1 | `consultation_001_foundation.sql` | Fungsi `consultation_can_transition` (mesin status 26 pasangan transisi) |
 | 2 | `consultation_002_tables.sql` | 16 tabel, indeks, FK (termasuk FK komposit), sequence nomor tiket, bucket privat, 13 trigger + 17 fungsi, fungsi SLA |
-| 3 | `consultation_003_security.sql` | RLS 16/16 tanpa policy (deny default), revoke seluruh hak dari anon/authenticated, fungsi & sequence hanya untuk service_role |
+| 3 | `consultation_003_security.sql` | RLS 16/16 tanpa policy (deny default), revoke seluruh hak dari anon/authenticated, hak tabel/fungsi/sequence eksplisit hanya untuk service_role |
+| 4 | `consultation_004_services.sql` | **Phase 2**: RPC layanan `consultation_svc_*` (pemohon, staf, konsultan, reviewer, publikasi, lampiran, rate-limit, audit HTTP) + bucket privat `consultation-private` |
 
 Prasyarat yang **sudah tersedia bawaan Supabase** (tidak perlu dibuat):
 peran `service_role`, `anon`, `authenticated`; schema `auth` dengan
@@ -48,12 +50,13 @@ select grantee, table_name from information_schema.role_table_grants
  where table_schema = 'public' and table_name like 'consultation_%'
    and grantee in ('anon','authenticated');
 
--- (4) Bucket privat ada & non-publik
+-- (4) Bucket privat ada & non-publik (Phase 1 + Phase 2)
 select id, public, file_size_limit, allowed_mime_types
-  from storage.buckets where id = 'consultation-attachments';
+  from storage.buckets where id in ('consultation-attachments','consultation-private');
 
--- (5) Fungsi terdaftar (17 buah)
-select proname from pg_proc where proname like 'consultation_%' order by proname;
+-- (5) Fungsi terdaftar (17 fungsi Phase 1 + 30 RPC layanan Phase 2)
+select proname, count(*) from pg_proc
+ where proname like 'consultation_%' group by proname order by proname;
 
 -- (6) Sequence nomor tiket hanya untuk service_role
 select has_sequence_privilege('anon','public.consultation_nomor_tiket_seq','USAGE') anon,
@@ -61,8 +64,8 @@ select has_sequence_privilege('anon','public.consultation_nomor_tiket_seq','USAG
 ```
 
 Hasil yang diharapkan: (1) 16 baris semua `true`; (2) 0 baris; (3) 0 baris;
-(4) 1 baris, `public = false`, limit 5 MB, 4 mime; (5) 17 fungsi;
-(6) `anon = false`, `svc = true`.
+(4) 2 baris, `public = false`, limit 5 MB, 4 mime; (5) 17 fungsi Phase 1 +
+RPC `consultation_svc_*`; (6) `anon = false`, `svc = true`.
 
 ## 2b. Definisi Matematis Jeda SLA (hasil audit)
 
@@ -102,14 +105,16 @@ Kasus-kasus ini diuji otomatis (T18 S1–S6) memakai seam waktu
 
 ## 3. Rollback Guide
 
-File `consultation_rollback.sql` membatalkan seluruh Phase 1 dengan urutan:
-1. Drop trigger (13) lalu drop fungsi (17) dan drop sequence nomor tiket.
+File `consultation_rollback.sql` membatalkan seluruh Phase 1 + Phase 2 dengan urutan:
+1. Drop seluruh fungsi layanan `consultation_svc_*` secara otomatis (blok
+   `do` atas `pg_proc`), lalu drop trigger (13) dan fungsi Phase 1 (21,
+   termasuk fungsi aktor B3) dan drop sequence nomor tiket.
 2. Drop 16 tabel **TANPA CASCADE** (urut ketergantungan FK anak→induk; bila ada
    objek EKSTERNAL yang bergantung, rollback GAGAL KERAS alih-alih
    menghapusnya diam-diam).
-3. Bucket Storage `consultation-attachments` **tidak** dihapus oleh rollback
-   database — penghapusannya dipisah ke bagian manual di akhir file rollback
-   dan membutuhkan keputusan administrator.
+3. Bucket Storage `consultation-attachments` dan `consultation-private`
+   **tidak** dihapus oleh rollback database — penghapusannya dipisah ke bagian
+   manual di akhir file rollback dan membutuhkan keputusan administrator.
 
 Jaminan rollback:
 - Tidak menyentuh tabel existing.
@@ -179,6 +184,7 @@ Rollback hanya dilakukan atas keputusan eksplisit pengguna.
 
 ## 7. Langkah Setelah Persetujuan
 
-1. User menjalankan 001 → 002 → 003 di Supabase SQL Editor (produksi).
+1. User menjalankan 001 → 002 → 003 → 004 di Supabase SQL Editor (produksi).
 2. Jalankan kueri verifikasi bagian 2.
-3. Lanjut ke Phase 2 (Edge Functions) setelah C1–C7 diputuskan.
+3. Deploy Edge Functions `consultation-*` (lihat `PHASE2_BACKEND.md` §9) dan
+   set function secrets yang tercantum di sana — user menjalankan sendiri (C1).

@@ -1,5 +1,5 @@
-// PHASE 1 (REVISI AUDIT) — Pengujian migrasi konsultasi via PGlite
-// Eksekusi 001→002→003 lalu 22 kelompok asersi (T01–T26).
+// PHASE 1 + GATE + LAYANAN FASE 2 — Pengujian migrasi & RPC konsultasi via PGlite
+// Eksekusi 001→002→003→004 lalu kelompok asersi T01–T30.
 // Cara jalan (dari folder supabase/consultation/tests):
 //   npm install   (sekali; memasang @electric-sql/pglite lokal, terkunci versi)
 //   npm test      (atau: node test-konsultasi.mjs)
@@ -36,9 +36,12 @@ if (await run("001_foundation", "consultation_001_foundation.sql")) {
     // Emulasi peran bawaan Supabase (di produksi sudah ada)
     await db.exec("create role service_role nologin bypassrls; create role anon nologin; create role authenticated nologin;");
     if (await run("003_security", "consultation_003_security.sql")) {
-      await run("001 ulang", "consultation_001_foundation.sql");
-      await run("002 ulang", "consultation_002_tables.sql");
-      await run("003 ulang", "consultation_003_security.sql");
+      if (await run("004_services", "consultation_004_services.sql")) {
+        await run("001 ulang", "consultation_001_foundation.sql");
+        await run("002 ulang", "consultation_002_tables.sql");
+        await run("003 ulang", "consultation_003_security.sql");
+        await run("004 ulang", "consultation_004_services.sql");
+      }
     }
   }
 }
@@ -196,14 +199,14 @@ await expectErr("T11c update messages ditolak", "update public.consultation_mess
 // audit_logs belum berisi baris -> DELETE 0 baris tidak memicu trigger FOR EACH ROW;
 // isi satu baris uji dulu agar penghapusan benar-benar mengenai data.
 await db.exec(`insert into public.consultation_audit_logs (aktor, aktor_jenis, aksi)
-  values ('uji-append-only', 'sistem', 'uji_baris_audit');`);
+  values ('sistem', 'sistem', 'uji_baris_audit');`);
 await expectErr("T11d delete audit_logs ditolak", "delete from public.consultation_audit_logs", "append-only");
 
 // ====== T12: publikasi
 console.log("=== T12 publikasi ===");
 await expectErr("T12a terbit tanpa persetujuan ditolak",
   `insert into public.consultation_publications (ticket_id, judul_publik, pertanyaan_samar, jawaban_final, disamarkan_oleh, published)
-   values ('${tid}','Uji terbit dini','Pertanyaan samar uji','Jawaban uji','adm@mwcnupondokaren.or.id', true)`, "ccp_terbit_butuh_persetujuan");
+   values ('${tid}','Uji terbit dini','Pertanyaan samar uji','Jawaban uji','adm@mwcnupondokaren.or.id', true)`, "belum terbit");
 await db.exec(`update public.consultation_tickets set status='menunggu_review' where id='${tid}'`);
 await db.exec(`update public.consultation_tickets set status='terjawab' where id='${tid}'`);
 await db.exec(`update public.consultation_tickets set status='selesai' where id='${tid}'`);
@@ -516,6 +519,247 @@ await expectErr("T26a update review ditolak (append-only)",
   `update public.consultation_reviews set catatan = 'Ubah catatan' where ticket_id='${tid}'`, "append-only");
 await expectErr("T26b delete review ditolak (append-only)",
   `delete from public.consultation_reviews where ticket_id='${tid}'`, "append-only");
+
+// ====== T27: GATE B1 — publikasi terbit WAJIB punya published_at (INSERT & UPDATE)
+console.log("=== T27 (B1) published_at pada INSERT & UPDATE ===");
+const tidB1 = (await q(`insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan)
+  values ('${catId}', 'Uji invarian B1', 'Isi pertanyaan cukup panjang untuk lulus uji B1.') returning id`))[0].id;
+await db.exec(`insert into public.consultation_requester_contacts
+  (ticket_id, whatsapp, persetujuan_privasi, persetujuan_publikasi, persetujuan_publikasi_at)
+  values ('${tidB1}', '085161033690', true, true, now())`);
+await db.exec(`insert into public.consultation_publications
+  (ticket_id, judul_publik, pertanyaan_samar, jawaban_final, disamarkan_oleh)
+  values ('${tidB1}', 'Judul B1', 'Pertanyaan samar B1', 'Jawaban final B1', 'adm@mwcnupondokaren.or.id')`);
+await expectErr("T27a INSERT published=true ditolak (publikasi wajib mulai belum terbit)",
+  `insert into public.consultation_publications
+     (ticket_id, judul_publik, pertanyaan_samar, jawaban_final, disamarkan_oleh, slug, published,
+      persetujuan_pemohon, persetujuan_pemohon_at,
+      disetujui_reviewer, disetujui_reviewer_oleh, disetujui_reviewer_at,
+      disetujui_admin, disetujui_admin_oleh, disetujui_admin_at)
+   values ('${tidB1}', 'Judul B1', 'Pertanyaan samar B1', 'Jawaban final B1', 'adm@mwcnupondokaren.or.id',
+           'uji-b1-insert', true, true, now(),
+           true, 'rev1@mwcnupondokaren.or.id', now(),
+           true, 'adm@mwcnupondokaren.or.id', now())`,
+  "belum terbit");
+await db.exec(`update public.consultation_publications set
+  persetujuan_pemohon = true, persetujuan_pemohon_at = now(),
+  disetujui_reviewer = true, disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_reviewer_at = now(),
+  disetujui_admin = true, disetujui_admin_oleh = 'adm@mwcnupondokaren.or.id', disetujui_admin_at = now(),
+  slug = 'uji-b1-update', published = true where ticket_id='${tidB1}'`);
+const b1 = (await q(`select published, published_at from public.consultation_publications where ticket_id='${tidB1}'`))[0];
+ok("T27b UPDATE false->true menstempel published_at otomatis", b1.published === true && b1.published_at !== null);
+await expectErr("T27c UPDATE mengosongkan published_at saat terbit ditolak",
+  `update public.consultation_publications set published_at = null where ticket_id='${tidB1}'`,
+  "published_at hanya dikelola sistem");
+const b1bad = (await q("select count(*)::int n from public.consultation_publications where published and published_at is null"))[0].n;
+ok("T27d invarian global: 0 publikasi terbit tanpa published_at", b1bad === 0, "(dapat " + b1bad + ")");
+
+// ====== T28: GATE B2 — hak service_role eksplisit & terbukti
+console.log("=== T28 (B2) hak service_role ===");
+const semuaTabel = ["consultation_categories","consultation_holidays","consultation_staff_roles",
+  "consultation_consultant_categories","consultation_tickets","consultation_requester_contacts",
+  "consultation_access_credentials","consultation_messages","consultation_assignments",
+  "consultation_reviews","consultation_attachments","consultation_publications",
+  "consultation_status_logs","consultation_audit_logs","consultation_notifications","consultation_rate_hits"];
+const kurang = [];
+for (const tb of semuaTabel) for (const p of ["SELECT","INSERT","UPDATE","DELETE"]) {
+  const v = (await q(`select has_table_privilege('service_role','public.${tb}','${p}') v`))[0].v;
+  if (!v) kurang.push(`${tb}:${p}`);
+}
+ok("T28a service_role punya SELECT/INSERT/UPDATE/DELETE di 16 tabel", kurang.length === 0, kurang.join(", "));
+const bocor = [];
+for (const tb of semuaTabel) for (const r of ["anon","authenticated"]) {
+  const v = (await q(`select has_table_privilege('${r}','public.${tb}','SELECT') v`))[0].v;
+  if (v) bocor.push(`${r}:${tb}`);
+}
+ok("T28b anon/authenticated tanpa hak baca tabel konsultasi", bocor.length === 0, bocor.join(", "));
+ok("T28c service_role punya USAGE sequence nomor tiket",
+  (await q("select has_sequence_privilege('service_role','public.consultation_nomor_tiket_seq','USAGE') v"))[0].v === true);
+ok("T28d anon tanpa USAGE sequence nomor tiket",
+  (await q("select has_sequence_privilege('anon','public.consultation_nomor_tiket_seq','USAGE') v"))[0].v === false);
+
+// ====== T29: GATE B3 — identitas aktor terverifikasi (tidak dapat dipalsukan)
+console.log("=== T29 (B3) identitas aktor ===");
+const tidB3 = (await q(`insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan)
+  values ('${catId}', 'Uji aktor B3', 'Isi pertanyaan cukup panjang untuk lulus uji B3.') returning id`))[0].id;
+// Aktor GUC transaksi (jalur backend tepercaya) tercatat pada status log
+await db.exec(`begin;
+  select public.consultation_set_aktor('adm@mwcnupondokaren.or.id');
+  update public.consultation_tickets set status='diverifikasi' where id='${tidB3}';
+commit;`);
+const log1 = (await q(`select oleh, status_baru from public.consultation_status_logs
+  where ticket_id='${tidB3}' order by id desc limit 1`))[0];
+ok("T29a status log mencatat aktor terverifikasi (bukan 'sistem')",
+  log1.oleh === "adm@mwcnupondokaren.or.id" && log1.status_baru === "diverifikasi", JSON.stringify(log1));
+// RPC perubahan status: set aktor + alasan + update dalam SATU transaksi
+const ubah = (await q(`select (public.consultation_ubah_status(
+  '${tidB3}','menunggu_penugasan','alasan uji B3','adm@mwcnupondokaren.or.id')).status as status`))[0];
+const log2 = (await q(`select oleh, alasan from public.consultation_status_logs
+  where ticket_id='${tidB3}' order by id desc limit 1`))[0];
+ok("T29b RPC ubah status mencatat aktor & alasan",
+  ubah.status === "menunggu_penugasan" && log2.oleh === "adm@mwcnupondokaren.or.id" && log2.alasan === "alasan uji B3",
+  JSON.stringify({ ubah, log2 }));
+await expectErr("T29c aktor non-staf ditolak",
+  `select public.consultation_set_aktor('orangasing@x.or.id')`, "bukan staf konsultasi aktif");
+await expectErr("T29d aktor kosong ditolak",
+  `select public.consultation_set_aktor('')`, "Aktor wajib diisi");
+await expectErr("T29e ubah status dengan aktor palsu ditolak",
+  `select public.consultation_ubah_status('${tidB3}','ditugaskan','x','orangasing@x.or.id')`,
+  "bukan staf konsultasi aktif");
+await roleDeny("T29f anon tidak dapat menetapkan aktor", "anon",
+  "select public.consultation_set_aktor('adm@mwcnupondokaren.or.id');");
+await expectErr("T29g audit log dengan aktor staf asing ditolak",
+  `insert into public.consultation_audit_logs (aktor, aktor_jenis, aksi)
+   values ('orangasing@x.or.id','staf','uji audit')`, "bukan staf konsultasi aktif");
+await db.exec(`insert into public.consultation_audit_logs (aktor, aktor_jenis, aksi, ticket_id)
+  values ('ADM@mwcnupondokaren.or.id','staf','uji audit b3','${tidB3}')`);
+const au = (await q(`select aktor from public.consultation_audit_logs where aksi='uji audit b3'`))[0];
+ok("T29h audit log aktor staf dinormalisasi & diterima", au.aktor === "adm@mwcnupondokaren.or.id", au.aktor);
+// Fallback JWT (bila PostgREST memverifikasi JWT pengguna): email JWT dipakai
+await db.exec(`create or replace function auth.jwt() returns json language sql as
+  $$ select '{"email":"rev1@mwcnupondokaren.or.id"}'::json $$;`);
+ok("T29i fallback email JWT terverifikasi dipakai bila GUC kosong",
+  (await q("select public.consultation_aktor() v"))[0].v === "rev1@mwcnupondokaren.or.id");
+await db.exec(`create or replace function auth.jwt() returns json language sql as $$ select null::json $$;`);
+
+// ====== T30: LAYANAN FASE 2 (RPC backend)
+console.log("=== T30 layanan Fase 2 (RPC) ===");
+const hashA = "a".repeat(64);
+const hashB = "b".repeat(64);
+const buatA = (await q(`select public.consultation_svc_buat_tiket(
+  'ibadah','Tiket layanan A','Isi pertanyaan layanan A cukup panjang.',
+  'Pemohon A','085161033700',null,'${hashA}',true,true) as r`))[0].r;
+const tA = buatA.id, nomorA = buatA.nomor_tiket;
+ok("T30a buat tiket via RPC (nomor sistem + status baru)",
+  /^KON-/.test(nomorA) && buatA.status === "baru", JSON.stringify(buatA));
+await expectErr("T30b akses tiket dengan hash salah ditolak",
+  `select public.consultation_svc_akses_tiket('${nomorA}','${"c".repeat(64)}')`,
+  "Kredensial tiket tidak valid");
+const aksesA = (await q(`select public.consultation_svc_akses_tiket('${nomorA}','${hashA}') as r`))[0].r;
+ok("T30c akses tiket dengan hash benar + persetujuan publikasi",
+  aksesA.ticket.id === tA && aksesA.kontak.persetujuan_publikasi === true);
+ok("T30d respons pemohon tidak memuat email staf internal",
+  !JSON.stringify(aksesA).includes("mwcnupondokaren.or.id"));
+await q(`select public.consultation_svc_pesan_pemohon('${nomorA}','${hashA}','Mohon penjelasan tambahan.')`);
+const aksesA2 = (await q(`select public.consultation_svc_akses_tiket('${nomorA}','${hashA}') as r`))[0].r;
+ok("T30e pesan pemohon tercatat & terlihat",
+  aksesA2.pesan.length === 1 && aksesA2.pesan[0].jenis_pesan === "balasan_pemohon");
+const daftarAdmin = (await q(`select public.consultation_svc_staf_daftar('adm@mwcnupondokaren.or.id',null,100,0) as r`))[0].r;
+ok("T30f admin melihat tiket", daftarAdmin.peran === "admin_konsultasi" && daftarAdmin.tiket.some(x => x.id === tA));
+const daftarKonsul = (await q(`select public.consultation_svc_staf_daftar('konsul1@mwcnupondokaren.or.id',null,100,0) as r`))[0].r;
+ok("T30g konsultan belum melihat tiket yang belum ditugaskan", !daftarKonsul.tiket.some(x => x.id === tA));
+await q(`select public.consultation_svc_verifikasi('${tA}','adm@mwcnupondokaren.or.id')`);
+const st1 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
+const logA = (await q(`select oleh from public.consultation_status_logs where ticket_id='${tA}' order by id desc limit 1`))[0].oleh;
+ok("T30h verifikasi admin -> diverifikasi + aktor tercatat",
+  st1 === "diverifikasi" && logA === "adm@mwcnupondokaren.or.id");
+await q(`select public.consultation_svc_status('${tA}','menunggu_penugasan','masuk antrean','adm@mwcnupondokaren.or.id')`);
+await q(`select public.consultation_svc_tugaskan('${tA}','konsul1@mwcnupondokaren.or.id','adm@mwcnupondokaren.or.id')`);
+const st2 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
+ok("T30i penugasan admin -> ditugaskan", st2 === "ditugaskan");
+const daftarKonsul2 = (await q(`select public.consultation_svc_staf_daftar('konsul1@mwcnupondokaren.or.id',null,100,0) as r`))[0].r;
+ok("T30j konsultan melihat tiket yang ditugaskan", daftarKonsul2.tiket.some(x => x.id === tA));
+await expectErr("T30k konsultan lain tidak berwenang membaca tiket",
+  `select public.consultation_svc_staf_detail('konsul2@mwcnupondokaren.or.id','${tA}')`,
+  "Tidak berwenang atas tiket ini");
+await q(`select public.consultation_svc_jawab('${tA}','Jawaban konsultan untuk tiket A.','konsul1@mwcnupondokaren.or.id')`);
+const st3 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
+ok("T30l jawaban konsultan -> menunggu_review", st3 === "menunggu_review");
+const msgId = (await q(`select id from public.consultation_messages where ticket_id='${tA}' and jenis_pesan='jawaban_konsultan'`))[0].id;
+const daftarRev = (await q(`select public.consultation_svc_staf_daftar('rev1@mwcnupondokaren.or.id',null,100,0) as r`))[0].r;
+ok("T30m reviewer melihat antrean review", daftarRev.tiket.some(x => x.id === tA));
+await expectErr("T30n konsultan tidak dapat melakukan review",
+  `select public.consultation_svc_review('${tA}','${msgId}','disetujui',null,'konsul1@mwcnupondokaren.or.id')`,
+  "Hanya reviewer");
+await q(`select public.consultation_svc_review('${tA}','${msgId}','disetujui',null,'rev1@mwcnupondokaren.or.id')`);
+const st4 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
+const revA = (await q(`select reviewer_email, keputusan from public.consultation_reviews where ticket_id='${tA}'`))[0];
+ok("T30o review disetujui -> terjawab + identitas reviewer",
+  st4 === "terjawab" && revA.reviewer_email === "rev1@mwcnupondokaren.or.id" && revA.keputusan === "disetujui");
+const aj = (await q(`select public.consultation_svc_ajukan_publikasi(
+  '${tA}','Judul Publik A','Pertanyaan samar A','Jawaban final A','adm@mwcnupondokaren.or.id') as r`))[0].r;
+ok("T30p publikasi diajukan + persetujuan pemohon tersinkron",
+  aj.persetujuan_pemohon === true && aj.published === false);
+await q(`select public.consultation_svc_setujui_publikasi('${tA}',true,'rev1@mwcnupondokaren.or.id')`);
+await q(`select public.consultation_svc_setujui_publikasi('${tA}',true,'adm@mwcnupondokaren.or.id')`);
+const terbit = (await q(`select public.consultation_svc_terbitkan('${tA}','judul-publik-a','adm@mwcnupondokaren.or.id') as r`))[0].r;
+ok("T30q terbit setelah 3 persetujuan + published_at",
+  terbit.published === true && terbit.published_at !== null);
+const listPub = (await q(`select public.consultation_svc_publik_list(50,0) as r`))[0].r;
+ok("T30r daftar publik memuat publikasi terbit", listPub.some(x => x.slug === "judul-publik-a"));
+const detailPub = (await q(`select public.consultation_svc_publik_detail('judul-publik-a') as r`))[0].r;
+ok("T30s detail publik terbit", detailPub.slug === "judul-publik-a");
+await q(`select public.consultation_svc_cabut_publikasi('${tA}','uji cabut','adm@mwcnupondokaren.or.id')`);
+const pubA = (await q(`select published, dicabut from public.consultation_publications where ticket_id='${tA}'`))[0];
+ok("T30t cabut publikasi -> tidak terbit + dicabut", !pubA.published && pubA.dicabut);
+await q(`select public.consultation_svc_persetujuan_pemohon('${nomorA}','${hashA}',false)`);
+const kontakA = (await q(`select persetujuan_publikasi from public.consultation_requester_contacts where ticket_id='${tA}'`))[0];
+ok("T30u pencabutan persetujuan pemohon via RPC", kontakA.persetujuan_publikasi === false);
+const buatB = (await q(`select public.consultation_svc_buat_tiket(
+  'ibadah','Tiket layanan B','Isi pertanyaan layanan B cukup panjang.',
+  null,'085161033701',null,'${hashB}',true,false) as r`))[0].r;
+await q(`select public.consultation_svc_tolak('${buatB.id}','Pertanyaan tidak jelas','adm@mwcnupondokaren.or.id')`);
+const stB = (await q(`select status, alasan_penolakan from public.consultation_tickets where id='${buatB.id}'`))[0];
+ok("T30v tolak tiket dengan alasan tercatat",
+  stB.status === "ditolak" && stB.alasan_penolakan === "Pertanyaan tidak jelas");
+await expectErr("T30w kredensial tiket B tidak dapat membaca tiket A",
+  `select public.consultation_svc_akses_tiket('${nomorA}','${hashB}')`,
+  "Kredensial tiket tidak valid");
+await db.exec(`insert into public.consultation_attachments
+  (ticket_id, storage_path, nama_file, mime, size_bytes, diunggah_oleh)
+  values ('${tA}','tickets/${tA}/a.png','a.png','image/png',1024,'pemohon')`);
+const aksesA3 = (await q(`select public.consultation_svc_akses_tiket('${nomorA}','${hashA}') as r`))[0].r;
+ok("T30x lampiran tiket A terlihat oleh pemohon A", aksesA3.lampiran.length === 1);
+const aksesB = (await q(`select public.consultation_svc_akses_tiket('${buatB.nomor_tiket}','${hashB}') as r`))[0].r;
+ok("T30y lampiran tiket A tidak terlihat oleh pemohon B", aksesB.lampiran.length === 0);
+await expectErr("T30z aktor palsu pada RPC admin ditolak",
+  `select public.consultation_svc_verifikasi('${buatB.id}','orangasing@x.or.id')`,
+  "bukan staf konsultasi aktif");
+await roleDeny("T30aa anon tidak dapat memanggil RPC staf", "anon",
+  `select public.consultation_svc_staf_daftar('adm@mwcnupondokaren.or.id',null,10,0);`);
+ok("T30ab service_role punya hak eksekusi RPC",
+  (await q("select has_function_privilege('service_role','public.consultation_svc_staf_daftar(text,text,integer,integer)','EXECUTE') v"))[0].v === true);
+
+// ====== T31: lampiran, rate-limit, audit lapisan HTTP (Fase 2)
+console.log("=== T31 lampiran & penjaga HTTP ===");
+const hashC = "c".repeat(64);
+const buatC = (await q(`select public.consultation_svc_buat_tiket(
+  'ibadah','Tiket layanan C','Isi pertanyaan layanan C cukup panjang.',
+  null,'085161033702',null,'${hashC}',true,false) as r`))[0].r;
+const tC = buatC.id;
+await expectErr("T31a lampiran dengan path tiket lain ditolak",
+  `select public.consultation_svc_lampiran_pemohon('${buatC.nomor_tiket}','${hashC}',
+     'tickets/${tA}/curang.png','curang.png','image/png',1024)`,
+  "Path lampiran tidak valid");
+const lampC = (await q(`select public.consultation_svc_lampiran_pemohon(
+  '${buatC.nomor_tiket}','${hashC}','tickets/${tC}/bukti.png','bukti.png','image/png',2048) as r`))[0].r;
+ok("T31b lampiran pemohon tercatat pada tiketnya", lampC.id && lampC.storage_path === `tickets/${tC}/bukti.png`);
+const ambC = (await q(`select public.consultation_svc_lampiran_pemohon_ambil(
+  '${buatC.nomor_tiket}','${hashC}','${lampC.id}') as r`))[0].r;
+ok("T31c metadata lampiran dapat diambil pemiliknya", ambC.nama_file === "bukti.png");
+await expectErr("T31d lampiran tiket C tidak dapat diambil kredensial tiket A",
+  `select public.consultation_svc_lampiran_pemohon_ambil('${buatC.nomor_tiket}','${hashA}','${lampC.id}')`,
+  "Kredensial tiket tidak valid");
+ok("T31e konsultan yang ditugaskan berhak mengunggah lampiran",
+  (await q(`select public.consultation_svc_lampiran_izin('${tA}','konsul1@mwcnupondokaren.or.id') as r`))[0].r.boleh === true);
+await expectErr("T31f konsultan lain tidak berhak mengunggah lampiran",
+  `select public.consultation_svc_lampiran_izin('${tA}','konsul2@mwcnupondokaren.or.id')`,
+  "tidak ditugaskan");
+const rate1 = (await q(`select public.consultation_svc_rate_hit('uji-bucket','uji-endpoint',2,60) as r`))[0].r;
+const rate2 = (await q(`select public.consultation_svc_rate_hit('uji-bucket','uji-endpoint',2,60) as r`))[0].r;
+const rate3 = (await q(`select public.consultation_svc_rate_hit('uji-bucket','uji-endpoint',2,60) as r`))[0].r;
+ok("T31g rate-limit mengizinkan lalu memblokir", rate1.allowed && rate2.allowed && rate3.allowed === false,
+  JSON.stringify({ rate1, rate2, rate3 }));
+ok("T31h rate-limit memberi retry_after saat diblokir", Number(rate3.retry_after) >= 1);
+await q(`select public.consultation_svc_catat_audit('sistem','sistem','uji_audit_http',null,'{"a":1}'::jsonb)`);
+ok("T31i audit peristiwa HTTP tercatat", (await q(
+  `select count(*)::int n from public.consultation_audit_logs where aksi='uji_audit_http'`))[0].n === 1);
+await expectErr("T31j audit dengan jenis aktor asing ditolak",
+  `select public.consultation_svc_catat_audit('x','alien','uji',null,'{}'::jsonb)`,
+  "Jenis aktor audit tidak valid");
+const kat = (await q(`select public.consultation_svc_kategori() as r`))[0].r;
+ok("T31k kategori publik aktif tersedia tanpa data internal",
+  Array.isArray(kat) && kat.some((k) => k.kode === "ibadah") && !JSON.stringify(kat).includes("id"));
 
 console.log(process.exitCode ? "\n== HASIL: ADA KEGAGALAN ==" : "\n== HASIL: SEMUA TES LOLOS ==");
 process.exit(process.exitCode || 0);

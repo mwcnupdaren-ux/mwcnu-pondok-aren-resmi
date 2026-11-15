@@ -68,7 +68,11 @@ revoke all on function
   public.consultation_append_only(),
   public.consultation_publication_before(),
   public.consultation_publication_check(),
-  public.consultation_consent_check()
+  public.consultation_consent_check(),
+  public.consultation_aktor(),
+  public.consultation_set_aktor(text),
+  public.consultation_audit_check(),
+  public.consultation_ubah_status(uuid, text, text, text)
   from public, anon, authenticated;
 
 -- Sequence nomor tiket: USAGE dipakai trigger saat insert tiket.
@@ -92,7 +96,36 @@ grant execute on function
   public.consultation_append_only(),
   public.consultation_publication_before(),
   public.consultation_publication_check(),
-  public.consultation_consent_check()
+  public.consultation_consent_check(),
+  public.consultation_aktor(),
+  public.consultation_set_aktor(text),
+  public.consultation_audit_check(),
+  public.consultation_ubah_status(uuid, text, text, text)
+  to service_role;
+
+-- 3b) HAK TABEL SERVICE_ROLE — EKSPLISIT (B2).
+--     Jangan mengandalkan default privilege Supabase: nyatakan hak minimum
+--     yang dibutuhkan backend. service_role adalah satu-satunya peran yang
+--     boleh menyentuh data konsultasi (di dalam Edge Function tepercaya).
+--     Tanpa TRUNCATE/REFERENCES/TRIGGER (bukan kebutuhan backend).
+grant usage on schema public to service_role;
+grant select, insert, update, delete on
+  public.consultation_categories,
+  public.consultation_holidays,
+  public.consultation_staff_roles,
+  public.consultation_consultant_categories,
+  public.consultation_tickets,
+  public.consultation_requester_contacts,
+  public.consultation_access_credentials,
+  public.consultation_messages,
+  public.consultation_assignments,
+  public.consultation_reviews,
+  public.consultation_attachments,
+  public.consultation_publications,
+  public.consultation_status_logs,
+  public.consultation_audit_logs,
+  public.consultation_notifications,
+  public.consultation_rate_hits
   to service_role;
 
 -- 4) BUCKET PRIVAT ------------------------------------------------------------

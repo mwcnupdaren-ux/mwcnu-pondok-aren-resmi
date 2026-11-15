@@ -1,0 +1,6 @@
+{
+  "name": "mwcnu-consultation-functions",
+  "private": true,
+  "type": "module",
+  "description": "Penanda modul ESM untuk Edge Functions konsultasi. Deno tidak memakai field ini; penanda ini membuat modul _shared dapat diuji dengan Node (type stripping) tanpa mengubah runtime Supabase."
+}

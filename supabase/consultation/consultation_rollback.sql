@@ -7,6 +7,20 @@
 -- ============================================================================
 
 -- 1) Trigger & fungsi
+--    Fungsi layanan Fase 2 (consultation_svc_*) di-drop otomatis (idempotent).
+do $$
+declare r record;
+begin
+  for r in
+    select p.oid::regprocedure as sig
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public' and p.proname like 'consultation_svc_%'
+  loop
+    execute 'drop function if exists ' || r.sig;
+  end loop;
+end $$;
+
+drop trigger if exists trg_consultation_audit_check       on public.consultation_audit_logs;
 drop trigger if exists trg_consultation_review_append     on public.consultation_reviews;
 drop trigger if exists trg_consultation_consent_check     on public.consultation_requester_contacts;
 drop trigger if exists trg_consultation_publication_check on public.consultation_publications;
@@ -24,6 +38,10 @@ drop trigger if exists trg_consultation_touch_publikasi   on public.consultation
 drop trigger if exists trg_consultation_touch_contacts    on public.consultation_requester_contacts;
 drop trigger if exists trg_consultation_touch_roles       on public.consultation_staff_roles;
 
+drop function if exists public.consultation_ubah_status(uuid, text, text, text);
+drop function if exists public.consultation_audit_check();
+drop function if exists public.consultation_set_aktor(text);
+drop function if exists public.consultation_aktor();
 drop function if exists public.consultation_consent_check();
 drop function if exists public.consultation_publication_check();
 drop function if exists public.consultation_publication_before();
@@ -72,6 +90,7 @@ drop sequence if exists public.consultation_nomor_tiket_seq;
 --    'consultation-attachments' memang ingin dihapus, jalankan TERPISAH:
 --
 --    -- delete from storage.buckets where id = 'consultation-attachments';
+--    -- delete from storage.buckets where id = 'consultation-private';
 --
 --    Catatan: objek fisik lampiran di storage tidak ikut terhapus oleh
 --    perintah di atas; kosongkan/arsipkan manual bila perlu.

@@ -224,7 +224,10 @@ create table if not exists public.consultation_publications (
   updated_at                timestamptz not null default now(),
   constraint ccp_terbit_butuh_persetujuan
     check (published = false or (persetujuan_pemohon and disetujui_reviewer and disetujui_admin)),
-  constraint ccp_terbit_butuh_slug check (published = false or slug is not null)
+  constraint ccp_terbit_butuh_slug check (published = false or slug is not null),
+  -- B1: invarian keras — TIDAK ADA publikasi terbit tanpa stempel waktu terbit.
+  -- Pertahanan berlapis di samping trigger publication_check/before.
+  constraint ccp_terbit_butuh_waktu check (published = false or published_at is not null)
 );
 
 -- C2) Riwayat status — append-only (trigger); row dijaga dari manipulasi manual.
@@ -530,15 +533,53 @@ create trigger trg_consultation_ticket_before
   for each row execute function public.consultation_ticket_before();
 
 -- F3) Tiket: log status otomatis (mekanik, append-only) setiap status berubah.
---     Aktor diambil dari JWT (email staf) bila ada; service_role anonim -> 'sistem'.
---     Edge Function dapat mengisi alasan dengan: SET LOCAL app.alasan_status = '...';
+--     Aktor diambil dari identitas yang sudah DIVERIFIKASI (lihat F3a/F3b):
+--     GUC transaksi app.aktor (diisi backend tepercaya) → klaim JWT email →
+--     'sistem'. Edge Function dapat mengisi alasan dengan:
+--     SET LOCAL app.alasan_status = '...';
+create or replace function public.consultation_aktor()
+returns text language sql stable as $$
+  select coalesce(
+    nullif(btrim(current_setting('app.aktor', true)), ''),
+    nullif(lower(auth.jwt() ->> 'email'), ''),
+    'sistem'
+  );
+$$;
+
+-- F3a) Set aktor transaksi — HANYA jalur backend tepercaya.
+--   Keterbatasan auth.jwt(): saat Edge Function memakai service_role, JWT yang
+--   dilihat database adalah kunci service (role = service_role, TANPA email),
+--   sehingga identitas staf tidak tersedia. Karena itu Edge Function WAJIB
+--   memverifikasi JWT pengguna (auth.getUser) lalu memanggil fungsi ini dengan
+--   email hasil verifikasi, DI TRANSAKSI YANG SAMA dengan mutasinya.
+--   SECURITY INVOKER (bukan definer) agar tidak menambah jalur eskalasi hak;
+--   hanya di-grant ke service_role. is_local = true → berlaku satu transaksi.
+create or replace function public.consultation_set_aktor(p_email text)
+returns text language plpgsql as $$
+declare e text := lower(btrim(coalesce(p_email, '')));
+begin
+  if e = '' then
+    raise exception 'Aktor wajib diisi';
+  end if;
+  if e = 'sistem' then
+    perform set_config('app.aktor', 'sistem', true);
+    return 'sistem';
+  end if;
+  if not exists (select 1 from public.consultation_staff_roles r
+                 where r.email = e and r.aktif) then
+    raise exception 'Aktor bukan staf konsultasi aktif';
+  end if;
+  perform set_config('app.aktor', e, true);
+  return e;
+end $$;
+
 create or replace function public.consultation_ticket_status_log()
 returns trigger language plpgsql as $$
 begin
   if new.status is distinct from old.status then
     insert into public.consultation_status_logs (ticket_id, status_lama, status_baru, oleh, alasan)
     values (new.id, old.status, new.status,
-            lower(coalesce(auth.jwt() ->> 'email', 'sistem')),
+            public.consultation_aktor(),
             nullif(current_setting('app.alasan_status', true), ''));
   end if;
   return null;
@@ -741,6 +782,11 @@ begin
     if new.published_at is not null then
       raise exception 'published_at hanya dikelola sistem (diisi saat terbit pertama)';
     end if;
+    -- B1: publikasi SELALU dimulai belum terbit; status terbit hanya boleh
+    -- lahir dari transisi UPDATE agar sistem dapat menstempel published_at.
+    if new.published then
+      raise exception 'Publikasi baru wajib dimulai belum terbit (published = false)';
+    end if;
   else
     -- perubahan/penyanjangan published_at di luar transisi terbit pertama
     -- ditolak (transisi terbit ditangani trigger publication_before yang
@@ -748,6 +794,10 @@ begin
     if new.published_at is distinct from old.published_at
        and not (not old.published and new.published) then
       raise exception 'published_at hanya dikelola sistem (diisi saat terbit pertama)';
+    end if;
+    -- B1: jalur UPDATE tidak boleh menyisakan published = true tanpa waktu.
+    if new.published and new.published_at is null then
+      raise exception 'published = true wajib memiliki published_at';
     end if;
   end if;
 
@@ -854,3 +904,53 @@ drop trigger if exists trg_consultation_review_append on public.consultation_rev
 create trigger trg_consultation_review_append
   before update or delete on public.consultation_reviews
   for each row execute function public.consultation_append_only();
+
+-- F13) Audit log: aktor staf WAJIB email staf konsultasi yang aktif; aktor
+--      sistem wajib literal 'sistem'. Ini mencegah identitas sembarang/typo
+--      masuk ke jejak audit. (Provenans tetap tanggung jawab backend: hanya
+--      service_role yang dapat menulis, dan nilainya berasal dari identitas
+--      yang sudah diverifikasi — lihat F3a.)
+create or replace function public.consultation_audit_check()
+returns trigger language plpgsql as $$
+begin
+  if new.aktor_jenis = 'staf' then
+    if new.aktor is null or not exists (
+      select 1 from public.consultation_staff_roles r
+      where r.email = lower(new.aktor) and r.aktif
+    ) then
+      raise exception 'Aktor audit bukan staf konsultasi aktif';
+    end if;
+    new.aktor := lower(new.aktor);
+  elsif new.aktor_jenis = 'sistem' and new.aktor <> 'sistem' then
+    raise exception 'Aktor sistem wajib bernilai sistem';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_consultation_audit_check on public.consultation_audit_logs;
+create trigger trg_consultation_audit_check
+  before insert on public.consultation_audit_logs
+  for each row execute function public.consultation_audit_check();
+
+-- F14) Perubahan status teraudit — SATU transaksi: validasi & set aktor
+--      terverifikasi, catat alasan, lalu ubah status. Trigger F3 menulis
+--      status log dengan aktor yang sama. Edge Function tidak boleh mengubah
+--      status lewat UPDATE langsung; gunakan RPC ini.
+create or replace function public.consultation_ubah_status(
+  p_ticket_id uuid,
+  p_status text,
+  p_alasan text,
+  p_aktor text
+) returns public.consultation_tickets
+language plpgsql as $$
+declare hasil public.consultation_tickets;
+begin
+  perform public.consultation_set_aktor(p_aktor);
+  perform set_config('app.alasan_status', coalesce(p_alasan, ''), true);
+  update public.consultation_tickets set status = p_status where id = p_ticket_id
+    returning * into hasil;
+  if hasil.id is null then
+    raise exception 'Tiket tidak ditemukan';
+  end if;
+  return hasil;
+end $$;
