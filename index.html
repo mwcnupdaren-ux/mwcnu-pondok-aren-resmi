@@ -324,16 +324,16 @@
 </div></section>
 <section id="daftar" class="vw" hidden><div class="wrap" id="kartu-app"><a class="back" href="#top">&larr; Kembali ke beranda</a><div class="kt-hero"><div><span class="kt-eyebrow">Keanggotaan digital</span><h1>Kartu Anggota MWCNU</h1><p>Lengkapi profil Anda, ajukan verifikasi, lalu simpan kartu anggota resmi setelah disetujui pengurus.</p></div><ol class="kt-flow" aria-label="Tahapan pendaftaran kartu anggota"><li><span>01</span><b>Buat akun</b><small>Gunakan email aktif</small></li><li><span>02</span><b>Lengkapi data</b><small>Isi profil dan foto</small></li><li><span>03</span><b>Verifikasi</b><small>Disetujui pengurus</small></li></ol></div>
 <p class="pg-lead">Buat pratinjau kartu anggota dan unduh sebagai PDF siap cetak (ukuran kartu 85,6 &times; 54 mm) atau gambar untuk disimpan di HP. Data diri Anda disimpan di basis data MWCNU Pondok Aren dan nomor induk diterbitkan oleh sistem, bukan dibuat di perangkat. Kartu baru sah sebagai bukti keanggotaan setelah diverifikasi pengurus; sebelum itu kartu diberi tanda <b>BELUM TERVERIFIKASI</b>.</p>
-<div class="kt-auth" id="kAuth"><div class="kt-auth-l"><span class="sm-k"><i></i>Masuk dulu</span><h3>Masuk untuk membuat Kartu Anggota</h3><p>Untuk melindungi data Anda, pembuatan Kartu Anggota wajib masuk. Jika Anda belum punya profil, profil akan <b>dibuatkan sekaligus</b> saat Anda daftar � tidak perlu langkah tambahan.</p></div><form class="kt-auth-f" id="kAuthF"><div class="kt-tabs"><button type="button" id="kTabIn" class="on">Masuk</button><button type="button" id="kTabUp">Buat akun &amp; profil</button></div><label class="fld"><span>Email *</span><input type="email" id="a-email" autocomplete="email" placeholder="contoh: nama@email.com"></label><label class="fld"><span>Kata sandi *</span><input type="password" id="a-pass" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label class="fld" data-reg><span>Nama lengkap *</span><input type="text" id="a-nama" autocomplete="name" placeholder="Nama sesuai KTP"></label><label class="fld" data-reg><span>Nomor HP / WhatsApp *</span><input type="tel" id="a-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label><button type="submit" class="btn" id="kAuthBtn">Masuk</button><button type="button" class="kt-b" id="kForgot" hidden>Lupa kata sandi? Kirim tautan reset ke email</button><p class="fm-msg" id="kAuthMsg" role="status"></p></form></div>
+<div class="kt-auth" id="kAuth"><div class="kt-auth-l"><span class="sm-k"><i></i>Masuk dulu</span><h3>Masuk untuk membuat Kartu Anggota</h3><p>Untuk melindungi data Anda, pembuatan Kartu Anggota wajib masuk. Jika Anda belum punya profil, profil akan <b>dibuatkan sekaligus</b> saat Anda daftar — tidak perlu langkah tambahan.</p></div><form class="kt-auth-f" id="kAuthF"><div class="kt-tabs"><button type="button" id="kTabIn" class="on">Masuk</button><button type="button" id="kTabUp">Buat akun &amp; profil</button></div><label class="fld"><span>Email *</span><input type="email" id="a-email" autocomplete="email" placeholder="contoh: nama@email.com"></label><label class="fld"><span>Kata sandi *</span><input type="password" id="a-pass" autocomplete="current-password" placeholder="Minimal 6 karakter"></label><label class="fld" data-reg><span>Nama lengkap *</span><input type="text" id="a-nama" autocomplete="name" placeholder="Nama sesuai KTP"></label><label class="fld" data-reg><span>Nomor HP / WhatsApp *</span><input type="tel" id="a-hp" autocomplete="tel" placeholder="08xx-xxxx-xxxx"></label><button type="submit" class="btn" id="kAuthBtn">Masuk</button><button type="button" class="kt-b" id="kForgot" hidden>Lupa kata sandi? Kirim tautan reset ke email</button><p class="fm-msg" id="kAuthMsg" role="status"></p></form></div>
 <p class="fm-note">Akun dan profil memerlukan koneksi ke server MWCNU. Pendaftaran KTA hanya dapat dilanjutkan setelah email dikonfirmasi; data profil disimpan di basis data MWCNU.</p>
-<div class="kt-bar" id="kBar" hidden><span class="sm-k"><i></i>Profil</span><div class="kt-bar-t"><b id="kWho">�</b><small id="kProfState">�</small></div><a class="kt-b" href="#profil">Profil Saya</a><button type="button" class="kt-b" id="kOut">Keluar</button></div>
+<div class="kt-bar" id="kBar" hidden><span class="sm-k"><i></i>Profil</span><div class="kt-bar-t"><b id="kWho">—</b><small id="kProfState">—</small></div><a class="kt-b" href="#profil">Profil Saya</a><button type="button" class="kt-b" id="kOut">Keluar</button></div>
 <div class="kt-g" id="kGate" hidden>
 <div class="kt-f"><span class="sm-k"><i></i>Data anggota</span><h3>Isi data diri</h3>
 <div class="fld"><span>Foto (rasio 3&times;4) *</span><label class="kt-drop" for="k-foto"><input type="file" id="k-foto" accept="image/*"><b id="k-foto-t">Pilih atau ambil foto wajah</b><small>Foto menghadap depan, latar polos, wajah terlihat jelas</small></label>
 <div class="kt-crop" id="k-crop" hidden><label>Perbesar<input type="range" id="k-zoom" min="1" max="3" step="0.02" value="1"></label><label>Geser kiri-kanan<input type="range" id="k-px" min="0" max="1" step="0.01" value="0.5"></label><label>Geser atas-bawah<input type="range" id="k-py" min="0" max="1" step="0.01" value="0.35"></label></div></div>
 <label class="fld"><span>Nama lengkap (beserta gelar jika ada) *</span><input type="text" id="k-nama" autocomplete="off"></label>
 <div class="kt-r2"><label class="fld"><span>Jenis kelamin *</span><select id="k-jk"><option value="">Pilih</option><option>Laki-laki</option><option>Perempuan</option></select></label>
-<label class="fld"><span>Wadah Khidmah *</span><select id="k-wadah"><option value="">Pilih</option><option>MWCNU</option><option>Jama�ah</option><option>GP Ansor</option><option>Fatayat NU</option><option>IPNU</option><option>IPPNU</option></select></label></div>
+<label class="fld"><span>Wadah Khidmah *</span><select id="k-wadah"><option value="">Pilih</option><option>MWCNU</option><option>Jama’ah</option><option>GP Ansor</option><option>Fatayat NU</option><option>IPNU</option><option>IPPNU</option></select></label></div>
 <div class="kt-r2"><label class="fld"><span>Tempat lahir *</span><input type="text" id="k-tmp" autocomplete="off"></label>
 <label class="fld"><span>Tanggal lahir *</span><input type="date" id="k-tgl"></label></div>
 <label class="fld"><span>Alamat (jalan, RT/RW) *</span><textarea id="k-alamat" rows="2" maxlength="140" placeholder="Contoh: Jl. Garuda Raya No. 10 RT 02/RW 05"></textarea></label>
@@ -364,8 +364,8 @@
 
 <div id="pr-main" hidden>
   <div class="pr-head">
-    <div class="pr-ava" id="pr-ava" aria-hidden="true">�</div>
-    <div class="pr-head-t"><b id="pr-name">�</b><small id="pr-email">�</small><small id="pr-since"></small></div>
+    <div class="pr-ava" id="pr-ava" aria-hidden="true">—</div>
+    <div class="pr-head-t"><b id="pr-name">—</b><small id="pr-email">—</small><small id="pr-since"></small></div>
     <div class="pr-badges"><span class="pr-badge" id="pr-role">Jama'ah</span><span class="pr-badge ok" id="pr-confirm" hidden>Email terkonfirmasi</span></div>
   </div>
 
@@ -380,12 +380,12 @@
   <div class="pr-pane on" id="pr-ring">
     <div class="pr-grid">
       <div class="pr-card"><span class="sm-k"><i></i>Keanggotaan</span><h3>Kartu Anggota (KTA)</h3>
-        <dl class="pr-dl"><div><dt>Nomor induk (NIA)</dt><dd id="pr-nia">�</dd></div><div><dt>Status</dt><dd><span class="pr-chip" id="pr-status">�</span></dd></div><div><dt>Diterbitkan</dt><dd id="pr-terbit">�</dd></div></dl>
+        <dl class="pr-dl"><div><dt>Nomor induk (NIA)</dt><dd id="pr-nia">—</dd></div><div><dt>Status</dt><dd><span class="pr-chip" id="pr-status">—</span></dd></div><div><dt>Diterbitkan</dt><dd id="pr-terbit">—</dd></div></dl>
         <div class="pr-act"><button type="button" class="btn o s" id="pr-copy-qr" hidden>Salin tautan QR</button><a class="btn o s" href="#daftar">Buka / unduh kartu</a></div>
         <p class="fm-note" id="pr-nia-note"></p>
       </div>
       <div class="pr-card" id="pr-staff" hidden><span class="sm-k"><i></i>Pengelola</span><h3>Akun Pengurus</h3>
-        <dl class="pr-dl"><div><dt>Peran</dt><dd id="pr-staff-role">�</dd></div><div><dt>Wilayah verifikasi</dt><dd id="pr-staff-prnu">�</dd></div></dl>
+        <dl class="pr-dl"><div><dt>Peran</dt><dd id="pr-staff-role">—</dd></div><div><dt>Wilayah verifikasi</dt><dd id="pr-staff-prnu">—</dd></div></dl>
         <div class="pr-act"><a class="btn" href="/admin" target="_blank" rel="noopener">Buka panel pengelola</a></div>
         <p class="fm-note">Panel pengelola hanya untuk akun yang terdaftar sebagai pengurus/admin MWC.</p>
       </div>
@@ -410,7 +410,7 @@
           <label class="fld" id="pr-rt-w" hidden><span>Kelurahan / ranting</span><select id="pr-rt"></select></label>
         </div>
         <div class="pr-2col">
-          <label class="fld"><span>Wadah khidmah</span><input type="text" id="pr-wadah" placeholder="mis. IPNU, Muslimat � opsional"></label>
+          <label class="fld"><span>Wadah khidmah</span><input type="text" id="pr-wadah" placeholder="mis. IPNU, Muslimat atau IPNU (opsional)"></label>
           <label class="fld"><span>Pekerjaan</span><input type="text" id="pr-kerja" autocomplete="organization-title"></label>
         </div>
         <div class="pr-act"><button type="submit" class="btn" id="pr-save">Simpan perubahan</button></div>
@@ -427,13 +427,13 @@
     <div class="pr-card"><span class="sm-k"><i></i>Kartu Anggota</span><h3>Verifikasi digital</h3>
       <div class="pr-qr" id="pr-qr" hidden><canvas id="pr-qr-cv" width="132" height="132" aria-label="QR verifikasi kartu anggota Anda"></canvas><small>Pindai QR ini untuk memverifikasi keabsahan kartu.</small></div>
       <div class="pr-act"><button type="button" class="btn o s" id="pr-copy-qr2" hidden>Salin tautan verifikasi</button><a class="btn o s" href="#daftar">Buka / unduh kartu</a></div>
-      <p class="fm-note">Tautan verifikasi berformat <b>/v/nomor-induk</b> dan dapat dibuka siapa pun tanpa masuk � hanya menampilkan status keabsahan kartu.</p>
+      <p class="fm-note">Tautan verifikasi berformat <b>/v/nomor-induk</b> dan dapat dibuka siapa pun tanpa masuk — hanya menampilkan status keabsahan kartu.</p>
     </div>
   </div>
 
   <div class="pr-pane" id="pr-sek">
     <div class="pr-card"><span class="sm-k"><i></i>Keamanan</span><h3>Kata sandi &amp; sesi</h3>
-      <dl class="pr-dl"><div><dt>Email</dt><dd id="pr-em-mail">�</dd></div><div><dt>Konfirmasi email</dt><dd id="pr-emstat">�</dd></div></dl>
+      <dl class="pr-dl"><div><dt>Email</dt><dd id="pr-em-mail">—</dd></div><div><dt>Konfirmasi email</dt><dd id="pr-emstat">—</dd></div></dl>
       <form id="pr-pw" class="pr-form" novalidate>
         <div class="pr-2col">
           <label class="fld"><span>Kata sandi baru *</span><input type="password" id="pr-pw1" autocomplete="new-password" placeholder="Minimal 6 karakter"></label>
@@ -504,7 +504,7 @@
 <a href="https://www.tiktok.com/@mwcnupdaren" target="_blank" rel="noopener" aria-label="TikTok MWCNU Pondok Aren" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.6 6.7a4.8 4.8 0 0 1-3.8-4.2V2h-3.4v13.7a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.4a6.3 6.3 0 1 0 5.4 6.2V8.9a8.2 8.2 0 0 0 4.8 1.5V7z"/></svg></a>
 </div></div>
 </div>
-<div class="copy"><span>� <span id="yr"></span> MWCNU Pondok Aren. Masa khidmat 2025 sampai 2030.</span><a href="#top">Kembali ke atas</a></div>
+<div class="copy"><span>© <span id="yr"></span> MWCNU Pondok Aren. Masa khidmat 2025 sampai 2030.</span><a href="#top">Kembali ke atas</a></div>
 </div></footer>
 
 <script src="/js/vendor/qrcode.js?v=20"></script>
@@ -514,7 +514,7 @@
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
 <div class="gs-panel" role="document">
-<div class="gs-head"><span class="gs-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><input id="gsq" type="search" placeholder="Cari berita, pengurus, ranting, layanan, galeri�" autocomplete="off" aria-label="Cari dalam situs"><kbd>ESC</kbd></div>
+<div class="gs-head"><span class="gs-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><input id="gsq" type="search" placeholder="Cari berita, pengurus, ranting, layanan, galeri…" autocomplete="off" aria-label="Cari dalam situs"><kbd>ESC</kbd></div>
 <div class="gs-body" id="gsBody"></div>
 <div class="gs-foot"><span><b>&#9166;</b> Buka hasil pertama</span><span><b>&#8593;&#8595;</b> Pilih</span><span><b>ESC</b> Tutup</span><span><b>Ctrl+K</b> Cari</span></div>
 </div>
