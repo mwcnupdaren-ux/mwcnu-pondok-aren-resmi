@@ -67,7 +67,8 @@ revoke all on function
   public.consultation_attachment_check(),
   public.consultation_append_only(),
   public.consultation_publication_before(),
-  public.consultation_publication_check()
+  public.consultation_publication_check(),
+  public.consultation_consent_check()
   from public, anon, authenticated;
 
 -- Sequence nomor tiket: USAGE dipakai trigger saat insert tiket.
@@ -90,7 +91,8 @@ grant execute on function
   public.consultation_attachment_check(),
   public.consultation_append_only(),
   public.consultation_publication_before(),
-  public.consultation_publication_check()
+  public.consultation_publication_check(),
+  public.consultation_consent_check()
   to service_role;
 
 -- 4) BUCKET PRIVAT ------------------------------------------------------------

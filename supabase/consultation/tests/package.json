@@ -1,0 +1,12 @@
+{
+  "name": "mwcnu-consultation-tests",
+  "private": true,
+  "type": "module",
+  "description": "Uji migrasi Phase 1 modul konsultasi via PGlite (in-memory Postgres)",
+  "scripts": {
+    "test": "node test-konsultasi.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.3.16"
+  }
+}

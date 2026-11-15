@@ -94,4 +94,27 @@ Aturan penegakan:
   `consultation_nomor_tiket_seq` — unik dijamin sequence, aman terhadap
   transaksi bersamaan; format `KON-YYMMDD-<kode base-32>`.
 
+## Publikasi & Pencabutan Persetujuan
+
+- `consultation_publications` membutuhkan ketiga persetujuan (pemohon, reviewer,
+  admin) + slug sebelum `published = true` (check constraint `ccp_*`).
+- `published_at` diisi sistem sekali pada transisi terbit pertama; tidak dapat
+  diubah atau dikosongkan melalui UPDATE (trigger `publication_before` +
+  `publication_check`).
+- Persetujuan pemohon harus konsisten dengan `persetujuan_publikasi` pada
+  `consultation_requester_contacts` dan wajib menyertakan waktu.
+- Reviewer dan admin wajib email ber-role yang sesuai & aktif, dengan waktu.
+- Bila pemohon mencabut persetujuan pada kontak (`true → false`), trigger
+  `consent_check` MEMAKSA unpublish (`published = false`) dan mencatat
+  `dicabut = true`, `dicabut_at` pada publikasi — tidak ada publikasi aktif
+  tanpa persetujuan yang sah.
+- Penerbitan ulang pasca pencabutan butuh seluruh persetujuan DIREFRESH
+  (timestamp ≥ `dicabut_at`, aturan "diperbarui setelah pencabutan").
+
+## Riwayat Review (Append-Only)
+
+- `consultation_reviews` bersifat append-only: UPDATE dan DELETE manual
+  ditolak (trigger `append_only`). Setiap tinjauan tercatat permanen. Efek
+  CASCADE via penghapusan tiket tetap diizinkan (`pg_trigger_depth() > 1`).
+
 Detail kolom per tabel: lihat `DATABASE_DICTIONARY.md`.

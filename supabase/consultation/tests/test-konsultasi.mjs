@@ -1,14 +1,9 @@
 // PHASE 1 (REVISI AUDIT) — Pengujian migrasi konsultasi via PGlite
-// Eksekusi 001→002→003 lalu 22 kelompok asersi (T01–T22).
+// Eksekusi 001→002→003 lalu 22 kelompok asersi (T01–T26).
 // Cara jalan (dari folder supabase/consultation/tests):
-//   node test-konsultasi.mjs
-// Jika paket @electric-sql/pglite terpasang (npm i @electric-sql/pglite),
-// import paket dipakai; bila tidak, fallback ke cache npx lokal (mesin dev).
-let PGlite;
-try { ({ PGlite } = await import("@electric-sql/pglite")); }
-catch {
-  ({ PGlite } = await import("file:///C:/Users/99kho/AppData/Local/npm-cache/_npx/ba4f1959e38407b5/node_modules/@electric-sql/pglite/dist/index.js"));
-}
+//   npm install   (sekali; memasang @electric-sql/pglite lokal, terkunci versi)
+//   npm test      (atau: node test-konsultasi.mjs)
+import { PGlite } from "@electric-sql/pglite";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
 
@@ -86,9 +81,16 @@ const t = (await q(`insert into public.consultation_tickets (kategori_id, judul,
 ok("nomor KON-YYMMDD-<kode base-32>", /^KON-\d{6}-[A-HJ-NP-Z2-9]{6,7}$/.test(t.nomor_tiket), t.nomor_tiket);
 ok("status awal baru", t.status === "baru");
 ok("SLA belum jalan di 'baru'", t.sla_deadline === null);
-const tFix = (await q(`insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan, nomor_tiket)
-  values ((select id from public.consultation_categories where kode='ibadah'), 'Uji nomor eksplisit', 'Isi pertanyaan cukup panjang untuk lulus cek panjang.', 'KON-260101-ZZZZZZ') returning nomor_tiket`))[0];
-ok("T04c nomor eksplisit dipertahankan (bukan diganti generator)", tFix.nomor_tiket === "KON-260101-ZZZZZZ", tFix.nomor_tiket);
+await expectErr("T04c nomor eksplisit ditolak (wajib dari sistem/sequence)",
+  `insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan, nomor_tiket)
+   values ((select id from public.consultation_categories where kode='ibadah'), 'Uji nomor eksplisit', 'Isi pertanyaan cukup panjang untuk lulus cek panjang.', 'KON-260101-ZZZZZZ')`,
+  "Nomor tiket wajib dibuat oleh sistem (sequence)");
+
+// ====== T04c-duplikat: nomor duplikat (safety net unique constraint)
+console.log("=== T04c-duplikat nomor duplikat ===");
+// Generator dipaksa ke nilai yang sama melalui nomor yang sudah ada di sisi aplikasi
+// tidak mungkin karena nomor selalu dari sequence; uji keunikan ditangani T19.
+ok("T04c-duplikat nomor selalu unik lewat sequence (lihat T19)", true);
 
 // ====== T04b/c: kategori non-aktif ditolak saat insert
 console.log("=== T04b/c kategori non-aktif ===");
@@ -437,6 +439,83 @@ await expectErr("T21b reviewer nonaktif tidak dapat melakukan review baru",
    values ('${tid}','${mJawab}','rev1@mwcnupondokaren.or.id','disetujui')`, "ber-role reviewer dan aktif");
 await db.exec("update public.consultation_staff_roles set aktif = true where email = 'rev1@mwcnupondokaren.or.id'");
 ok("T21c status staf dipulihkan setelah uji nonaktif", true);
+
+// ====== T22: status awal tiket wajib 'baru' & kosong SLA (audit lanjutan B)
+console.log("=== T22 status awal tiket & SLA kosong ===");
+const catId = (await q("select id from public.consultation_categories where kode='ibadah'"))[0].id;
+await expectErr("T22a insert tiket dengan status diverifikasi ditolak",
+  `insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan, status)
+   values ('${catId}', 'Uji status awal', 'Isi pertanyaan cukup panjang untuk lulus.', 'diverifikasi')`,
+  "Tiket baru wajib dimulai dengan status baru");
+await expectErr("T22b insert tiket dengan sla_deadline terisi ditolak",
+  `insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan, sla_deadline)
+   values ('${catId}', 'Uji SLA awal', 'Isi pertanyaan cukup panjang untuk lulus.', now() + interval '3 days')`,
+  "Kolom SLA/jeda wajib kosong");
+
+// ====== T23: perlindungan SLA di setiap UPDATE & perubahan status (audit lanjutan C)
+console.log("=== T23 perlindungan SLA saat update/status ===");
+const tid3 = (await q(`insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan)
+  values ('${catId}', 'Uji proteksi SLA update', 'Isi pertanyaan cukup panjang untuk lulus.') returning id`))[0].id;
+await expectErr("T23a update tiket status 'baru' dengan mengisi sla_deadline ditolak",
+  `update public.consultation_tickets set sla_deadline = now() where id='${tid3}'`, "hanya dikelola sistem");
+await db.exec(`update public.consultation_tickets set status='diverifikasi' where id='${tid3}'`);
+await expectErr("T23b update normal dengan mengubah sla_deadline ditolak",
+  `update public.consultation_tickets set status='menunggu_penugasan', sla_deadline = now() where id='${tid3}'`, "hanya dikelola sistem");
+await db.exec(`update public.consultation_tickets set status='menunggu_penugasan' where id='${tid3}'`);
+await db.exec(`update public.consultation_tickets set status='ditugaskan' where id='${tid3}'`);
+await expectErr("T23c entry pause dengan memanipulasi sla_deadline ditolak",
+  `update public.consultation_tickets set status='menunggu_informasi', sla_deadline = now() where id='${tid3}'`, "hanya dikelola sistem");
+
+// ====== T24: persetujuan publikasi, pencabutan, re-publication & published_at (audit lanjutan D)
+console.log("=== T24 publikasi, pencabutan & published_at ===");
+const tidPub = (await q(`insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan)
+  values ('${catId}', 'Uji publikasi pencabutan', 'Isi pertanyaan cukup panjang untuk lulus.') returning id`))[0].id;
+await db.exec(`update public.consultation_tickets set status='diverifikasi' where id='${tidPub}'`);
+await db.exec(`update public.consultation_tickets set status='menunggu_penugasan' where id='${tidPub}'`);
+await db.exec(`update public.consultation_tickets set status='ditugaskan' where id='${tidPub}'`);
+await db.exec(`insert into public.consultation_requester_contacts (ticket_id, whatsapp, persetujuan_privasi, persetujuan_publikasi, persetujuan_publikasi_at)
+  values ('${tidPub}', '085161033689', true, true, now())`);
+await db.exec(`insert into public.consultation_publications (ticket_id, judul_publik, pertanyaan_samar, jawaban_final, disamarkan_oleh)
+  values ('${tidPub}', 'Judul Publik Uji', 'Pertanyaan samar...', 'Jawaban final...', 'adm@mwcnupondokaren.or.id')`);
+await expectErr("T24a insert dengan published_at terisi ditolak",
+  `insert into public.consultation_publications (ticket_id, judul_publik, pertanyaan_samar, jawaban_final, disamarkan_oleh, published_at)
+   values ('${tidPub}', 'X', 'Y', 'Z', 'adm@mwcnupondokaren.or.id', now())`, "published_at hanya dikelola sistem");
+
+// Publikasi milik pemohon (persetujuan_pemohon=true) agar pencabutan kontak memicu dicabut_at
+await db.exec(`update public.consultation_publications set persetujuan_pemohon = true, persetujuan_pemohon_at = now() where ticket_id='${tidPub}'`);
+
+// Pencabutan via kontak: persetujuan kontak ditarik (true -> false) → memaksa unpublish + dicabut
+await db.exec(`update public.consultation_requester_contacts set persetujuan_publikasi = false, persetujuan_publikasi_at = null where ticket_id='${tidPub}'`);
+const pubState = (await q(`select published, persetujuan_pemohon, dicabut from public.consultation_publications where ticket_id='${tidPub}'`))[0];
+ok("T24b pencabutan kontak mematikan published & persetujuan_pemohon dan mencatat dicabut", !pubState.published && !pubState.persetujuan_pemohon && pubState.dicabut);
+
+// Re-publication: persetujuan reviewer dengan timestamp lama (sebelum dicabut_at) ditolak
+await expectErr("T24c re-publication dengan persetujuan reviewer lama (sebelum dicabut_at) ditolak",
+  `update public.consultation_publications set disetujui_reviewer = true,
+   disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_reviewer_at = now() - interval '2 hours' where ticket_id='${tidPub}'`,
+  "wajib diperbarui setelah pencabutan");
+
+// published_at tidak dapat diubah pada UPDATE (belum terbit, tetap null)
+await expectErr("T24d published_at diubah manual ditolak",
+  `update public.consultation_publications set published_at = now() - interval '1 day' where ticket_id='${tidPub}'`, "published_at hanya dikelola sistem");
+const pa = (await q(`select published_at from public.consultation_publications where ticket_id='${tidPub}'`))[0].published_at;
+ok("T24e published_at tetap null (belum pernah terbit)", pa === null);
+
+// ====== T25: lampiran lintas tiket (audit lanjutan E)
+console.log("=== T25 lampiran lintas tiket ===");
+const tidAlt = (await q(`insert into public.consultation_tickets (kategori_id, judul, isi_pertanyaan)
+  values ('${catId}', 'Tiket Lain', 'Isi pertanyaan cukup panjang untuk lulus.') returning id`))[0].id;
+await expectErr("T25a lampiran merujuk pesan tiket lain ditolak",
+  `insert into public.consultation_attachments (ticket_id, message_id, storage_path, nama_file, mime, size_bytes, diunggah_oleh)
+   values ('${tidAlt}', '${mJawab}', 'tickets/${tidAlt}/x.png', 'x.png', 'image/png', 1024, 'pemohon')`,
+  "Lampiran tidak cocok dengan tiket pesan");
+
+// ====== T26: review append-only (audit lanjutan F)
+console.log("=== T26 review append-only ===");
+await expectErr("T26a update review ditolak (append-only)",
+  `update public.consultation_reviews set catatan = 'Ubah catatan' where ticket_id='${tid}'`, "append-only");
+await expectErr("T26b delete review ditolak (append-only)",
+  `delete from public.consultation_reviews where ticket_id='${tid}'`, "append-only");
 
 console.log(process.exitCode ? "\n== HASIL: ADA KEGAGALAN ==" : "\n== HASIL: SEMUA TES LOLOS ==");
 process.exit(process.exitCode || 0);

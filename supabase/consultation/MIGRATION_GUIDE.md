@@ -11,8 +11,8 @@ sukses sebelum lanjut):
 
 | Urut | File | Isi |
 |---|---|---|
-| 1 | `consultation_001_foundation.sql` | Fungsi `consultation_can_transition` (mesin status 25 pasangan transisi) |
-| 2 | `consultation_002_tables.sql` | 16 tabel, indeks, FK (termasuk FK komposit), sequence nomor tiket, bucket privat, 12 trigger/fungsi trigger, fungsi SLA |
+| 1 | `consultation_001_foundation.sql` | Fungsi `consultation_can_transition` (mesin status 26 pasangan transisi) |
+| 2 | `consultation_002_tables.sql` | 16 tabel, indeks, FK (termasuk FK komposit), sequence nomor tiket, bucket privat, 13 trigger + 17 fungsi, fungsi SLA |
 | 3 | `consultation_003_security.sql` | RLS 16/16 tanpa policy (deny default), revoke seluruh hak dari anon/authenticated, fungsi & sequence hanya untuk service_role |
 
 Prasyarat yang **sudah tersedia bawaan Supabase** (tidak perlu dibuat):
@@ -52,7 +52,7 @@ select grantee, table_name from information_schema.role_table_grants
 select id, public, file_size_limit, allowed_mime_types
   from storage.buckets where id = 'consultation-attachments';
 
--- (5) Fungsi terdaftar (14 buah)
+-- (5) Fungsi terdaftar (17 buah)
 select proname from pg_proc where proname like 'consultation_%' order by proname;
 
 -- (6) Sequence nomor tiket hanya untuk service_role
@@ -61,7 +61,7 @@ select has_sequence_privilege('anon','public.consultation_nomor_tiket_seq','USAG
 ```
 
 Hasil yang diharapkan: (1) 16 baris semua `true`; (2) 0 baris; (3) 0 baris;
-(4) 1 baris, `public = false`, limit 5 MB, 4 mime; (5) 14 fungsi;
+(4) 1 baris, `public = false`, limit 5 MB, 4 mime; (5) 17 fungsi;
 (6) `anon = false`, `svc = true`.
 
 ## 2b. Definisi Matematis Jeda SLA (hasil audit)
@@ -103,18 +103,23 @@ Kasus-kasus ini diuji otomatis (T18 S1–S6) memakai seam waktu
 ## 3. Rollback Guide
 
 File `consultation_rollback.sql` membatalkan seluruh Phase 1 dengan urutan:
-1. Drop trigger (12) lalu drop fungsi (10).
-2. Drop 16 tabel `CASCADE` (urut ketergantungan; CASCADE hanya berlaku di
-   antara tabel konsultasi).
-3. Hapus bucket `consultation-attachments` dari `storage.buckets`.
+1. Drop trigger (13) lalu drop fungsi (17) dan drop sequence nomor tiket.
+2. Drop 16 tabel **TANPA CASCADE** (urut ketergantungan FK anak→induk; bila ada
+   objek EKSTERNAL yang bergantung, rollback GAGAL KERAS alih-alih
+   menghapusnya diam-diam).
+3. Bucket Storage `consultation-attachments` **tidak** dihapus oleh rollback
+   database — penghapusannya dipisah ke bagian manual di akhir file rollback
+   dan membutuhkan keputusan administrator.
 
 Jaminan rollback:
 - Tidak menyentuh tabel existing.
-- `drop function if exists` / `drop table if exists` → aman dijalankan ulang.
+- `drop ... if exists` → aman dijalankan ulang (idempotent).
 - **PERHATIAN**: menghapus tiket = menghapus metadata percakapan/lampiran.
   File fisik di bucket Storage tidak ikut terhapus oleh SQL — kosongkan
   manual bila benar-benar perlu. Riwayat `status_logs`/`audit_logs` selamat
   (FK `SET NULL`) sampai tabelnya sendiri di-drop oleh rollback.
+- Tervalidasi: menjalankan rollback dua kali menghasilkan 0 tabel, 0 fungsi,
+  0 trigger, 0 sequence (lihat `PGlite_TEST_RESULTS.md`).
 
 Rollback hanya dilakukan atas keputusan eksplisit pengguna.
 
@@ -128,8 +133,8 @@ Rollback hanya dilakukan atas keputusan eksplisit pengguna.
 | Nomor tiket | Di-generate trigger dari sequence (`KON-YYMMDD-<kode base-32>`) — unik dijamin sequence, aman transaksi bersamaan; bukan rahasia, bukan token akses |
 | Role staf | `consultation_staff_roles` terpisah dari role CMS `staff.role` |
 | Lampiran | Bucket privat tanpa policy storage; signed URL pendek dari function |
-| Append-only | `messages`, `status_logs`, `audit_logs` dilindungi trigger; CASCADE tiket tetap diizinkan via `pg_trigger_depth()` |
-| Publikasi | Butuh 3 persetujuan (pemohon, reviewer, admin) + slug; snapshot samar tanpa data identitas |
+| Append-only | `messages`, `status_logs`, `audit_logs`, `reviews` dilindungi trigger; CASCADE tiket tetap diizinkan via `pg_trigger_depth()` |
+| Publikasi | Butuh 3 persetujuan (pemohon, reviewer, admin) + slug; snapshot samar tanpa data identitas; `published_at` tidak dapat diubah; pencabutan kontak memaksa unpublish + stempel `dicabut_at`, penerbitan ulang butuh persetujuan segar |
 
 ## 5. Risiko & Catatan Penting (Phase 1)
 

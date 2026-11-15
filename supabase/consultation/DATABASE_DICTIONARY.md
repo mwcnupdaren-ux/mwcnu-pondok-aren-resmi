@@ -153,7 +153,7 @@ FK komposit → staff_roles (ON DELETE RESTRICT). Indeks unik parsial
 | catatan | text | ✓ | wajib relevan saat `minta_revisi` (validasi function Phase 2) |
 | reviewed_at | timestamptz | ✗ | default now() |
 
-FK komposit → staff_roles (ON DELETE RESTRICT).
+FK komposit → staff_roles (ON DELETE RESTRICT). **Append-only**: update/delete manual ditolak (t).
 
 ### 11. `consultation_attachments` — metadata lampiran (append-metadata)
 | Kolom | Tipe | Null | Ketentuan |
@@ -189,13 +189,21 @@ whitelist mime sama). Pengaksesan hanya via Edge Function + signed URL pendek.
 | disetujui_reviewer (+_oleh/_at) | boolean/text/timestamptz | ✗/✓/✓ | |
 | disetujui_admin (+_oleh/_at) | boolean/text/timestamptz | ✗/✓/✓ | |
 | published | boolean | ✗ | default false |
-| published_at | timestamptz | ✓ | diisi sistem sekali saat pertama terbit (t) |
+| published_at | timestamptz | ✓ | diisi sistem sekali saat pertama terbit, tidak dapat diubah/dikosongkan (t) |
+| dicabut | boolean | ✗ | default false; pernah dicabut pemohon |
+| dicabut_at | timestamptz | ✓ | waktu pencabutan pertama (riwayat) |
+| dicabut_alasan | text | ✓ | |
 | created_at / updated_at | timestamptz | ✗ | |
 
 Check `ccp_terbit_butuh_persetujuan`: terbit **hanya** bila ketiga persetujuan
 true; `ccp_terbit_butuh_slug`: terbit wajib punya slug. Tidak pernah ber-JOIN
-ke data identitas — snapshot berdiri sendiri. Pembacaan publik tetap via
-Edge Function (RLS tetap deny ke anon).
+ke data identitas — snapshot berdiri sendiri.
+
+Aturan tambahan (trigger `consultation_publication_check` + `consultation_publication_before`):
+- `published_at` hanya diisi sistem saat transisi terbit pertama; INSERT tidak boleh menyertakannya, UPDATE tidak boleh mengubah/mengosongkannya.
+- Waktu persetujuan pemohon tidak boleh mendahului waktu persetujuan pada `consultation_requester_contacts`.
+- Setelah pencabutan (`dicabut_at` terisi), seluruh persetujuan wajib di-*refresh* (timestamp ≥ `dicabut_at`) sebelum penerbitan ulang.
+Pembacaan publik tetap via Edge Function (RLS tetap deny ke anon).
 
 ### 13. `consultation_status_logs` — riwayat status (append-only)
 | Kolom | Tipe | Null | Ketentuan |
@@ -260,8 +268,9 @@ mekanisme otomatis di Phase 1 (dicatat sebagai risiko/dependency).
 | `consultation_review_check` | reviews | hanya jawaban konsultan, tiket cocok, anti self-approval, reviewer ber-role reviewer & aktif |
 | `consultation_assignment_check` | assignments | konsultan ber-role konsultan & aktif saat menerima penugasan |
 | `consultation_attachment_check` | attachments | pengunggah staf aktif / pemohon |
-| `consultation_publication_check` | publications | kewenangan 3 persetujuan (pemohon konsisten kontak, reviewer/admin ber-role & aktif, waktu wajib, state false wajib bersih) |
-| `consultation_append_only` | messages, status_logs, audit_logs | larang update/delete manual (CASCADE masih diizinkan) |
+| `consultation_publication_check` | publications | kewenangan 3 persetujuan (pemohon konsisten kontak, reviewer/admin ber-role & aktif, waktu wajib, state false wajib bersih, `published_at` terlindungi, aturan re-publish pasca pencabutan) |
+| `consultation_consent_check` | requester_contacts (after) | memaksa unpublish + stempel `dicabut_at` bila persetujuan publikasi kontak ditarik; waktu konsisten dengan boolean |
+| `consultation_append_only` | messages, status_logs, audit_logs, reviews | larang update/delete manual (CASCADE masih diizinkan) |
 | `consultation_publication_before` | publications | published_at sekali |
 | `consultation_touch` | staff_roles, contacts, publications | updated_at |
 | `consultation_can_transition` (fungsi biasa) | — | daftar transisi valid (26 pasangan) |

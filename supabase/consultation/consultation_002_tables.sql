@@ -216,7 +216,10 @@ create table if not exists public.consultation_publications (
   disetujui_admin_oleh      text,
   disetujui_admin_at        timestamptz,
   published                 boolean not null default false,
-  published_at              timestamptz,
+  published_at              timestamptz,          -- diisi sistem sekali; tidak dapat dimanipulasi
+  dicabut                   boolean not null default false, -- pernah dicabut pemohon
+  dicabut_at                timestamptz,          -- waktu pencabutan pertama (riwayat)
+  dicabut_alasan            text,
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
   constraint ccp_terbit_butuh_persetujuan
@@ -423,24 +426,30 @@ create trigger trg_consultation_touch_publikasi before update on public.consulta
 create or replace function public.consultation_ticket_before()
 returns trigger language plpgsql as $$
 declare
-  covered integer;  -- hari kerja yang tertutup penuh oleh jeda
+  covered integer;          -- hari kerja yang tertutup penuh oleh jeda
+  v_deadline_diubah boolean;
+  v_jeda_diubah    boolean;
 begin
   if tg_op = 'INSERT' then
-    -- nomor tiket otomatis (bukan rahasia): KON-YYMMDD-<kode base-32>.
-    -- Keunikan dijamin sequence (audit C): nextval() tidak pernah duplikat
-    -- antar transaksi bersamaan — tanpa coba-ulang, tanpa kegagalan benturan.
-    if new.nomor_tiket is null or btrim(new.nomor_tiket) = '' then
-      new.nomor_tiket := 'KON-'
-        || to_char(public.consultation_waktu() at time zone 'Asia/Jakarta', 'YYMMDD')
-        || '-' || public.consultation_kode_nomor(nextval('public.consultation_nomor_tiket_seq')::bigint);
+    -- Nomor tiket WAJIB dibuat oleh sistem dari sequence (audit lanjutan A):
+    -- pemanggil tidak boleh menentukan nomor sendiri.
+    if new.nomor_tiket is not null and btrim(new.nomor_tiket) <> '' then
+      raise exception 'Nomor tiket wajib dibuat oleh sistem (sequence)';
+    end if;
+    new.nomor_tiket := 'KON-'
+      || to_char(public.consultation_waktu() at time zone 'Asia/Jakarta', 'YYMMDD')
+      || '-' || public.consultation_kode_nomor(nextval('public.consultation_nomor_tiket_seq')::bigint);
+    -- Status awal wajib 'baru' dan kolom SLA/jeda wajib kosong (audit lanjutan B).
+    if new.status <> 'baru' then
+      raise exception 'Tiket baru wajib dimulai dengan status baru';
+    end if;
+    if new.sla_deadline is not null or new.sla_paused_at is not null
+       or new.status_sebelum_pause is not null then
+      raise exception 'Kolom SLA/jeda wajib kosong saat pengajuan';
     end if;
     -- kategori harus aktif saat pengajuan
     if not exists (select 1 from public.consultation_categories c where c.id = new.kategori_id and c.aktif) then
       raise exception 'Kategori tidak ditemukan atau tidak aktif';
-    end if;
-    -- tiket yang langsung diverifikasi saat dibuat: mulai hitung SLA
-    if new.sla_deadline is null and new.status in ('diverifikasi','menunggu_penugasan') then
-      new.sla_deadline := public.consultation_add_workdays(public.consultation_waktu(), 3);
     end if;
   else
     -- kolom identitas tidak boleh berubah
@@ -450,6 +459,13 @@ begin
     if new.created_at is distinct from old.created_at then
       raise exception 'Waktu pembuatan tiket tidak boleh diubah';
     end if;
+
+    -- Perlindungan SLA di SETIAP UPDATE (audit lanjutan C): perubahan status
+    -- tidak boleh menjadi jalan memanipulasi kolom SLA.
+    v_deadline_diubah := new.sla_deadline is distinct from old.sla_deadline;
+    v_jeda_diubah := (new.sla_paused_at is distinct from old.sla_paused_at)
+                  or (new.status_sebelum_pause is distinct from old.status_sebelum_pause);
+
     if new.status is distinct from old.status then
       -- transisi harus valid menurut mesin status
       if not public.consultation_can_transition(old.status, new.status) then
@@ -463,6 +479,10 @@ begin
         end if;
         if old.sla_paused_at is null then
           raise exception 'Data jeda SLA tidak lengkap';
+        end if;
+        -- manipulasi tenggat lewat perubahan status ditolak
+        if v_deadline_diubah then
+          raise exception 'Kolom SLA/status_sebelum_pause hanya dikelola sistem';
         end if;
         -- Jeda TIDAK memakan jatah pemohon (audit B): hanya hari kerja yang
         -- tertutup penuh oleh jeda (level tanggal, ketat di antara hari jeda
@@ -479,17 +499,24 @@ begin
         new.sla_paused_at := null;
         new.status_sebelum_pause := null;
       elsif new.status = 'menunggu_informasi' then
-        -- masuk pause: simpan status asal + waktu mulai jeda (SLA berhenti dihitung)
+        -- masuk pause: tenggat tidak boleh disentuh pemanggil; kolom jeda
+        -- diisi sistem (nilai yang dikirim pemanggil ditimpa, bukan dipercaya)
+        if v_deadline_diubah then
+          raise exception 'Kolom SLA/status_sebelum_pause hanya dikelola sistem';
+        end if;
         new.status_sebelum_pause := old.status;
         new.sla_paused_at := public.consultation_waktu();
+      else
+        -- transisi biasa: seluruh kolom SLA wajib tidak tersentuh pemanggil
+        if v_deadline_diubah or v_jeda_diubah then
+          raise exception 'Kolom SLA/status_sebelum_pause hanya dikelola sistem';
+        end if;
       end if;
       -- mulai SLA saat pertama kali diverifikasi / masuk antrean (target 3 hari kerja)
       if new.sla_deadline is null and new.status in ('diverifikasi','menunggu_penugasan') then
         new.sla_deadline := public.consultation_add_workdays(public.consultation_waktu(), 3);
       end if;
-    elsif (new.sla_paused_at is distinct from old.sla_paused_at)
-       or (new.status_sebelum_pause is distinct from old.status_sebelum_pause)
-       or (new.sla_deadline is distinct from old.sla_deadline) then
+    elsif v_deadline_diubah or v_jeda_diubah then
       raise exception 'Kolom SLA/status_sebelum_pause hanya dikelola sistem';
     end if;
   end if;
@@ -601,21 +628,31 @@ create trigger trg_consultation_review_check
   before insert on public.consultation_reviews
   for each row execute function public.consultation_review_check();
 
--- F6) Lampiran: pengunggah harus staf konsultasi aktif atau 'pemohon'
+-- F6) Lampiran: pengunggah harus staf konsultasi aktif atau 'pemohon', dan
+--     lampiran wajib merujuk pesan pada TIKET YANG SAMA (audit lanjutan E).
+--     Validasi memakai trigger (bukan FK komposit + SET NULL) karena
+--     penghapusan pesan menyetel message_id = NULL tanpa mengubah ticket_id.
 create or replace function public.consultation_attachment_check()
 returns trigger language plpgsql as $$
+declare tiket_pesan uuid;
 begin
   if new.diunggah_oleh <> 'pemohon'
      and not exists (select 1 from public.consultation_staff_roles r
                      where r.email = lower(new.diunggah_oleh) and r.aktif) then
     raise exception 'Pengunggah bukan staf konsultasi yang aktif';
   end if;
+  if new.message_id is not null then
+    select ticket_id into tiket_pesan from public.consultation_messages where id = new.message_id;
+    if tiket_pesan is distinct from new.ticket_id then
+      raise exception 'Lampiran tidak cocok dengan tiket pesan yang dirujuk';
+    end if;
+  end if;
   return new;
 end $$;
 
 drop trigger if exists trg_consultation_attachment_check on public.consultation_attachments;
 create trigger trg_consultation_attachment_check
-  before insert on public.consultation_attachments
+  before insert or update on public.consultation_attachments
   for each row execute function public.consultation_attachment_check();
 
 -- F7) Append-only: status_logs, audit_logs, messages tidak boleh diubah/dihapus
@@ -643,12 +680,14 @@ create trigger trg_consultation_message_append
   before update or delete on public.consultation_messages
   for each row execute function public.consultation_append_only();
 
--- F8) Publikasi: stempel waktu terbit diisi sistem sekali
+-- F8) Publikasi: stempel waktu terbit diisi sistem sekali — nilai yang dikirim
+--     pemanggil SELALU ditimpa (audit lanjutan D); penerbitan ulang setelah
+--     pencabutan mempertahankan waktu terbit pertama (published_at abadi).
 create or replace function public.consultation_publication_before()
 returns trigger language plpgsql as $$
 begin
-  if new.published and not old.published and new.published_at is null then
-    new.published_at := now();
+  if new.published and not old.published then
+    new.published_at := coalesce(old.published_at, now());
   end if;
   return new;
 end $$;
@@ -686,18 +725,48 @@ create trigger trg_consultation_assignment_check
 --        * nilai false wajib "bersih" (tanpa identitas/waktu) agar tidak ada
 --          sisa persetujuan yang menyesatkan.
 --      Aturan terbit (3 persetujuan + slug) tetap pada constraint ccp_*.
+--      Tambahan audit lanjutan D:
+--        * published_at dilindungi: INSERT wajib tanpa published_at (diisi
+--          sistem saat terbit pertama); UPDATE tidak boleh mengubah/mengosong-
+--          kan kecuali transisi terbit pertama yang nilainya ditetapkan sistem;
+--        * waktu persetujuan pemohon tidak boleh mendahului waktu persetujuan
+--          pada data kontak;
+--        * setelah pencabutan (dicabut_at terisi), seluruh persetujuan wajib
+--          DIPERBARUI (timestamp >= dicabut_at) sebelum penerbitan ulang.
 create or replace function public.consultation_publication_check()
 returns trigger language plpgsql as $$
-declare kontak boolean;
+declare kontak record;
 begin
+  if tg_op = 'INSERT' then
+    if new.published_at is not null then
+      raise exception 'published_at hanya dikelola sistem (diisi saat terbit pertama)';
+    end if;
+  else
+    -- perubahan/penyanjangan published_at di luar transisi terbit pertama
+    -- ditolak (transisi terbit ditangani trigger publication_before yang
+    -- selalu menimpa nilai pemanggil)
+    if new.published_at is distinct from old.published_at
+       and not (not old.published and new.published) then
+      raise exception 'published_at hanya dikelola sistem (diisi saat terbit pertama)';
+    end if;
+  end if;
+
   if new.persetujuan_pemohon then
-    select c.persetujuan_publikasi into kontak
+    select c.persetujuan_publikasi, c.persetujuan_publikasi_at into kontak
       from public.consultation_requester_contacts c where c.ticket_id = new.ticket_id;
-    if kontak is distinct from true then
+    if kontak is null or kontak.persetujuan_publikasi is distinct from true then
       raise exception 'Persetujuan pemohon belum tercatat pada data kontak tiket';
     end if;
     if new.persetujuan_pemohon_at is null then
       raise exception 'Persetujuan pemohon wajib menyertakan waktu';
+    end if;
+    -- setelah pencabutan, persetujuan kontak wajib diperbarui
+    if old.dicabut_at is not null and kontak.persetujuan_publikasi_at < old.dicabut_at then
+      raise exception 'Persetujuan pemohon/kontak wajib diperbarui setelah pencabutan';
+    end if;
+    -- persetujuan pemohon tidak boleh mendahului persetujuan pada kontak
+    if new.persetujuan_pemohon_at < kontak.persetujuan_publikasi_at then
+      raise exception 'Persetujuan pemohon mendahului persetujuan pada data kontak';
     end if;
   elsif new.persetujuan_pemohon_at is not null then
     raise exception 'Persetujuan pemohon bernilai false tetapi waktu terisi';
@@ -712,6 +781,9 @@ begin
                      and r.role_konsultasi = 'reviewer' and r.aktif) then
       raise exception 'Penyetuju reviewer tidak memiliki role reviewer yang aktif';
     end if;
+    if old.dicabut_at is not null and new.disetujui_reviewer_at < old.dicabut_at then
+      raise exception 'Persetujuan reviewer wajib diperbarui setelah pencabutan';
+    end if;
   elsif new.disetujui_reviewer_oleh is not null or new.disetujui_reviewer_at is not null then
     raise exception 'Persetujuan reviewer bernilai false tetapi identitas/waktu terisi';
   end if;
@@ -725,6 +797,9 @@ begin
                      and r.role_konsultasi = 'admin_konsultasi' and r.aktif) then
       raise exception 'Penyetuju admin tidak memiliki role admin_konsultasi yang aktif';
     end if;
+    if old.dicabut_at is not null and new.disetujui_admin_at < old.dicabut_at then
+      raise exception 'Persetujuan admin wajib diperbarui setelah pencabutan';
+    end if;
   elsif new.disetujui_admin_oleh is not null or new.disetujui_admin_at is not null then
     raise exception 'Persetujuan admin bernilai false tetapi identitas/waktu terisi';
   end if;
@@ -735,3 +810,47 @@ drop trigger if exists trg_consultation_publication_check on public.consultation
 create trigger trg_consultation_publication_check
   before insert or update on public.consultation_publications
   for each row execute function public.consultation_publication_check();
+
+-- F11) Pencabutan persetujuan publikasi oleh pemohon (audit lanjutan D):
+--      waktu persetujuan wajib konsisten dengan boolean pada kontak; bila
+--      persetujuan kontak ditarik (true -> false) sementara publikasi masih
+--      menyertakan persetujuan pemohon / masih terbit, sistem MEMAKSA
+--      pembatalan terbit (unpublish) dan mencatat pencabutan pada publikasi —
+--      tidak ada publikasi aktif yang bertahan tanpa persetujuan yang sah.
+create or replace function public.consultation_consent_check()
+returns trigger language plpgsql as $$
+begin
+  -- waktu persetujuan wajib konsisten dengan nilai boolean
+  if new.persetujuan_publikasi and new.persetujuan_publikasi_at is null then
+    raise exception 'Persetujuan publikasi wajib menyertakan waktu';
+  end if;
+  if not new.persetujuan_publikasi and new.persetujuan_publikasi_at is not null then
+    raise exception 'Persetujuan publikasi bernilai false tetapi waktu terisi';
+  end if;
+  if tg_op = 'UPDATE' and old.persetujuan_publikasi and not new.persetujuan_publikasi then
+    update public.consultation_publications
+       set published = false,
+           persetujuan_pemohon = false,
+           persetujuan_pemohon_at = null,
+           dicabut = true,
+           dicabut_at = now(),
+           dicabut_alasan = coalesce(dicabut_alasan, 'Persetujuan publikasi dicabut pemohon')
+     where ticket_id = new.ticket_id
+       and (published or persetujuan_pemohon);
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_consultation_consent_check on public.consultation_requester_contacts;
+create trigger trg_consultation_consent_check
+  after insert or update on public.consultation_requester_contacts
+  for each row execute function public.consultation_consent_check();
+
+-- F12) Review append-only (audit lanjutan F): keputusan review TIDAK boleh
+--      diubah atau dihapus — setiap tinjauan tercatat permanen. UPDATE dan
+--      DELETE manual ditolak (efek CASCADE via penghapusan tiket tetap
+--      diizinkan melalui pg_trigger_depth() > 1).
+drop trigger if exists trg_consultation_review_append on public.consultation_reviews;
+create trigger trg_consultation_review_append
+  before update or delete on public.consultation_reviews
+  for each row execute function public.consultation_append_only();

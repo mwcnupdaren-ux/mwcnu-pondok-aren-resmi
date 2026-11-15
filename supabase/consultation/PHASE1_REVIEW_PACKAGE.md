@@ -16,7 +16,7 @@ Phase 1 **tanpa bantuan penulis**, tanpa menyentuh Supabase produksi.
 | File | Peran |
 |---|---|
 | `consultation_001_foundation.sql` | Migrasi 1/3: mesin status (`consultation_can_transition`) |
-| `consultation_002_tables.sql` | Migrasi 2/3: 16 tabel, indeks, FK komposit, bucket privat, 10 trigger, fungsi SLA |
+| `consultation_002_tables.sql` | Migrasi 2/3: 16 tabel, indeks, FK komposit, sequence nomor tiket, bucket privat, 13 trigger + 17 fungsi, fungsi SLA |
 | `consultation_003_security.sql` | Migrasi 3/3: RLS deny-by-default, revoke anon/authenticated, hak fungsi ke service_role |
 | `consultation_rollback.sql` | Pembatalan penuh Phase 1 (idempotent, aman ke tabel existing) |
 | `CONSULTATION_ERD.md` | Diagram relasi + mesin status + batas integrasi |
@@ -33,10 +33,10 @@ cd supabase/consultation/tests
 node test-konsultasi.mjs
 ```
 
-- Butuh Node.js ≥ 18. Bila paket `@electric-sql/pglite` belum terpasang
-  (`npm i @electric-sql/pglite`), skrip otomatis memakai cache npx lokal
-  pada mesin dev.
-- Hasil yang diharapkan: **22 kelompok (T01–T21), 82 asersi, semua `OK`,
+- Butuh Node.js ≥ 18. Jalankan `npm install` sekali di folder `tests` untuk
+  memasang `@electric-sql/pglite` (terkunci versi `0.3.16` di
+  `tests/package.json`), lalu `npm test` (atau `node test-konsultasi.mjs`).
+- Hasil yang diharapkan: **26 kelompok (T01–T26), 96 asersi, semua `OK`,
   baris akhir `== HASIL: SEMUA TES LOLOS ==`, exit code 0.**
 - Skrip berjalan penuh **in-memory** (PGlite WASM): tidak ada koneksi jaringan,
   tidak menyentuh Supabase.
@@ -70,11 +70,14 @@ node test-konsultasi.mjs
 - RLS 16/16 aktif **tanpa policy** — cocok dengan ketentuan "tanpa akses anon".
 - FK komposit `(email, role)` menjamin penugasan/review hanya menunjuk role
   yang tepat; ON DELETE RESTRICT/CASCADE/SET NULL sesuai kamus data.
-- Append-only 3 tabel log dengan pengecualian CASCADE (`pg_trigger_depth() = 1`).
+- Append-only 4 tabel (messages, status_logs, audit_logs, reviews) dengan
+  pengecualian CASCADE (`pg_trigger_depth() = 1`).
 - Secret akses: hanya kolom `secret_hash` (64 hex), tidak ada kolom plaintext.
 - Publikasi: check 3-persetujuan + slug **plus** trigger kewenangan
   (pemohon konsisten kontak, reviewer/admin ber-role aktif, waktu wajib,
-  state false wajib bersih).
+  state false wajib bersih); `published_at` tidak dapat diubah/dikosongkan;
+  pencabutan kontak memaksa unpublish + stempel `dicabut_at`; penerbitan ulang
+  butuh persetujuan di-refresh (≥ `dicabut_at`).
 - Jeda SLA: definisi matematis hari-kerja-tertutup (MIGRATION_GUIDE §2b) —
   tanpa penambahan durasi kalender mentah.
 - Batas pengujian yang diakui terbuka (bucket storage, `auth.jwt()` asli,

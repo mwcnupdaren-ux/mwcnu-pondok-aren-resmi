@@ -7,6 +7,8 @@
 -- ============================================================================
 
 -- 1) Trigger & fungsi
+drop trigger if exists trg_consultation_review_append     on public.consultation_reviews;
+drop trigger if exists trg_consultation_consent_check     on public.consultation_requester_contacts;
 drop trigger if exists trg_consultation_publication_check on public.consultation_publications;
 drop trigger if exists trg_consultation_publication_before on public.consultation_publications;
 drop trigger if exists trg_consultation_assignment_check on public.consultation_assignments;
@@ -22,6 +24,7 @@ drop trigger if exists trg_consultation_touch_publikasi   on public.consultation
 drop trigger if exists trg_consultation_touch_contacts    on public.consultation_requester_contacts;
 drop trigger if exists trg_consultation_touch_roles       on public.consultation_staff_roles;
 
+drop function if exists public.consultation_consent_check();
 drop function if exists public.consultation_publication_check();
 drop function if exists public.consultation_publication_before();
 drop function if exists public.consultation_assignment_check();
@@ -39,31 +42,36 @@ drop function if exists public.consultation_touch();
 drop function if exists public.consultation_add_workdays(timestamptz, integer);
 drop function if exists public.consultation_can_transition(text, text);
 
--- 2) Tabel (urut ketergantungan; CASCADE menangani FK antar tabel konsultasi)
-drop table if exists public.consultation_rate_hits            cascade;
-drop table if exists public.consultation_notifications        cascade;
-drop table if exists public.consultation_audit_logs           cascade;
-drop table if exists public.consultation_status_logs          cascade;
-drop table if exists public.consultation_publications         cascade;
-drop table if exists public.consultation_attachments          cascade;
-drop table if exists public.consultation_reviews              cascade;
-drop table if exists public.consultation_assignments          cascade;
-drop table if exists public.consultation_messages             cascade;
-drop table if exists public.consultation_access_credentials   cascade;
-drop table if exists public.consultation_requester_contacts   cascade;
-drop table if exists public.consultation_tickets              cascade;
-drop table if exists public.consultation_consultant_categories cascade;
-drop table if exists public.consultation_staff_roles          cascade;
-drop table if exists public.consultation_holidays             cascade;
-drop table if exists public.consultation_categories           cascade;
+-- 2) Tabel (urut ketergantungan FK antar tabel konsultasi — TANPA CASCADE,
+--    audit lanjutan G: bila ada objek EKSTERNAL yang bergantung pada tabel
+--    konsultasi, rollback GAGAL KERAS alih-alih diam-diam menghapusnya;
+--    seluruh FK internal konsultasi di-drop bersama tabelnya secara berurutan)
+drop table if exists public.consultation_rate_hits;
+drop table if exists public.consultation_notifications;
+drop table if exists public.consultation_audit_logs;
+drop table if exists public.consultation_status_logs;
+drop table if exists public.consultation_publications;
+drop table if exists public.consultation_attachments;
+drop table if exists public.consultation_reviews;
+drop table if exists public.consultation_assignments;
+drop table if exists public.consultation_messages;
+drop table if exists public.consultation_access_credentials;
+drop table if exists public.consultation_requester_contacts;
+drop table if exists public.consultation_tickets;
+drop table if exists public.consultation_consultant_categories;
+drop table if exists public.consultation_staff_roles;
+drop table if exists public.consultation_holidays;
+drop table if exists public.consultation_categories;
 
--- 3) Bucket privat (objek fisik tidak ikut terhapus — kosongkan manual bila perlu)
-do $$
-begin
-  if to_regclass('storage.buckets') is not null then
-    delete from storage.buckets where id = 'consultation-attachments';
-  end if;
-end $$;
-
--- 4) Sequence nomor tiket
+-- 3) Sequence nomor tiket
 drop sequence if exists public.consultation_nomor_tiket_seq;
+
+-- 4) Bucket Storage — SENGAJA TIDAK dieksekusi otomatis di dalam rollback ini
+--    (audit lanjutan G: penghapusan objek eksternal dipisah dari rollback
+--    database dan membutuhkan keputusan manual). Bila bucket
+--    'consultation-attachments' memang ingin dihapus, jalankan TERPISAH:
+--
+--    -- delete from storage.buckets where id = 'consultation-attachments';
+--
+--    Catatan: objek fisik lampiran di storage tidak ikut terhapus oleh
+--    perintah di atas; kosongkan/arsipkan manual bila perlu.
