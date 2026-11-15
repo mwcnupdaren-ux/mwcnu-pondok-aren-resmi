@@ -8381,3 +8381,58 @@ footer.cie-footer {
 #kas-home .kas-saldo dd{color:#07683e;font-size:1.16rem}
 #kas-home .kas-note{grid-column:1/-1;margin:0;padding-top:16px;border-top:1px solid rgba(12,59,43,.12);color:var(--mut,#65756d);font-size:.88rem;line-height:1.7;white-space:pre-line}
 @media(max-width:680px){#kas-home .kas-panel{grid-template-columns:1fr;gap:20px;border-radius:20px;padding:22px}#kas-home .kas-totals>div{gap:12px}#kas-home .kas-totals dt{font-size:.82rem}#kas-home .kas-totals dd{font-size:.9rem}#kas-home .kas-note{grid-column:1}}
+
+
+/* Artikel: satu kartu baca yang ringkas, dengan pilihan berita di bagian akhir. */
+#baca .wrap{max-width:1000px!important}
+#baca .ar-grid{display:block!important}
+#baca .ar{width:100%;max-width:900px!important;margin:0 auto!important;overflow:hidden;border:1px solid var(--hair);border-radius:26px;background:var(--surf);box-shadow:0 18px 54px -42px rgba(7,55,37,.32)}
+#baca .article-head{padding:clamp(22px,5vw,54px) clamp(20px,6vw,68px) 24px}
+#baca .article-head .crumb{margin:0 0 22px;font-size:.82rem}
+#baca .article-head .kick{margin:0 0 8px;font-size:.68rem}
+#baca h1.at{margin:0;max-width:24ch;font-size:clamp(1.9rem,4.2vw,3.05rem)!important;line-height:1.12!important}
+#baca .article-byline{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:16px;color:var(--mut);font-size:.78rem;line-height:1.4}
+#baca .article-byline i{font-style:normal;color:var(--gold)}
+#baca .article-byline time{font-variant-numeric:tabular-nums}
+#baca .af,#baca .ah0{width:100%;margin:0;border:0;border-radius:0;box-shadow:none}
+#baca .af img.ah{width:100%;aspect-ratio:16/8;object-fit:cover;border-radius:0;box-shadow:none}
+#baca .af figcaption{padding:0 clamp(20px,6vw,68px);font-size:.74rem}
+#baca .article-content{padding:clamp(24px,5vw,48px) clamp(20px,6vw,68px) clamp(26px,5vw,48px)}
+#baca .abody{max-width:70ch!important;margin:0 auto}
+#baca .abody .adl{margin-bottom:18px}
+#baca .ashare{max-width:70ch;margin:32px auto 0;padding-top:18px}
+#baca .news-picks{max-width:860px;margin:44px auto 0;padding-top:28px;border-top:1px solid var(--hair)}
+#baca .news-picks-head{margin-bottom:16px}
+#baca .news-picks-head .sec-kicker{display:block;margin-bottom:7px;color:var(--g2);font-size:.65rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+#baca .news-picks-head h2{margin:0;color:var(--ink);font:750 clamp(1.25rem,2.4vw,1.65rem)/1.2 var(--fh)}
+#baca .news-picks-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#baca .news-pick{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--hair);border-radius:16px;background:var(--surf);color:var(--ink);text-decoration:none;transition:border-color .2s,transform .2s}
+#baca .news-pick:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--g2) 48%,var(--hair))}
+#baca .news-pick>img,#baca .news-pick-placeholder{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:linear-gradient(135deg,#e5f0e9,#f7f9f7)}
+#baca .news-pick-copy{display:flex;flex:1;flex-direction:column;gap:8px;padding:13px 14px 15px}
+#baca .news-pick-copy small{color:var(--mut);font-size:.66rem;line-height:1.4}
+#baca .news-pick-copy small i{color:var(--gold);font-style:normal;padding:0 3px}
+#baca .news-pick-copy b{font-size:.86rem;line-height:1.4}
+@media(max-width:700px){
+  #baca .ar{border-radius:19px}
+  #baca .article-head{padding:20px 18px 18px}
+  #baca .article-head .crumb{margin-bottom:17px}
+  #baca h1.at{font-size:1.72rem!important;line-height:1.16!important}
+  #baca .article-byline{gap:6px;margin-top:12px;font-size:.72rem}
+  #baca .af img.ah{aspect-ratio:4/3}
+  #baca .af figcaption{padding:0 18px;font-size:.68rem}
+  #baca .article-content{padding:22px 18px 28px}
+  #baca .abody p{font-size:var(--art-size)!important;line-height:1.72!important}
+  #baca .news-picks{margin-top:34px;padding-top:22px}
+  #baca .news-picks-grid{grid-template-columns:1fr;gap:10px}
+  #baca .news-pick{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:stretch;border-radius:13px}
+  #baca .news-pick>img,#baca .news-pick-placeholder{height:100%;min-height:92px;aspect-ratio:auto}
+  #baca .news-pick-copy{justify-content:center;gap:5px;padding:10px 12px}
+  #baca .news-pick-copy b{font-size:.82rem}
+  #baca .ashare{margin-top:26px}
+}
+@media(max-width:380px){
+  #baca .news-pick{grid-template-columns:92px minmax(0,1fr)}
+  #baca .news-pick>img,#baca .news-pick-placeholder{min-height:82px}
+  #baca h1.at{font-size:1.58rem!important}
+}

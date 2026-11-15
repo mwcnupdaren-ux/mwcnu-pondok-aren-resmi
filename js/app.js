@@ -435,43 +435,31 @@ var N=MW.md('berita',function(x){return[x.kategori||'Berita',x.judul,MW.tgl(x.ta
 var nt=document.getElementById('ntabs'),ng=document.getElementById('newsGrid'),cats=['Semua','Berita','Laporan','Literasi','Opini'],curN=[],curCat='Semua';
 N.forEach(function(n){if(cats.indexOf(n[0])<0)cats.push(n[0])});
 function nImg(src,alt,cls){return '<img'+(cls?' class="'+esc(cls)+'"':'')+' loading="lazy" src="'+esc(safeURL(src))+'" alt="'+esc(alt)+'">'}
-function nsItem(n,num,plain){return '<a class="nsitem'+(plain?' plain':'')+'" href="#berita/'+N.indexOf(n)+'">'+(plain?'':'<span class="nsnum">'+('0'+(num+1)).slice(-2)+'</span>')+(n[4]==null?'<span class="nsph"></span>':'<img class="nsth" loading="lazy" src="'+PH[n[4]]+'" alt="">')+'<span class="nst"><b>'+esc(n[1])+'</b><em>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</em></span></a>'}
 function renderArticle(i){if(!N)return;var n=N[i];if(!n){location.hash='#berita';return}
-var x=n[6]||{},ps=x.p||[],w=(n[1]+' '+(x.lead||'')+' '+ps.join(' ')).split(/\s+/).length,rt=Math.max(1,Math.round(w/180));
+var x=n[6]||{},ps=x.p||[],w=(n[1]+' '+ps.join(' ')).split(/\s+/).length,rt=Math.max(1,Math.round(w/180));
 var hero=n[4]==null?'<div class="ah ah0"><span></span></div>':'<figure class="af">'+nImg(PH[n[4]],n[1],'ah')+(x.cap?'<figcaption>'+esc(x.cap)+'</figcaption>':'')+'</figure>';
-var rel=N.filter(function(m,k){return k!=i}).slice(0,3),relSame=N.filter(function(m,k){return k!=i&&m[0]==n[0]}),lead=relSame[0]||rel[0];
-var h='<div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a><span>/</span><span>'+esc(n[0])+'</span></div><div class="kick">'+esc(n[0])+'</div><h1 class="at">'+esc(n[1])+'</h1><p class="al">'+esc(x.lead||n[3])+'</p><div class="by"><span class="byav">M</span><span><b>'+(x.author?esc(x.author):'Redaksi MWCNU Pondok Aren')+'</b><small>'+n[2]+' &nbsp;|&nbsp; '+rt+' menit baca</small></span></div>'+(x.tag?'<div class="ntags ntags-lg">'+x.tag.split(',').map(function(t){return t.trim()}).filter(Boolean).slice(0,6).map(function(t){return '<span class="ntag">'+esc(t)+'</span>'}).join('')+'</div>':'')+hero+'<div class="abody'+(x.fontA==='Serif'?' art-serif':x.fontA==='Sans'?' art-sans':'')+(x.drop?' art-drop':'')+'">';
+var picks=N.filter(function(m,k){return k!==i&&m[6]&&m[6].featured});
+N.forEach(function(m,k){if(k!==i&&picks.indexOf(m)<0&&picks.length<3)picks.push(m)});
+picks=picks.slice(0,3);
+function pickCard(m){var mi=N.indexOf(m),thumb=m[4]==null?'<span class="news-pick-placeholder" aria-hidden="true"></span>':nImg(PH[m[4]],m[1],'');return '<a class="news-pick" href="#berita/'+mi+'">'+thumb+'<span class="news-pick-copy"><small>'+esc(m[0])+' <i>·</i> '+esc(m[2])+'</small><b>'+esc(m[1])+'</b></span></a>'}
+var h='<div class="article-head"><div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a></div><div class="kick">'+esc(n[0])+'</div><h1 class="at">'+esc(n[1])+'</h1><div class="article-byline"><span>'+(x.author?esc(x.author):'Redaksi MWCNU Pondok Aren')+'</span><i aria-hidden="true">·</i><span>'+esc(n[2])+'</span><i aria-hidden="true">·</i><span>'+rt+' menit baca</span></div></div>'+hero+'<div class="article-content"><div class="abody'+(x.fontA==='Serif'?' art-serif':x.fontA==='Sans'?' art-sans':'')+(x.drop?' art-drop':'')+'">';
 if(x.body&&MW.rich){
   h+='<div class="adl"><strong class="dl">Pondok Aren</strong></div>';
-  var richBody=MW.rich(x.body);
-  if(lead)richBody=richBody.replace(/<\/p>/,'</p><div class="readalso"><b>Baca juga:</b> <a href="#berita/'+N.indexOf(lead)+'">'+esc(lead[1])+'</a></div>');
-  h+=richBody;
+  h+=MW.rich(x.body);
 }else ps.forEach(function(t,k){
   if(k==0){
     var body=String(t).replace(/^\s*PONDOK AREN\s*[\u2013\u2014-]\s*/i,'');
     h+='<div class="adl"><strong class="dl">Pondok Aren</strong></div><p>'+esc(body)+'</p>';
   } else h+='<p>'+esc(t)+'</p>';
-  if(k==0&&lead)h+='<div class="readalso"><b>Baca juga:</b> <a href="#berita/'+N.indexOf(lead)+'">'+esc(lead[1])+'</a></div>';
 });
 if(x.info&&x.info.length)h+='<div class="ai"><h3>Sekilas kegiatan</h3><dl>'+x.info.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>';
 if(x.list&&x.list.length)h+='<h3>Rangkaian acara</h3><ol class="alist">'+x.list.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ol>';
 if(x.ph&&x.ph.filter(function(k){return PH[k]}).length)h+='<h3>Foto kegiatan</h3><div class="aph">'+x.ph.filter(function(k){return PH[k]}).map(function(k){return nImg(PH[k],'Foto kegiatan','')}).join('')+'</div>';
 if(x.vid&&x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).length)h+='<h3>Tonton di TVNU Pondok Aren</h3>'+x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).map(function(k){return '<a class="avid" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+encodeURIComponent(V[k][0])+'"><span class="play sm"></span><span><b>'+esc(V[k][1])+'</b><small>'+esc(V[k][2])+', TVNU Pondok Aren</small></span></a>'}).join('');
 h+='</div><div class="ashare"><b>Bagikan</b><a class="x" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(n[1]+' '+location.href)+'">WhatsApp</a><button class="x" id="cpl">Salin tautan</button></div>';
-if(rel.length)h+='<h3 class="rh">Berita lainnya</h3><div class="rel">'+rel.map(function(m){return '<a class="rcard" href="#berita/'+N.indexOf(m)+'"><small>'+esc(m[0])+', '+esc(m[2])+'</small><b>'+esc(m[1])+'</b></a>'}).join('')+'</div>';
+if(picks.length)h+='<div class="news-picks" aria-label="Berita pilihan"><div class="news-picks-head"><span class="sec-kicker">Lanjutkan membaca</span><h2>Berita pilihan</h2></div><div class="news-picks-grid">'+picks.map(pickCard).join('')+'</div></div>';
+h+='</div>';
 put(document.getElementById('arBody'),h);
-var side=document.getElementById('arSide');
-if(side){
-  var base=['Berita','Laporan','Literasi'],seen={},s='';
-  var ncat=base.map(function(c){return [c,N.filter(function(v){return v[0]==c}).length]}).filter(function(c){return c[1]>0});
-  N.forEach(function(v){if(base.indexOf(v[0])<0&&!seen[v[0]]){seen[v[0]]=1;ncat.push([v[0],N.filter(function(m){return m[0]==v[0]}).length])}});
-  if(relSame.length)s+='<h3 class="ns-h">Berita terkait</h3>'+relSame.slice(0,3).map(function(v){return nsItem(v,0,true)}).join('');
-  s+='<h3 class="ns-h'+(relSame.length?' ns-h2':'')+'">Berita populer</h3>'+N.slice(0,5).map(function(v,k){return nsItem(v,k,false)}).join('');
-  if(ncat.length)s+='<h3 class="ns-h ns-h2">Kategori</h3><div class="ncat">'+ncat.map(function(c){return '<button type="button" class="ncatb" data-cat="'+esc(c[0])+'"><span>'+esc(c[0])+'</span><small>'+c[1]+'</small></button>'}).join('')+'</div>';
-  s+='<div class="nsub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><b>Berita pilihan, setiap pagi.</b><p>Ringkasan kabar penting langsung ke WhatsApp Anda.</p></div><a href="https://wa.me/6285161033689?text=Assalamu%27alaikum%2C%20saya%20ingin%20berlangganan%20kabar%20MWCNU%20Pondok%20Aren" target="_blank" rel="noopener">Daftar</a></div>';
-  put(side,s);
-  [].forEach.call(side.querySelectorAll('[data-cat]'),function(b){b.onclick=function(){location.hash='#berita';drawN(b.getAttribute('data-cat'))}});
-}
 try{
   var seoTitle=x.metaT||n[1],seoDesc=x.metaD||n[3]||x.lead||'';
   if(!seoDesc&&x.body&&MW.rich){var seoText=document.createElement('div');seoText.innerHTML=MW.rich(x.body);seoDesc=seoText.textContent.replace(/\s+/g,' ').trim().slice(0,160)}
@@ -1005,14 +993,15 @@ put($('zk-tbl'),R.join(''));Z=Math.round(zk);$('zk-pay-btn').disabled=Z<=0}
 seg('zk-seg',function(b){cur=b.getAttribute('data-k');[].forEach.call(document.querySelectorAll('.zk-pn'),function(p){p.hidden=p.getAttribute('data-k')!==cur});calc()});
 $('zk-calc').addEventListener('input',calc);$('zk-calc').addEventListener('change',calc);calc();
 var J='Zakat';
-seg('dn-seg',function(b){J=b.getAttribute('data-j');$('dn-zj').hidden=J!='Zakat';$('dn-pr').hidden=J=='Zakat'});
+seg('dn-seg',function(b){J=b.getAttribute('data-j');$('dn-zj').hidden=J!='Zakat';$('dn-pr').hidden=J=='Zakat'||J=='Kas'});
+[].forEach.call(document.querySelectorAll('[data-payment-mode]'),function(a){a.addEventListener('click',function(){var mode=a.getAttribute('data-payment-mode'),target=[].filter.call($('dn-seg').children,function(b){return b.getAttribute('data-j')===mode})[0];if(target)target.click()})});
 $('dn-chips').addEventListener('click',function(e){var b=e.target.closest('button');if(b)$('dn-nom').value=dot(b.getAttribute('data-v'))});
 $('dn-anon').addEventListener('change',function(){var n=$('dn-nama');n.disabled=this.checked;if(this.checked)n.value='';n.placeholder=this.checked?'Hamba Allah':''});
 $('zk-pay-btn').addEventListener('click',function(){if(Z<=0)return;$('dn-seg').children[0].click();$('dn-zjenis').value=ZK;$('dn-nom').value=dot(Z);go('zk-pay')});
 var box=$('pay-box'),hb='';
 (PAY.banks||[]).forEach(function(b){var bank=esc(b.bank),norek=esc(b.norek),an=esc(b.an);hb+='<div class="bank"><div><b>'+bank+'</b><span>'+norek+'</span><small>a.n. '+an+'</small></div><button type="button" class="loc-btn" data-copy="'+norek+'">Salin</button></div>'});
 var qris=imgURL(PAY.qris);if(qris)hb+='<div class="qr"><img src="'+esc(qris)+'" alt="QRIS MWCNU Pondok Aren"></div>';
-if(!hb)hb='<div class="pay-empty"><div>Rekening dan QRIS resmi MWCNU Pondok Aren akan ditampilkan di sini. Untuk saat ini, mintalah nomor rekening atau QRIS resmi lewat WhatsApp sekretariat.</div><a class="btn wa" href="https://wa.me/6285161033689?text=Assalamualaikum%2C%20saya%20ingin%20meminta%20nomor%20rekening%20%2F%20QRIS%20resmi%20MWCNU%20Pondok%20Aren%20untuk%20zakat%2Finfaq%2Fsedekah." target="_blank" rel="noopener">Minta rekening / QRIS</a></div>';
+if(!hb)hb='<div class="pay-empty"><div>Rekening dan QRIS resmi MWCNU Pondok Aren akan ditampilkan di sini. Untuk saat ini, mintalah nomor rekening atau QRIS resmi lewat WhatsApp sekretariat.</div><a class="btn wa" href="https://wa.me/6285161033689?text=Assalamualaikum%2C%20saya%20ingin%20meminta%20nomor%20rekening%20%2F%20QRIS%20resmi%20MWCNU%20Pondok%20Aren%20untuk%20zakat%2Finfaq%2Fsedekah%2Fkas." target="_blank" rel="noopener">Minta rekening / QRIS</a></div>';
 put(box,hb);
 box.addEventListener('click',function(e){var b=e.target.closest('[data-copy]');if(!b)return;var t=b.getAttribute('data-copy'),ok=function(){b.textContent='Tersalin';setTimeout(function(){b.textContent='Salin'},1600)};try{navigator.clipboard.writeText(t).then(ok,function(){throw 0})}catch(x){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(y){}a.remove()}});
 $('dn-send').addEventListener('click',function(){var m=$('dn-msg'),n=dig(V('dn-nom')),an=$('dn-anon').checked,nm=an?'Hamba Allah':V('dn-nama').trim(),hp=V('dn-hp').trim(),bad=null;
