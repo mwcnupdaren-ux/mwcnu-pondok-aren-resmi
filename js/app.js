@@ -483,7 +483,7 @@ put(_ns,'<h3 class="ns-h">Berita Populer</h3>'+N.slice(0,5).map(function(n,i){re
 var _hb=document.getElementById('hbtn');if(_hb)_hb.onclick=function(){openGs()};var GS=null;function openGs(){var el=document.getElementById('gSearch');if(!el)return;el.hidden=false;document.body.style.overflow='hidden';var inp=document.getElementById('gsq');if(inp){inp.value='';inp.focus()}drawGs('')}
 var _hn=document.getElementById('homeNews');
 if(_hn&&N){N.slice(0,3).forEach(function(n){var a=document.createElement('article');
-put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><div class="meta"><span class="chip">'+n[0]+'</span><small>'+n[2]+' &middot; '+rtOf(n)+' menit baca</small></div><h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">Baca selengkapnya</span></div>');
+put(a,(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt=""></div>')+'<div class="b"><h3>'+n[1]+'</h3></div>');
 act(a,function(){location.hash='#berita/'+N.indexOf(n)});_hn.appendChild(a)})}
 var G=MW.md('galeri',function(x){return[x.judul,ph(x.foto),x.kegiatan||'']},[["Halal Bi Halal di Omah Singgah NU Alfath",4,"Halal Bi Halal"],["Sambutan di Lailatul Ijtima'",1,"Lailatul Ijtima'"],["Sambutan pada Halal Bi Halal",5,"Halal Bi Halal"],["Sambutan di Pondok Kacang Barat",2,"Lailatul Ijtima'"],["Lailatul Ijtima' di Pondok Kacang Barat",0,"Lailatul Ijtima'"],["Pengurus dan tamu undangan",6,"Halal Bi Halal"],["Rangkaian acara Halal Bi Halal",7,"Halal Bi Halal"],["Rangkaian acara Lailatul Ijtima'",3,"Lailatul Ijtima'"]]);
 /* Buang item dengan foto tidak valid (ph() -> null) agar tidak muncul url(undefined). */
