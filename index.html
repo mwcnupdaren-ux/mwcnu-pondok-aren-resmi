@@ -22,7 +22,7 @@
 <meta name="twitter:description" content="Pengurus, agenda, kabar, galeri, dan layanan MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <meta name="twitter:image" content="https://www.mwcnupondokaren.or.id/assets/img/og-cover.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=55">
+<link rel="stylesheet" href="/css/style.css?v=58">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -80,7 +80,7 @@
 <div class="hero-actions">
   <a class="h-btn-pri" href="#layanan">Layanan Jam'iyyah &rarr;</a>
   <a class="h-btn-sec" href="#struktur">Susunan Pengurus</a>
-  <a class="h-btn-sec h-btn-kas" href="#zis" data-payment-mode="Kas">Bayar Kas</a>
+  <a class="h-btn-sec h-btn-kas" href="#zis" data-payment-mode="Kas" aria-haspopup="dialog" aria-controls="kas-dialog">Bayar Kas</a>
 </div>
 
 </div>
@@ -486,6 +486,7 @@
 </main>
 
 <dialog id="dlg" aria-label="Detail"><button class="x" id="dlgX" aria-label="Tutup">Tutup</button><div id="dlgBody"></div></dialog>
+<dialog id="kas-dialog" aria-labelledby="kas-dialog-title"><div class="kas-dialog-head"><h2 id="kas-dialog-title">Pembayaran Kas</h2><button type="button" id="kas-dialog-close" aria-label="Tutup">Tutup</button></div><div id="kas-dialog-body" class="kas-dialog-body"></div></dialog>
 <dialog id="lb" aria-label="Penampil foto"><div class="lbt"><span id="lbc"></span><button class="x2" id="lbx">Tutup</button></div>
 <div class="lbm"><button id="lbp" aria-label="Foto sebelumnya">&lsaquo;</button><img id="lbi" alt=""><button id="lbn" aria-label="Foto berikutnya">&rsaquo;</button></div>
 <div class="lbf"><b id="lbt"></b><small id="lbe"></small></div></dialog>
@@ -518,7 +519,7 @@
 <script src="/js/vendor/qrcode.js?v=20"></script>
 <script src="/js/config.js?v=22"></script>
 <script src="/js/direktori.js?v=3"></script>
-<script src="/js/content.js?v=35"></script>
+<script src="/js/content.js?v=37"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
 <div class="gs-panel" role="document">

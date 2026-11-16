@@ -123,7 +123,7 @@
   function go(d) {
     if (rendered) return; rendered = true; M.D = d || null;
     try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = '/js/app.js?v=55';
+    var s = document.createElement('script'); s.src = '/js/app.js?v=56';
     s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
     document.body.appendChild(s);
   }
@@ -154,8 +154,8 @@
       try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
       return;
     }
-    /* Jangan reload saat pengguna sedang mengisi formulir yang belum dikirim,
-       agar isian KTA/zakat/layanan tidak hilang tanpa konfirmasi. */
+    /* Jangan reload diam-diam saat ada isian formulir yang belum dikirim.
+       Data CMS baru sudah masuk cache dan akan tampil pada pemuatan berikutnya. */
     var hasDraft = false;
     try {
       hasFormCheck: {
@@ -168,8 +168,9 @@
         }
       }
     } catch (e) {}
-    if (hasDraft && !confirm('Ada perubahan konten baru di CMS. Halaman akan dimuat ulang, tetapi isian formulir Anda yang belum dikirim akan hilang. Muat ulang sekarang?')) {
-      syncFlag(false); return; /* coba lagi pada kunjungan berikutnya */
+    if (hasDraft) {
+      try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
+      syncFlag(false); return; /* pakai data baru pada pemuatan berikutnya */
     }
     /* Tampilkan perubahan CMS yang baru disimpan. Flag mwc_sync sekali pakai
        hanya disetel tepat sebelum reload; salinan data terbaru disimpan
