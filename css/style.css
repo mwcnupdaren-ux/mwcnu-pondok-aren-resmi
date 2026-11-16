@@ -8121,26 +8121,6 @@ footer.cie-footer {
     min-width: 0 !important;
     min-height: 122px !important;
     padding: 14px 9px !important;
-/* Program Khidmat: panel tetap berada di grid dan tidak menutupi tab. */
-#program .program-page{width:100%;min-width:0}
-#program .program-page>.pg{display:grid!important;position:relative!important;width:100%!important;min-width:0!important;grid-template-columns:minmax(280px,.82fr) minmax(0,1.18fr)!important;grid-template-rows:minmax(0,1fr)!important;align-items:stretch!important;gap:22px!important;isolation:isolate}
-#program .program-page>.pg>.pl{grid-column:1!important;grid-row:1!important;position:relative!important;inset:auto!important;width:auto!important;min-width:0!important;align-self:start!important}
-#program .program-page>.pg>#program-panel{grid-column:2!important;grid-row:1!important;position:relative!important;inset:auto!important;float:none!important;z-index:0!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;margin:0!important;justify-self:stretch!important;align-self:stretch!important;transform:none!important}
-#program .program-page>.program-note{max-width:76ch;line-height:1.75}
-#program .program-page>.program-note span{flex:none}
-@media(max-width:820px){
-  #program .program-page>.pg{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;gap:12px!important}
-  #program .program-page>.pg>.pl{grid-column:1!important;grid-row:1!important;align-self:auto!important}
-  #program .program-page>.pg>#program-panel{grid-column:1!important;grid-row:2!important;min-height:0!important;padding:clamp(20px,5vw,28px)!important;border-radius:22px!important}
-  #program .program-page>.program-note{margin-top:14px}
-}
-@media(max-width:480px){
-  #program .program-page>.pg{gap:10px!important}
-  #program .program-page>.pg>.pl{padding-bottom:8px}
-  #program .program-page>.pg>#program-panel{padding:20px!important;border-radius:19px!important}
-  #program .program-page>.pg>#program-panel h3{margin-top:15px;font-size:1.55rem;line-height:1.2}
-  #program .program-page>.pg>#program-panel p{font-size:.94rem;line-height:1.65}
-  #program .program-page>.pg>#program-panel .program-actions{gap:9px;margin-top:18px}
     text-align: center !important;
     border: 1px solid color-mix(in srgb, var(--bc) 18%, var(--line)) !important;
     border-top: 2px solid color-mix(in srgb, var(--bc) 58%, var(--line)) !important;
