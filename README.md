@@ -121,6 +121,12 @@ atau diturunkan. Semua perubahan tercatat di **Riwayat perubahan**.
 | Zakat (Harga Emas) | Nilai awal kalkulator zakat dan keterangan acuan |
 | Identitas Organisasi | Keterangan SK dan slogan footer |
 
+### Slot iklan utama
+
+Super Admin dapat membuka **Pengaturan situs → Iklan & Slot Utama** untuk mengatur satu slot pada Berita, Baca berita, Sejarah, Visi & Misi, Struktur, Ranting, Badan otonom, Program, Galeri, Layanan, Majelis, Konsultasi, ZIS, dan Kontak. Slot dapat menampilkan banner gambar (diunggah ke bucket `media`) atau unit Google AdSense.
+
+Untuk AdSense, isi Publisher ID `ca-pub-…` dan ID unit iklan pada setiap halaman yang diaktifkan. Situs membangun tag AdSense dari kedua nilai itu; tidak perlu menempelkan JavaScript bebas. Situs/domain harus sudah ditambahkan dan berstatus siap di akun AdSense agar iklan dapat tayang.
+
 Belum ada di CMS (masih di kode): empat kartu keunggulan di beranda, kartu Jelajahi, daftar tautan footer,
 teks ketentuan di belakang kartu anggota, dan teks bawaan halaman Ambulans/Zakat.
 

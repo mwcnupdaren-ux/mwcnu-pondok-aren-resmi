@@ -16,6 +16,12 @@ var BIDANG = ['Kepemudaan','Perempuan','Pelajar','Seni Bela Diri','Sosial & Dakw
 var LINKS = ['#layanan','#ambulans','#zis','#majelis','#konsultasi','#daftar','#berita','#agenda','#galeri','#ranting','#banom','#struktur','#video','#program'];
 var IKON = ['ambulans','zakat','majelis','konsultasi','beasiswa','kesehatan','info','kalender','buku','hati','telepon','lokasi'];
 var HALAMAN = ['sejarah','visi','banom-gpansor','banom-fatayat','banom-ipnu','banom-ippnu'];
+var AD_ROUTES = [
+  {v:'berita',l:'Berita'}, {v:'baca',l:'Baca berita'}, {v:'sejarah',l:'Sejarah'}, {v:'visi',l:'Visi & misi'},
+  {v:'struktur',l:'Struktur'}, {v:'ranting',l:'Ranting'}, {v:'banom',l:'Badan otonom'}, {v:'program',l:'Program'},
+  {v:'galeri',l:'Galeri'}, {v:'layanan',l:'Layanan'}, {v:'majelis',l:'Majelis'}, {v:'konsultasi',l:'Konsultasi'},
+  {v:'zis',l:'ZIS'}, {v:'kontak',l:'Kontak'}
+];
 var T = function (k, l, o) { o = o || {}; o.k = k; o.l = l; o.t = o.t || 'text'; return o; };
 
 var COLS = {
@@ -73,7 +79,14 @@ var SETS = {
  pay: { l: 'Rekening & QRIS', F: [T('banks','Rekening',{t:'repeat',sub:[T('bank','Bank'),T('norek','Nomor rekening'),T('an','Atas nama')]}), T('qris','Gambar QRIS',{t:'image',f:'qris',png:1,max:1000})] },
  identitas: { l: 'Identitas Organisasi', F: [T('sk1','Keterangan SK (baris 1)',{h:'Tampil pada halaman Struktur Pengurus.'}), T('sk2','Keterangan SK (baris 2)'), T('sk3','Keterangan SK (baris 3)'), T('slogan','Slogan (footer)'), T('org_judul','Judul pengantar beranda'), T('org_deskripsi','Deskripsi pengantar beranda',{t:'area'})] },
  zakat: { l: 'Zakat (Harga Emas)', F: [T('harga_emas','Harga emas per gram (Rp)',{t:'num',h:'Dipakai sebagai nilai awal kalkulator zakat. Nisab = 85 gram.'}), T('acuan','Keterangan acuan',{h:'Contoh: Antam (Logam Mulia) per 13 Okt 2026'})] },
- tipografi: { l: 'Tipografi & Bacaan', F: [T('font_judul','Font judul artikel',{t:'select',o:['Plus Jakarta Sans','Inter','Serif']}), T('font_isi','Font isi artikel',{t:'select',o:['Inter','Plus Jakarta Sans','Serif']}), T('ukuran_isi','Ukuran isi (px)',{t:'num',h:'Standar: 16. Rentang 14–20.'}), T('jarak_baris','Jarak baris',{t:'num',h:'Standar: 1.75. Rentang 1.4–2.2.'}), T('dropcap','Huruf awal besar (drop cap)',{t:'bool'})] }
+ tipografi: { l: 'Tipografi & Bacaan', F: [T('font_judul','Font judul artikel',{t:'select',o:['Plus Jakarta Sans','Inter','Serif']}), T('font_isi','Font isi artikel',{t:'select',o:['Inter','Plus Jakarta Sans','Serif']}), T('ukuran_isi','Ukuran isi (px)',{t:'num',h:'Standar: 16. Rentang 14–20.'}), T('jarak_baris','Jarak baris',{t:'num',h:'Standar: 1.75. Rentang 1.4–2.2.'}), T('dropcap','Huruf awal besar (drop cap)',{t:'bool'})] },
+ iklan: { l: 'Iklan & Slot Utama', F: [
+  T('client','Publisher ID AdSense',{h:'Format ca-pub- diikuti 16 digit. Biarkan kosong jika hanya memakai gambar.'}),
+  T('slots','Slot utama per halaman',{t:'repeat',fixed:14,sub:[
+  T('page','Halaman',{t:'select',o:AD_ROUTES,req:1}), T('active','Tampilkan slot ini',{t:'bool'}),
+  T('mode','Jenis iklan',{t:'select',o:['Gambar','Google AdSense'],req:1}), T('image','Gambar iklan',{t:'image',f:'ads',max:1600}),
+  T('alt','Teks alternatif gambar'), T('href','Tautan tujuan gambar',{t:'url',h:'Gunakan alamat HTTPS.'}), T('ad_slot','ID unit iklan AdSense',{h:'Diambil dari kode unit iklan AdSense; angka saja.'})
+ ]})] }
 };
 var GROUPS = [['Konten', ['berita','agenda','video','galeri','kegiatan','majelis','tanya_jawab']], ['Beranda & layanan', ['layanan','program']], ['Organisasi', ['pengurus','ranting','banom','halaman']]];
 var S = { dirty: false, set: {}, items: {}, staff: [], me: null, memPage: 0 };
@@ -455,10 +468,38 @@ function saveSet(key, value) { return sb.from('site_settings').upsert({ key: key
 function viewSet(key) {
   var c = SETS[key]; if (!c) return viewHome(); if (!isAdmin()) return noAccess();
   var data = S.set[key] || {};
-  shell(c.l, 'set/' + key, '<form class="form panel" id="form" novalidate>' + formHTML(c.F, data) + '<div class="foot"><button class="btn g" id="save" type="submit">Simpan</button></div></form>');
+  if (key === 'iklan') data = Object.assign({}, data, { slots: Array.isArray(data.slots) ? data.slots : AD_ROUTES.map(function (r) { return { page:r.v, active:false, mode:'Gambar' }; }) });
+  var intro = key === 'iklan' ? '<div class="note">Setiap halaman memiliki satu slot Utama. Pilih Gambar untuk mengunggah banner, atau Google AdSense lalu masukkan ID unit. Publisher ID dipakai bersama untuk semua slot AdSense.</div>' : '';
+  shell(c.l, 'set/' + key, intro + '<form class="form panel" id="form" novalidate>' + formHTML(c.F, data) + '<div class="foot"><button class="btn g" id="save" type="submit">Simpan</button></div></form>');
   var form = $('#form'); form.__F = c.F; bindForm(form);
+  if (key === 'iklan') {
+    var syncAdFields = function () {
+      var hasAdSense = false;
+      $$('.rrow', fieldWrap(form, 'slots')).forEach(function (row) {
+        var mode = $('.in', fieldWrap(row, 'mode')), imageMode = !mode || mode.value === 'Gambar';
+        if (!imageMode) hasAdSense = true;
+        ['image','alt','href'].forEach(function (k) { var w = fieldWrap(row, k); if (w) w.hidden = !imageMode; });
+        var unit = fieldWrap(row, 'ad_slot'); if (unit) unit.hidden = imageMode;
+      });
+      var client = fieldWrap(form, 'client'); if (client) client.hidden = !hasAdSense;
+    };
+    form.addEventListener('change', syncAdFields); syncAdFields();
+  }
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); var d = readForm(form, c.F); if (!isAdmin()) { toast('Hanya Super Admin dapat mengubah pengaturan situs.', 1); return; } if (!validate(form, c.F, d)) { toast('Periksa isian yang ditandai merah.', 1); return; }
+    if (key === 'iklan') {
+      var used = {};
+      for (var i = 0; i < (d.slots || []).length; i++) {
+        var slot = d.slots[i];
+        if (!slot.page || used[slot.page]) return toast('Setiap halaman hanya boleh memiliki satu slot Utama.', 1);
+        used[slot.page] = true;
+        if (slot.active && slot.mode === 'Gambar' && !slot.image) return toast('Unggah gambar untuk slot aktif di ' + (AD_ROUTES.filter(function (r) { return r.v === slot.page; })[0] || {}).l + '.', 1);
+        if (slot.active && slot.mode === 'Google AdSense' && !/^\d{4,20}$/.test(slot.ad_slot || '')) return toast('Isi ID unit AdSense berupa angka untuk setiap slot aktif.', 1);
+        if (slot.href && !/^https:\/\//i.test(slot.href)) return toast('Tautan gambar iklan harus menggunakan HTTPS.', 1);
+      }
+      if (d.client && !/^ca-pub-\d{16}$/.test(d.client)) return toast('Publisher ID AdSense harus berformat ca-pub- diikuti 16 digit.', 1);
+      if ((d.slots || []).some(function (slot) { return slot.active && slot.mode === 'Google AdSense'; }) && !/^ca-pub-\d{16}$/.test(d.client || '')) return toast('Isi Publisher ID AdSense sebelum mengaktifkan slot AdSense.', 1);
+    }
     var btn = $('#save'); btn.disabled = true;
     try { await saveSet(key, Object.assign({}, data, d)); S.dirty = false; toast('Tersimpan. Muat ulang situs untuk melihat hasilnya.'); }
     catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); }

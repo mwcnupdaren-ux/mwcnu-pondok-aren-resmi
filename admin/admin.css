@@ -109,6 +109,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 	.panel:has(table){overflow-x:auto}
 }
 @media(prefers-reduced-motion:reduce){.side,.btn,.stat,.act{transition:none!important}.btn:hover,.stat:hover{transform:none}}
+.fld[hidden]{display:none!important}
 
 /* Article composer: writing first, optional metadata collapsed. */
 .article-form{max-width:1040px}
