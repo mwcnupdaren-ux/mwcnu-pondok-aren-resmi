@@ -479,9 +479,8 @@ if(!curN.length){put(ng,'<div class="ne"><b>'+(qv?'Berita tidak ditemukan':'Belu
 curN.forEach(function(n,i){
 var k=N.indexOf(n);
 var th=(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div class="th"><img loading="lazy" src="'+PH[n[4]]+'" alt="'+esc(n[1])+'"></div>');
-var meta='<div class="meta">'+(i==0?'<span class="chip top">Terbaru</span>':'')+'<span class="chip">'+n[0]+'</span><small>'+n[2]+' &middot; '+rtOf(n)+' menit baca</small></div>';
-if(n[6]&&n[6].tag){var _tg=n[6].tag.split(',').map(function(t){return t.trim()}).filter(Boolean).slice(0,4);if(_tg.length)meta+='<div class="ntags">'+_tg.map(function(t){return '<span class="ntag">'+esc(t)+'</span>'}).join('')+'</div>'}
-var body='<div class="b">'+meta+'<h3>'+n[1]+'</h3><p>'+n[3]+'</p><span class="more">'+(i==0?'Baca laporan lengkap':'Baca selengkapnya')+'</span></div>';
+var meta='<div class="news-row-meta"><span>'+esc(n[0])+'</span><i aria-hidden="true">·</i><span>'+esc(n[2])+'</span><i aria-hidden="true">·</i><span>'+rtOf(n)+' menit baca</span></div>';
+var body='<div class="b">'+meta+'<h3>'+esc(n[1])+'</h3></div>';
 var a=document.createElement('article');a.className=i==0?'feat':'item';
 put(a,th+body);act(a,function(){location.hash='#berita/'+k});
 ng.appendChild(a)})}
@@ -489,10 +488,6 @@ document.getElementById('nq').oninput=function(){drawN(curCat)};
 cats.forEach(function(c){var b=document.createElement('button');b.textContent=c;b.setAttribute('role','tab');b.onclick=function(){drawN(c)};nt.appendChild(b)});
 drawN('Semua');route();
 function rtOf(n){var x=n[6]||{},ps=x.p||[];var w=(n[1]+' '+(x.lead||'')+' '+ps.join(' ')).split(/\s+/).length;return Math.max(1,Math.round(w/180))}
-var _ns=document.getElementById('nside');
-if(_ns&&N&&N.length){var _cats=[['Semua','Semua'],['Berita','Berita'],['Laporan','Laporan'],['Literasi','Literasi']];try{_cats=_cats.map(function(c){var n=N.filter(function(x){return c[0]=='Semua'||x[0]==c[0]}).length;return [c[0],c[1],n]})}catch(e){}
-put(_ns,'<h3 class="ns-h">Berita Populer</h3>'+N.slice(0,5).map(function(n,i){return '<a class="nsitem" href="#berita/'+N.indexOf(n)+'"><span class="nsnum">'+('0'+(i+1))+'</span>'+(n[4]==null?'<span class="nsph"></span>':'<img class="nsth" loading="lazy" src="'+PH[n[4]]+'" alt="">')+'<span class="nst"><b>'+esc(n[1])+'</b><em>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</em></span></a>'}).join('')+'<h3 class="ns-h ns-h2">Kategori</h3><div class="ncat">'+_cats.map(function(c){return '<button type="button" class="ncatb" data-cat="'+c[0]+'"><span>'+c[1]+'</span><small>'+c[2]+'</small></button>'}).join('')+'</div><div class="nsub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><b>Berita pilihan, setiap pagi.</b><p>Ringkasan kabar penting langsung ke WhatsApp Anda.</p></div><a href="https://wa.me/6285161033689?text=Assalamu%27alaikum%2C%20saya%20ingin%20berlangganan%20kabar%20MWCNU%20Pondok%20Aren" target="_blank" rel="noopener">Daftar</a></div>');
-[].forEach.call(_ns.querySelectorAll('.ncatb'),function(b){b.onclick=function(){drawN(b.dataset.cat);var a=document.getElementById('berita');if(a)a.scrollIntoView({behavior:'smooth',block:'start'})}})}
 var _hb=document.getElementById('hbtn');if(_hb)_hb.onclick=function(){openGs()};var GS=null;function openGs(){var el=document.getElementById('gSearch');if(!el)return;el.hidden=false;document.body.style.overflow='hidden';var inp=document.getElementById('gsq');if(inp){inp.value='';inp.focus()}drawGs('')}
 var _hn=document.getElementById('homeNews');
 if(_hn&&N){N.slice(0,3).forEach(function(n){var a=document.createElement('article');
