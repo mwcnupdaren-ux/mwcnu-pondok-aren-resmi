@@ -1,9 +1,9 @@
-# Migration Guide — Modul Konsultasi Agama (Phase 1 & 2)
+# Migration Guide — Modul Konsultasi Agama (Phase 1, 2 & 2.2)
 
-Panduan penerapan 4 file migrasi database modul Konsultasi Agama di Supabase
-**produksi**. Migrasi ini BELUM dijalankan di produksi — seluruh pengujian
-dilakukan lokal via PGlite (lihat `PGlite_TEST_RESULTS.md` dan
-`PHASE2_TEST_RESULTS.md`).
+Panduan penerapan 6 file migrasi database modul Konsultasi Agama di Supabase
+**produksi** (SQL001–SQL006). Migrasi ini BELUM dijalankan di produksi —
+seluruh pengujian dilakukan lokal via PGlite (lihat `PGlite_TEST_RESULTS.md`
+dan `PHASE2_TEST_RESULTS.md`).
 
 ## 1. File & Urutan Eksekusi
 
@@ -16,10 +16,17 @@ sukses sebelum lanjut):
 | 2 | `consultation_002_tables.sql` | 16 tabel, indeks, FK (termasuk FK komposit), sequence nomor tiket, bucket privat, 13 trigger + 17 fungsi, fungsi SLA |
 | 3 | `consultation_003_security.sql` | RLS 16/16 tanpa policy (deny default), revoke seluruh hak dari anon/authenticated, hak tabel/fungsi/sequence eksplisit hanya untuk service_role |
 | 4 | `consultation_004_services.sql` | **Phase 2**: RPC layanan `consultation_svc_*` (pemohon, staf, konsultan, reviewer, publikasi, lampiran, rate-limit, audit HTTP) + bucket privat `consultation-private` |
+| 5 | `consultation_005_security_hardening.sql` | **Phase 2.1**: visibilitas lampiran/pesan bagi pemohon, jawaban konsultan wajib melewati review, serialisasi review, rate-limit persisten atomik (`consultation_svc_rate_hit`) |
+| 6 | `consultation_006_security_hardening.sql` | **Phase 2.2**: review hanya jawaban terbaru (satu jawaban = satu review), pemulihan jawaban saat jeda informasi, visibilitas jawaban hanya setelah review disetujui, persetujuan publikasi terikat `content_revision`, guard revisi publikasi, lampiran staf terikat peran & status tiket, ACL tegas `service_role` |
 
 Prasyarat yang **sudah tersedia bawaan Supabase** (tidak perlu dibuat):
 peran `service_role`, `anon`, `authenticated`; schema `auth` dengan
 `auth.jwt()`; schema `storage`.
+
+Prasyarat antar-file (urutan wajib):
+- SQL005 hanya dijalankan setelah SQL001–SQL004 sukses.
+- SQL006 hanya dijalankan setelah SQL001–SQL005 sukses (transaksi
+  `begin; ... commit;` di dalamnya mengasumsikan objek SQL005 sudah ada).
 
 ### Sifat & Jaminan
 - **Idempotent**: `create if not exists`, `create or replace`,
@@ -67,6 +74,70 @@ Hasil yang diharapkan: (1) 16 baris semua `true`; (2) 0 baris; (3) 0 baris;
 (4) 2 baris, `public = false`, limit 5 MB, 4 mime; (5) 17 fungsi Phase 1 +
 RPC `consultation_svc_*`; (6) `anon = false`, `svc = true`.
 
+(Setelah SQL005 dan SQL006 jumlah/versi fungsi bertambah — jalankan juga
+verifikasi §2c dan §2d di bawah.)
+
+## 2c. Verifikasi Setelah SQL005
+
+```sql
+-- (1) RPC hasil SQL005 terdaftar
+select distinct proname from pg_proc
+ where proname in ('consultation_svc_rate_hit',
+                   'consultation_svc_akses_tiket',
+                   'consultation_svc_lampiran_pemohon_ambil',
+                   'consultation_svc_jawab',
+                   'consultation_svc_pesan_staf',
+                   'consultation_svc_review')
+ order by proname;
+
+-- (2) ACL tetap benar: service_role boleh, anon/authenticated tidak
+select
+  has_function_privilege('service_role','public.consultation_svc_jawab(uuid,text,text)','execute') svc,
+  has_function_privilege('anon','public.consultation_svc_jawab(uuid,text,text)','execute') anon,
+  has_function_privilege('authenticated','public.consultation_svc_jawab(uuid,text,text)','execute') auth;
+```
+
+Hasil yang diharapkan: (1) 6 baris; (2) `svc = true`, `anon = false`,
+`auth = false`.
+
+## 2d. Verifikasi Setelah SQL006
+
+```sql
+-- (1) 4 kolom revision 006 ada
+select column_name from information_schema.columns
+ where table_schema = 'public' and table_name = 'consultation_publications'
+   and column_name in ('content_revision','persetujuan_pemohon_revision',
+                       'disetujui_reviewer_revision','disetujui_admin_revision')
+ order by column_name;
+
+-- (2) 2 index 006 ada
+select indexname from pg_indexes
+ where schemaname = 'public'
+   and indexname in ('consultation_messages_latest_answer',
+                     'consultation_reviews_latest_message')
+ order by indexname;
+
+-- (3) trigger + fungsi revision guard 006 ada
+select count(*) from pg_trigger t
+  join pg_class c on c.oid = t.tgrelid
+  join pg_namespace n on n.oid = c.relnamespace
+ where n.nspname = 'public' and c.relname = 'consultation_publications'
+   and t.tgname = 'trg_consultation_publication_00_revision_guard';
+select count(*) from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public'
+   and p.proname = 'consultation_publication_revision_guard';
+
+-- (4) ACL RPC tereplaced tetap: service_role saja
+select
+  has_function_privilege('service_role','public.consultation_svc_status(uuid,text,text,text)','execute') svc,
+  has_function_privilege('anon','public.consultation_svc_status(uuid,text,text,text)','execute') anon,
+  has_function_privilege('authenticated','public.consultation_svc_status(uuid,text,text,text)','execute') auth;
+```
+
+Hasil yang diharapkan: (1) 4 baris; (2) 2 baris; (3) masing-masing ≥ 1;
+(4) `svc = true`, `anon = false`, `auth = false`.
+
 ## 2b. Definisi Matematis Jeda SLA (hasil audit)
 
 Perhitungan jeda **tidak memakai penambahan durasi kalender mentah**
@@ -104,6 +175,40 @@ Kasus-kasus ini diuji otomatis (T18 S1–S6) memakai seam waktu
 `app.waktu_sistem` (lihat risiko #8).
 
 ## 3. Rollback Guide
+
+### 3a. Rollback SQL006 (`consultation_006_rollback.sql`)
+
+Mengembalikan database dari keadaan **setelah SQL006** ke keadaan
+**setelah SQL005** — mengembalikan **struktur dan fungsi**, bukan
+membatalkan seluruh perubahan data:
+
+- **Yang dikembalikan**: 15 fungsi diganti kembali ke definisi persis
+  SQL005/SQL004 via `CREATE OR REPLACE` (ACL `service_role` dari SQL003/004
+  tetap utuh, bukan `DROP` + `CREATE`); trigger + fungsi
+  `consultation_publication_revision_guard()` milik 006 dihapus; 2 index
+  (`consultation_messages_latest_answer`,
+  `consultation_reviews_latest_message`) dan 4 kolom `*_revision` dihapus.
+- **Yang TIDAK dikembalikan (data)**: stempel `*_revision` hilang bersama
+  kolomnya; publikasi yang pernah direset guard SQL006 tetap pada nilai
+  barunya (false / slug null / published false); perubahan status tiket oleh
+  `svc_jawab` versi 006 tetap berlaku; audit `content_revision` yang
+  menunjuk revisi yang sudah dihapus tidak dikoreksi (append-only).
+- **Risiko**: membuka kembali temuan yang hanya ditutup SQL006 — H-1 (teks
+  publikasi dapat diganti setelah disetujui tanpa reset approval), H-2
+  (transisi `menunggu_review → terjawab` melewati reviewer), M-5 (reviewer/
+  admin dapat mengunggah/mengambil lampiran tiket mana pun) — serta
+  menghilangkan aturan "hanya jawaban terbaru yang dapat direview", "satu
+  jawaban satu review", dan pengikatan persetujuan ke `content_revision`.
+- **Prasyarat**: database berada pada keadaan setelah SQL006 (SQL001–SQL006
+  sudah diterapkan); **hentikan trafik tulis** selama eksekusi; dijalankan
+  hanya atas persetujuan tertulis pengguna dengan rencana re-apply SQL006.
+- **Jaminan**: seluruh skrip dalam SATU transaksi (gagal di tengah = tidak
+  ada perubahan permanen); idempoten (`if exists`); tidak ada CASCADE;
+  tidak menyentuh objek SQL001–SQL005, tabel existing, Storage, atau Edge
+  Function; diakhiri pemeriksaan keras (6.1–6.7) yang membatalkan seluruh
+  transaksi bila hasil pemulihan tidak lengkap.
+
+### 3b. Rollback modul penuh (`consultation_rollback.sql`)
 
 File `consultation_rollback.sql` membatalkan seluruh Phase 1 + Phase 2 dengan urutan:
 1. Drop seluruh fungsi layanan `consultation_svc_*` secara otomatis (blok
@@ -184,7 +289,12 @@ Rollback hanya dilakukan atas keputusan eksplisit pengguna.
 
 ## 7. Langkah Setelah Persetujuan
 
-1. User menjalankan 001 → 002 → 003 → 004 di Supabase SQL Editor (produksi).
-2. Jalankan kueri verifikasi bagian 2.
-3. Deploy Edge Functions `consultation-*` (lihat `PHASE2_BACKEND.md` §9) dan
-   set function secrets yang tercantum di sana — user menjalankan sendiri (C1).
+1. User menjalankan 001 → 002 → 003 → 004 → 005 → 006 di Supabase SQL Editor
+   (produksi), berurutan, menunggu sukses setiap file sebelum lanjut.
+2. Jalankan kueri verifikasi bagian 2 (setelah SQL004), §2c (setelah SQL005),
+   dan §2d (setelah SQL006).
+3. Deploy Edge Functions `consultation-*` (lihat `PHASE2_BACKEND.md` §9 —
+   termasuk instruksi `verify_jwt` per fungsi) dan set function secrets yang
+   tercantum di sana — user menjalankan sendiri (C1).
+4. Uji backend nyata (smoke test end-to-end: buat tiket, lampiran, jawab,
+   review, publikasi), lalu deploy frontend (Vercel).

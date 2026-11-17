@@ -377,13 +377,25 @@ Opsional:
 | `CONSULTATION_ALLOWED_ORIGINS` | daftar origin tambahan, dipisah koma |
 
 **Deploy (oleh user, bukan agen):** `supabase functions deploy consultation-*`
-dengan JWT verification **aktif** untuk 5 fungsi staf (`admin`, `consultant`,
-`review`, `publication`, `attachment`), dan **nonaktif** untuk
-`consultation-public` serta `consultation-ticket-*` (pemohon anonim; dilindungi
-rate-limit + kredensial). `consultation-attachment` menangani dua jalur:
-pemohon tanpa JWT dan staf dengan JWT — verifikasi JWT dilakukan di dalam
-function (`auth.getUser`), sehingga sakelar platform tidak boleh menolak
-pemohon lebih dulu.
+dengan sakelar platform `verify_jwt` per fungsi SEBAGAI BERIKUT — ini
+satu-satunya instruksi `verify_jwt` yang berlaku:
+
+| Function | `verify_jwt` (platform) |
+|---|---|
+| `consultation-admin`, `consultation-consultant`, `consultation-review`, `consultation-publication` | **AKTIF** (default) — frontend staf mengirim `Authorization: Bearer <access_token>` sesi Google |
+| `consultation-public`, `consultation-ticket-create`, `consultation-ticket-access`, `consultation-ticket-message` | **NONAKTIF** (`--no-verify-jwt`) — pemohon anonim, dilindungi rate-limit + kredensial tiket |
+| `consultation-attachment` | **NONAKTIF** (`--no-verify-jwt`) |
+
+Alasan `consultation-attachment` harus NONAKTIF: function ini menangani dua
+jalur — pemohon TANPA JWT (hanya header `apikey` publishable key) dan staf
+DENGAN JWT. Verifikasi JWT staf dilakukan DI DALAM function
+(`authenticateStaff` → `auth.getUser` → `consultation_svc_peran`), sehingga
+sakelar platform TIDAK BOLEH aktif agar tidak menolak jalur pemohon lebih
+dulu. Perintah deploy:
+
+```
+supabase functions deploy consultation-attachment --no-verify-jwt
+```
 
 ---
 
