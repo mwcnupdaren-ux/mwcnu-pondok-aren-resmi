@@ -1,5 +1,5 @@
 // PHASE 1 + GATE + LAYANAN FASE 2 — Pengujian migrasi & RPC konsultasi via PGlite
-// Eksekusi 001→002→003→004 lalu kelompok asersi T01–T30.
+// Eksekusi 001→002→003→004→005→006 lalu kelompok asersi T01–T31.
 // Cara jalan (dari folder supabase/consultation/tests):
 //   npm install   (sekali; memasang @electric-sql/pglite lokal, terkunci versi)
 //   npm test      (atau: node test-konsultasi.mjs)
@@ -37,10 +37,14 @@ if (await run("001_foundation", "consultation_001_foundation.sql")) {
     await db.exec("create role service_role nologin bypassrls; create role anon nologin; create role authenticated nologin;");
     if (await run("003_security", "consultation_003_security.sql")) {
       if (await run("004_services", "consultation_004_services.sql")) {
+        await run("005_security_hardening", "consultation_005_security_hardening.sql");
+        await run("006_security_hardening", "consultation_006_security_hardening.sql");
         await run("001 ulang", "consultation_001_foundation.sql");
         await run("002 ulang", "consultation_002_tables.sql");
         await run("003 ulang", "consultation_003_security.sql");
         await run("004 ulang", "consultation_004_services.sql");
+        await run("005 ulang", "consultation_005_security_hardening.sql");
+        await run("006 ulang", "consultation_006_security_hardening.sql");
       }
     }
   }
@@ -179,6 +183,7 @@ await expectErr("T09c jawaban dari pemohon tidak boleh berjenis jawaban_konsulta
 
 // ====== T10: review
 console.log("=== T10 review ===");
+await db.exec("update public.consultation_tickets set status='menunggu_review' where id='" + tid + "'");
 await expectErr("T10a reviewer = penulis ditolak",
   `insert into public.consultation_reviews (ticket_id, message_id, reviewer_email, keputusan)
    values ('${tid}','${mJawab}','konsul1@mwcnupondokaren.or.id','disetujui')`, "sendiri");
@@ -187,9 +192,12 @@ await expectErr("T10b reviewer bukan ber-role reviewer ditolak (FK komposit)",
    values ('${tid}','${mJawab}','konsul2@mwcnupondokaren.or.id','disetujui')`);
 await db.exec(`insert into public.consultation_reviews (ticket_id, message_id, reviewer_email, keputusan, catatan)
   values ('${tid}','${mJawab}','rev1@mwcnupondokaren.or.id','disetujui','Baik.')`);
+const mJawabInvalid = (await q(`insert into public.consultation_messages
+  (ticket_id, pengirim_jenis, pengirim_email, jenis_pesan, isi)
+  values ('${tid}','konsultan','konsul1@mwcnupondokaren.or.id','jawaban_konsultan','Jawaban uji enum review') returning id`))[0].id;
 await expectErr("T10c keputusan di luar enum ditolak",
   `insert into public.consultation_reviews (ticket_id, message_id, reviewer_email, keputusan)
-   values ('${tid}','${mJawab}','rev1@mwcnupondokaren.or.id','setuju')`, "check");
+   values ('${tid}','${mJawabInvalid}','rev1@mwcnupondokaren.or.id','setuju')`, "check");
 
 // ====== T11: append-only
 console.log("=== T11 append-only ===");
@@ -437,9 +445,12 @@ await expectErr("T21a konsultan nonaktif tidak dapat menerima penugasan baru",
    values ('${tid2}','konsul1@mwcnupondokaren.or.id','adm@mwcnupondokaren.or.id')`, "ber-role konsultan dan aktif");
 await db.exec("update public.consultation_staff_roles set aktif = true where email = 'konsul1@mwcnupondokaren.or.id'");
 await db.exec("update public.consultation_staff_roles set aktif = false where email = 'rev1@mwcnupondokaren.or.id'");
+const mJawabNonaktif = (await q(`insert into public.consultation_messages
+  (ticket_id, pengirim_jenis, pengirim_email, jenis_pesan, isi)
+  values ('${tid}','konsultan','konsul1@mwcnupondokaren.or.id','jawaban_konsultan','Jawaban uji reviewer nonaktif') returning id`))[0].id;
 await expectErr("T21b reviewer nonaktif tidak dapat melakukan review baru",
   `insert into public.consultation_reviews (ticket_id, message_id, reviewer_email, keputusan)
-   values ('${tid}','${mJawab}','rev1@mwcnupondokaren.or.id','disetujui')`, "ber-role reviewer dan aktif");
+   values ('${tid}','${mJawabNonaktif}','rev1@mwcnupondokaren.or.id','disetujui')`, "ber-role reviewer dan aktif");
 await db.exec("update public.consultation_staff_roles set aktif = true where email = 'rev1@mwcnupondokaren.or.id'");
 ok("T21c status staf dipulihkan setelah uji nonaktif", true);
 
@@ -485,7 +496,8 @@ await expectErr("T24a insert dengan published_at terisi ditolak",
    values ('${tidPub}', 'X', 'Y', 'Z', 'adm@mwcnupondokaren.or.id', now())`, "published_at hanya dikelola sistem");
 
 // Publikasi milik pemohon (persetujuan_pemohon=true) agar pencabutan kontak memicu dicabut_at
-await db.exec(`update public.consultation_publications set persetujuan_pemohon = true, persetujuan_pemohon_at = now() where ticket_id='${tidPub}'`);
+await db.exec(`update public.consultation_publications set persetujuan_pemohon = true, persetujuan_pemohon_at = now(),
+  persetujuan_pemohon_revision = content_revision where ticket_id='${tidPub}'`);
 
 // Pencabutan via kontak: persetujuan kontak ditarik (true -> false) → memaksa unpublish + dicabut
 await db.exec(`update public.consultation_requester_contacts set persetujuan_publikasi = false, persetujuan_publikasi_at = null where ticket_id='${tidPub}'`);
@@ -495,7 +507,8 @@ ok("T24b pencabutan kontak mematikan published & persetujuan_pemohon dan mencata
 // Re-publication: persetujuan reviewer dengan timestamp lama (sebelum dicabut_at) ditolak
 await expectErr("T24c re-publication dengan persetujuan reviewer lama (sebelum dicabut_at) ditolak",
   `update public.consultation_publications set disetujui_reviewer = true,
-   disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_reviewer_at = now() - interval '2 hours' where ticket_id='${tidPub}'`,
+   disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_reviewer_at = now() - interval '2 hours',
+   disetujui_reviewer_revision = content_revision where ticket_id='${tidPub}'`,
   "wajib diperbarui setelah pencabutan");
 
 // published_at tidak dapat diubah pada UPDATE (belum terbit, tetap null)
@@ -543,8 +556,11 @@ await expectErr("T27a INSERT published=true ditolak (publikasi wajib mulai belum
   "belum terbit");
 await db.exec(`update public.consultation_publications set
   persetujuan_pemohon = true, persetujuan_pemohon_at = now(),
+  persetujuan_pemohon_revision = content_revision,
   disetujui_reviewer = true, disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_reviewer_at = now(),
+  disetujui_reviewer_revision = content_revision,
   disetujui_admin = true, disetujui_admin_oleh = 'adm@mwcnupondokaren.or.id', disetujui_admin_at = now(),
+  disetujui_admin_revision = content_revision,
   slug = 'uji-b1-update', published = true where ticket_id='${tidB1}'`);
 const b1 = (await q(`select published, published_at from public.consultation_publications where ticket_id='${tidB1}'`))[0];
 ok("T27b UPDATE false->true menstempel published_at otomatis", b1.published === true && b1.published_at !== null);
@@ -636,8 +652,8 @@ await expectErr("T30b akses tiket dengan hash salah ditolak",
   `select public.consultation_svc_akses_tiket('${nomorA}','${"c".repeat(64)}')`,
   "Kredensial tiket tidak valid");
 const aksesA = (await q(`select public.consultation_svc_akses_tiket('${nomorA}','${hashA}') as r`))[0].r;
-ok("T30c akses tiket dengan hash benar + persetujuan publikasi",
-  aksesA.ticket.id === tA && aksesA.kontak.persetujuan_publikasi === true);
+ok("T30c akses tiket dengan hash benar; consent publikasi draft belum diwariskan",
+  aksesA.ticket.id === tA && aksesA.kontak.persetujuan_publikasi === false);
 ok("T30d respons pemohon tidak memuat email staf internal",
   !JSON.stringify(aksesA).includes("mwcnupondokaren.or.id"));
 await q(`select public.consultation_svc_pesan_pemohon('${nomorA}','${hashA}','Mohon penjelasan tambahan.')`);
@@ -666,20 +682,67 @@ await q(`select public.consultation_svc_jawab('${tA}','Jawaban konsultan untuk t
 const st3 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
 ok("T30l jawaban konsultan -> menunggu_review", st3 === "menunggu_review");
 const msgId = (await q(`select id from public.consultation_messages where ticket_id='${tA}' and jenis_pesan='jawaban_konsultan'`))[0].id;
+const aksesSebelumReview = (await q(`select public.consultation_svc_akses_tiket('${buatA.nomor_tiket}','${hashA}') as r`))[0].r;
+ok("T30l-1 jawaban konsultan tersembunyi sebelum persetujuan reviewer",
+  !aksesSebelumReview.pesan.some(m => m.id === msgId));
 const daftarRev = (await q(`select public.consultation_svc_staf_daftar('rev1@mwcnupondokaren.or.id',null,100,0) as r`))[0].r;
 ok("T30m reviewer melihat antrean review", daftarRev.tiket.some(x => x.id === tA));
 await expectErr("T30n konsultan tidak dapat melakukan review",
   `select public.consultation_svc_review('${tA}','${msgId}','disetujui',null,'konsul1@mwcnupondokaren.or.id')`,
   "Hanya reviewer");
+await expectErr("T30n-1 admin tidak dapat melewati review melalui RPC status umum",
+  `select public.consultation_svc_status('${tA}','terjawab','bypass review','adm@mwcnupondokaren.or.id')`,
+  "Transisi dari menunggu_review hanya boleh melalui keputusan reviewer");
+await expectErr("T30n-2 jawaban final tidak dapat terlihat sebelum review disetujui",
+  `select public.consultation_svc_pesan_staf('${tA}','jawaban_final','Final prematur',true,'adm@mwcnupondokaren.or.id')`,
+  "Jawaban final menunggu persetujuan");
 await q(`select public.consultation_svc_review('${tA}','${msgId}','disetujui',null,'rev1@mwcnupondokaren.or.id')`);
 const st4 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
 const revA = (await q(`select reviewer_email, keputusan from public.consultation_reviews where ticket_id='${tA}'`))[0];
 ok("T30o review disetujui -> terjawab + identitas reviewer",
   st4 === "terjawab" && revA.reviewer_email === "rev1@mwcnupondokaren.or.id" && revA.keputusan === "disetujui");
+const aksesSesudahReview = (await q(`select public.consultation_svc_akses_tiket('${buatA.nomor_tiket}','${hashA}') as r`))[0].r;
+ok("T30o-1 jawaban tampil setelah reviewer menyetujui",
+  aksesSesudahReview.pesan.some(m => m.id === msgId));
+await expectErr("T30o-1b satu jawaban tidak dapat direview dua kali",
+  `select public.consultation_svc_review('${tA}','${msgId}','minta_revisi','uji duplikasi','rev1@mwcnupondokaren.or.id')`,
+  "sudah pernah direview");
+// Jawaban baru menggantikan jawaban lama sebagai jawaban yang dapat dilihat.
+await q(`select public.consultation_svc_status('${tA}','ditugaskan','jawaban lanjutan','adm@mwcnupondokaren.or.id')`);
+await q(`select public.consultation_svc_jawab('${tA}','Jawaban konsultan terbaru untuk tiket A.','konsul1@mwcnupondokaren.or.id')`);
+const msgId2 = (await q(`select id from public.consultation_messages where ticket_id='${tA}' and jenis_pesan='jawaban_konsultan' order by created_at desc, id desc limit 1`))[0].id;
+const aksesJawabanKedua = (await q(`select public.consultation_svc_akses_tiket('${buatA.nomor_tiket}','${hashA}') as r`))[0].r;
+ok("T30o-1c jawaban lama tersembunyi setelah jawaban baru dikirim",
+  !aksesJawabanKedua.pesan.some(m => m.id === msgId) && !aksesJawabanKedua.pesan.some(m => m.id === msgId2));
+await expectErr("T30o-1d reviewer tidak dapat menyetujui jawaban lama",
+  `select public.consultation_svc_review('${tA}','${msgId}','disetujui',null,'rev1@mwcnupondokaren.or.id')`,
+  "jawaban konsultan terbaru");
+await q(`select public.consultation_svc_review('${tA}','${msgId2}','disetujui',null,'rev1@mwcnupondokaren.or.id')`);
+const aksesJawabanKeduaDisetujui = (await q(`select public.consultation_svc_akses_tiket('${buatA.nomor_tiket}','${hashA}') as r`))[0].r;
+ok("T30o-1e hanya jawaban terbaru tampil setelah review terbaru disetujui",
+  !aksesJawabanKeduaDisetujui.pesan.some(m => m.id === msgId) && aksesJawabanKeduaDisetujui.pesan.some(m => m.id === msgId2));
+const finalSesudahReview = (await q(`select public.consultation_svc_pesan_staf(
+  '${tA}','jawaban_final','Jawaban final admin yang sudah direview.',true,
+  'adm@mwcnupondokaren.or.id') as r`))[0].r;
+ok("T30o-1a jawaban final admin dapat ditampilkan setelah review",
+  finalSesudahReview.terlihat_pemohon === true);
+const lampiranInternal = (await q(`select public.consultation_svc_lampiran_staf(
+  '${tA}','tickets/${tA}/internal.pdf','internal.pdf','application/pdf',1024,null,
+  'adm@mwcnupondokaren.or.id') as r`))[0].r;
+const aksesTanpaInternal = (await q(`select public.consultation_svc_akses_tiket('${buatA.nomor_tiket}','${hashA}') as r`))[0].r;
+ok("T30o-2 lampiran staf tanpa pesan tidak muncul pada pemohon",
+  !aksesTanpaInternal.lampiran.some(a => a.id === lampiranInternal.id));
+await expectErr("T30o-3 signed URL metadata lampiran staf tanpa pesan ditolak",
+  `select public.consultation_svc_lampiran_pemohon_ambil('${buatA.nomor_tiket}','${hashA}','${lampiranInternal.id}')`,
+  "Lampiran belum dapat dilihat pemohon");
 const aj = (await q(`select public.consultation_svc_ajukan_publikasi(
   '${tA}','Judul Publik A','Pertanyaan samar A','Jawaban final A','adm@mwcnupondokaren.or.id') as r`))[0].r;
-ok("T30p publikasi diajukan + persetujuan pemohon tersinkron",
-  aj.persetujuan_pemohon === true && aj.published === false);
+ok("T30p publikasi baru tidak mewarisi persetujuan kontak lama",
+  aj.persetujuan_pemohon === false && aj.published === false);
+await q(`select public.consultation_svc_persetujuan_pemohon('${nomorA}','${hashA}',true)`);
+const persetujuanDraft = (await q(`select persetujuan_pemohon from public.consultation_publications where ticket_id='${tA}'`))[0];
+ok("T30p-1 pemohon memberi persetujuan eksplisit untuk draft saat ini",
+  persetujuanDraft.persetujuan_pemohon === true);
 await q(`select public.consultation_svc_setujui_publikasi('${tA}',true,'rev1@mwcnupondokaren.or.id')`);
 await q(`select public.consultation_svc_setujui_publikasi('${tA}',true,'adm@mwcnupondokaren.or.id')`);
 const terbit = (await q(`select public.consultation_svc_terbitkan('${tA}','judul-publik-a','adm@mwcnupondokaren.or.id') as r`))[0].r;
@@ -689,6 +752,17 @@ const listPub = (await q(`select public.consultation_svc_publik_list(50,0) as r`
 ok("T30r daftar publik memuat publikasi terbit", listPub.some(x => x.slug === "judul-publik-a"));
 const detailPub = (await q(`select public.consultation_svc_publik_detail('judul-publik-a') as r`))[0].r;
 ok("T30s detail publik terbit", detailPub.slug === "judul-publik-a");
+// Edit konten harus membatalkan tiga persetujuan dan meng-unpublish snapshot lama.
+await q(`update public.consultation_publications set jawaban_final='Jawaban final A versi perubahan.' where ticket_id='${tA}'`);
+const pubRevisi = (await q(`select published, slug, persetujuan_pemohon, disetujui_reviewer, disetujui_admin from public.consultation_publications where ticket_id='${tA}'`))[0];
+ok("T30s-1 perubahan konten membatalkan semua persetujuan dan slug",
+  !pubRevisi.published && pubRevisi.slug === null && !pubRevisi.persetujuan_pemohon && !pubRevisi.disetujui_reviewer && !pubRevisi.disetujui_admin);
+await q(`select public.consultation_svc_persetujuan_pemohon('${nomorA}','${hashA}',true)`);
+await q(`select public.consultation_svc_setujui_publikasi('${tA}',true,'rev1@mwcnupondokaren.or.id')`);
+await q(`select public.consultation_svc_setujui_publikasi('${tA}',true,'adm@mwcnupondokaren.or.id')`);
+const terbitRevisi = (await q(`select public.consultation_svc_terbitkan('${tA}','judul-publik-b','adm@mwcnupondokaren.or.id') as r`))[0].r;
+ok("T30s-2 revisi konten hanya dapat diterbitkan setelah persetujuan baru",
+  terbitRevisi.published === true && terbitRevisi.slug === "judul-publik-b");
 await q(`select public.consultation_svc_cabut_publikasi('${tA}','uji cabut','adm@mwcnupondokaren.or.id')`);
 const pubA = (await q(`select published, dicabut from public.consultation_publications where ticket_id='${tA}'`))[0];
 ok("T30t cabut publikasi -> tidak terbit + dicabut", !pubA.published && pubA.dicabut);

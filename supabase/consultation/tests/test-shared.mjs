@@ -40,6 +40,7 @@ import {
   timingSafeEqualHex,
 } from '../../functions/_shared/secret.ts';
 import { MemoryLimiter } from '../../functions/_shared/ratelimit.ts';
+import { guardRateLimit } from '../../functions/_shared/guard.ts';
 import { AppError, errorPayload, mapDbError, tooMany } from '../../functions/_shared/errors.ts';
 import { redact } from '../../functions/_shared/audit.ts';
 import {
@@ -47,6 +48,8 @@ import {
   corsHeaders,
   jsonResponse,
   readJson,
+  readTextLimited,
+  limitedRequest,
   serve,
 } from '../../functions/_shared/http.ts';
 
@@ -196,6 +199,21 @@ cek('R01g batas global menolak lintas kunci', rlGlobal.check('z', 10, t0).allowe
 rl.reset();
 cek('R01h reset mengosongkan hit', rl.check('kunci-a', 1, t0 + 62_000).allowed === true);
 
+// ============ R02: rate limit persisten fail-closed ============
+console.log('=== R02 rate limit persisten ===');
+let rateFailClosed = false;
+try {
+  await guardRateLimit(
+    { rpc: async () => { throw new Error('database unavailable'); } },
+    { secretPepper: 'pepper-uji-yang-cukup-panjang' },
+    '203.0.113.20',
+    'tiket-buat',
+  );
+} catch (e) {
+  rateFailClosed = e instanceof AppError && e.status === 503;
+}
+cek('R02a kegagalan RPC rate-limit menolak request (503), bukan fallback memori', rateFailClosed);
+
 // ============ E01: pemetaan error aman ============
 console.log('=== E01 pemetaan error ===');
 const p401 = errorPayload(mapDbError('Kredensial tiket tidak valid'));
@@ -250,6 +268,17 @@ cek('H01g IP diambil dari entri pertama XFF', clientIp(reqIp) === '203.0.113.9')
 cek('H01h IP fallback', clientIp(new Request('https://x/')) === 'tanpa-ip');
 const reqJson = new Request('https://x/', { method: 'POST', body: JSON.stringify({ a: 1 }) });
 cek('H01i body JSON terbaca', (await readJson(reqJson)).a === 1);
+await tolakAsync('H01i-1 JSON oversized ditolak saat streaming', () =>
+  readJson(new Request('https://x/', { method: 'POST', body: JSON.stringify({ a: 'x'.repeat(100) }) }), 32),
+  'terlalu besar');
+const boundedMultipart = await limitedRequest(
+  new Request('https://x/', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: '12345' }),
+  8,
+);
+cek('H01i-2 limitedRequest mempertahankan body di bawah batas', await boundedMultipart.text() === '12345');
+await tolakAsync('H01i-3 limitedRequest menolak body melewati batas', () =>
+  limitedRequest(new Request('https://x/', { method: 'POST', body: '123456789' }), 8),
+  'terlalu besar');
 await tolakAsync('H01j body bukan JSON ditolak', () =>
   readJson(new Request('https://x/', { method: 'POST', body: '{rusak' })), 'bukan JSON');
 await tolakAsync('H01k body array ditolak', () =>
