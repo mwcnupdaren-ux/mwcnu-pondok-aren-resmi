@@ -59,13 +59,89 @@ export function clientIp(req: Request): string {
   return 'tanpa-ip';
 }
 
+/**
+ * Baca body secara streaming. Batas diperiksa sebelum seluruh body diterima,
+ * sehingga request besar tidak lebih dulu dimuat penuh ke memori.
+ */
+export async function readTextLimited(req: Request, maxBytes: number): Promise<string> {
+  const declared = Number(req.headers.get('content-length') ?? 0);
+  if (Number.isFinite(declared) && declared > maxBytes) throw payloadTooLarge();
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw payloadTooLarge();
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const all = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    all.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(all);
+  } catch (_e) {
+    throw badRequest('Body bukan teks UTF-8 yang valid');
+  }
+}
+
+/** Baca request multipart dengan batas ukuran sebelum formData() dipanggil. */
+export async function limitedRequest(req: Request, maxBytes: number): Promise<Request> {
+  const declared = Number(req.headers.get('content-length') ?? 0);
+  if (Number.isFinite(declared) && declared > maxBytes) throw payloadTooLarge();
+  if (!req.body) return new Request(req.url, { method: req.method, headers: req.headers });
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw payloadTooLarge();
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  // Consolidate chunks into an ArrayBuffer-backed view. Stream chunks are
+  // typed as Uint8Array<ArrayBufferLike>, which newer DOM typings reject as
+  // BlobPart even though the bytes are valid.
+  const bodyBytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bodyBytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return new Request(req.url, {
+    method: req.method,
+    headers: req.headers,
+    body: new Blob([bodyBytes.buffer]),
+  });
+}
+
 /** Baca body JSON dengan batas ukuran; tolak array/null/non-objek. */
 export async function readJson(
   req: Request,
   maxBytes = 32 * 1024,
 ): Promise<Record<string, unknown>> {
-  const raw = await req.text();
-  if (new TextEncoder().encode(raw).length > maxBytes) throw payloadTooLarge();
+  const raw = await readTextLimited(req, maxBytes);
   if (raw.trim() === '') throw badRequest('Body permintaan wajib diisi');
   let parsed: unknown;
   try {

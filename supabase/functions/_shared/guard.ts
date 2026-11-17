@@ -1,10 +1,10 @@
 // ============================================================
-// Penjaga rate-limit: lapisan persisten (RPC) + cadangan memori.
+// Penjaga rate-limit: wajib memakai lapisan persisten (RPC), fail-closed.
 // ============================================================
 
 import { AppError, tooMany } from './errors.ts';
 import { hashClientId } from './secret.ts';
-import { memoryLimiter, policy } from './ratelimit.ts';
+import { policy } from './ratelimit.ts';
 import { logWarn } from './audit.ts';
 import type { Db } from './db.ts';
 import type { Config } from './config.ts';
@@ -25,9 +25,12 @@ export async function guardRateLimit(
   let bucket: string;
   try {
     bucket = await hashClientId(clientId, cfg.secretPepper);
-  } catch (_e) {
-    // Pepper tidak tersedia: tetap batasi dengan bucket kasar per proses.
-    bucket = 'tanpa-pepper';
+  } catch (error) {
+    logWarn('rate-limit tidak dapat membuat identitas bucket', {
+      endpoint: policyName,
+      sebab: error instanceof Error ? error.message : 'tidak diketahui',
+    });
+    throw new AppError(503, 'rate_limit_unavailable', 'Layanan sementara tidak tersedia. Coba lagi nanti.');
   }
 
   try {
@@ -44,14 +47,12 @@ export async function guardRateLimit(
     return;
   } catch (error) {
     if (error instanceof AppError && error.status === 429) throw error;
-    logWarn('rate-limit persisten gagal; memakai limiter memori', {
+    logWarn('rate-limit persisten gagal; permintaan ditolak', {
       endpoint: policyName,
       sebab: error instanceof Error ? error.message : 'tidak diketahui',
     });
-  }
-
-  const d = memoryLimiter.check(`${bucket}:${policyName}`, p.limit);
-  if (!d.allowed) {
-    throw tooMany('Terlalu banyak permintaan. Coba lagi nanti.', d.retry_after ?? 60);
+    // Fail closed: limiter memori per instance bukan pengganti rate-limit
+    // persisten lintas instance dan tidak boleh menjadi fallback keamanan.
+    throw new AppError(503, 'rate_limit_unavailable', 'Layanan sementara tidak tersedia. Coba lagi nanti.');
   }
 }

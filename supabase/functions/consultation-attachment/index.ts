@@ -15,7 +15,7 @@
 
 import { resolveConfig } from '../_shared/bootstrap.ts';
 import { Db } from '../_shared/db.ts';
-import { clientIp, jsonResponse, readJson, serve } from '../_shared/http.ts';
+import { clientIp, jsonResponse, limitedRequest, readJson, serve } from '../_shared/http.ts';
 import { guardRateLimit } from '../_shared/guard.ts';
 import { authenticateStaff } from '../_shared/auth.ts';
 import { hashSecret } from '../_shared/secret.ts';
@@ -71,7 +71,10 @@ export default {
 
       // ---------- UNGGAH (multipart/form-data) ----------
       if (contentType.startsWith('multipart/form-data')) {
-        const form = await req.formData();
+        // Maksimum file 5 MiB + overhead multipart yang wajar. Batasi stream
+        // sebelum parser formData() mengalokasikan seluruh payload.
+        const boundedReq = await limitedRequest(req, LIMITS.lampiranMaxBytes + 128 * 1024);
+        const form = await boundedReq.formData();
         const file = form.get('file');
         if (!(file instanceof File)) throw badRequest('File wajib diunggah');
         if (file.size < 1 || file.size > LIMITS.lampiranMaxBytes) {

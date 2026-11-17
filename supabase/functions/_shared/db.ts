@@ -109,6 +109,12 @@ export class Db {
     bytes: Uint8Array,
     contentType: string,
   ): Promise<void> {
+    // Copy into an ArrayBuffer-backed view so BlobPart remains compatible
+    // with current TypeScript DOM definitions (Uint8Array<ArrayBufferLike>
+    // is not assignable to BlobPart in newer Deno/TypeScript versions).
+    const blobBytes = new Uint8Array(bytes.byteLength);
+    blobBytes.set(bytes);
+
     const res = await this.request(`/storage/v1/object/${bucket}/${encodePath(path)}`, {
       method: 'POST',
       headers: this.headers({
@@ -116,7 +122,7 @@ export class Db {
         'x-upsert': 'false',
         'Cache-Control': 'no-store',
       }),
-      body: new Blob([bytes], { type: contentType }),
+      body: new Blob([blobBytes.buffer], { type: contentType }),
     });
     if (!res.ok) {
       const msg = pesanError(await res.text());

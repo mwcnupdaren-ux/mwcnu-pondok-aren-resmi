@@ -27,9 +27,9 @@ const ALLOWED_ORIGINS = new Set([
   'http://127.0.0.1:8643',
 ]);
 
-// Batas laju: 20 permintaan/menit per IP, 300/menit global.
-// In-memory per instance — cukup menahan brute-force otomatis;
-// batas global membatasi total lintas IP.
+// Batas laju lokal per instance: 20 permintaan/menit per IP dan
+// 300/menit agregat pada instance ini. BUKAN batas global lintas instance;
+// untuk jaminan terdistribusi, endpoint ini perlu RPC rate-limit persisten.
 const PER_IP_LIMIT = 20;
 const GLOBAL_LIMIT = 300;
 const WINDOW_MS = 60_000;
@@ -45,6 +45,36 @@ function prune(arr: number[], now: number): number[] {
   const cut = now - WINDOW_MS;
   while (arr.length && arr[0] <= cut) arr.shift();
   return arr;
+}
+
+async function readJsonLimited(req: Request, maxBytes = 8 * 1024): Promise<unknown> {
+  const declared = Number(req.headers.get('content-length') ?? 0);
+  if (Number.isFinite(declared) && declared > maxBytes) throw new Error('payload_too_large');
+  if (!req.body) throw new Error('empty_body');
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error('payload_too_large');
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
 }
 
 function tooFast(ip: string, now: number): boolean {
@@ -103,11 +133,12 @@ export default {
     // Validasi input sebelum menyentuh database.
     let nia = '';
     try {
-      const body = await req.json();
+      const body = await readJsonLimited(req) as Record<string, unknown>;
       nia = String(body?.p_nia ?? '').trim().toUpperCase().slice(0, 40);
-    } catch (_e) {
-      return new Response(JSON.stringify({ error: 'bad_request' }), {
-        status: 400,
+    } catch (e) {
+      const oversized = e instanceof Error && e.message === 'payload_too_large';
+      return new Response(JSON.stringify({ error: oversized ? 'payload_too_large' : 'bad_request' }), {
+        status: oversized ? 413 : 400,
         headers: cors(origin, { 'Content-Type': 'application/json' }),
       });
     }
