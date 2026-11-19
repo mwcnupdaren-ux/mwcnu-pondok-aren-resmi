@@ -74,7 +74,9 @@ var SETS = {
  kontak: { l: 'Kontak & Alamat', F: [T('alamat','Alamat sekretariat',{t:'area'}), T('wa','Nomor WhatsApp (format 62…)',{h:'Contoh: 6285161033689. Dipakai pada semua tautan WhatsApp situs.'}), T('wa_tampil','Nomor WhatsApp (tampilan)',{h:'Contoh: 0851-6103-3689'}), T('email','Email')] },
  medsos: { l: 'Media Sosial', F: [T('facebook','Facebook',{t:'url'}), T('instagram','Instagram',{t:'url'}), T('tiktok','TikTok',{t:'url'}), T('youtube','YouTube',{t:'url'})] },
  sambutan: { l: 'Sambutan Ketua', F: [T('salam1','Salam pembuka 1'), T('salam2','Salam pembuka 2'), T('kutipan','Kutipan utama',{t:'area'}), T('isi','Isi sambutan',{t:'rich',h:'Kata/kalimat yang diapit **dua bintang** akan ditandai (stabilo).'}), T('penutup','Salam penutup',{t:'area'}), T('nama','Nama pada foto'), T('jabatan','Jabatan pada foto'), T('foto','Foto ketua',{t:'image',f:'sambutan'})] },
- hero: { l: 'Hero Beranda', F: [T('baris1','Judul baris 1'), T('baris2','Judul baris 2'), T('keterangan','Teks pengantar (di bawah judul)',{t:'area'}), T('potret','Cover potret (desktop & mobile)',{t:'image',f:'hero',h:'Unggah 1 foto potret (rasio 3:4, mis. 1200×1600 px). Foto ini dipakai sebagai cover hero: di desktop di-crop lebar, di mobile (≤900px) di-crop potret penuh layar pada posisi 32% 30%. Jika kosong, dipakai foto pertama pada Cover/slideshow di bawah.'}), T('slides','Cover / slideshow (1–4 foto)',{t:'images',f:'hero',max:4,h:'1 foto = cover tetap. 2–4 foto = slideshow berputar. Urutan foto = urutan tampil. Dipakai hanya jika Cover potret di atas kosong.'})] },
+ hero: { l: 'Hero Beranda', F: [T('baris1','Judul baris 1'), T('baris2','Judul baris 2'), T('keterangan','Teks pengantar (di bawah judul)',{t:'area'}),
+  T('cover_desktop','Cover hero DESKTOP (lanskap)',{t:'image',f:'hero/desktop',max:1920,h:'Gunakan gambar horizontal/landscape. Rekomendasi rasio 16:9, contoh 1920×1080. Ditampilkan pada layar desktop ≥901px.'}),
+  T('cover_mobile','Cover hero MOBILE (potret)',{t:'image',f:'hero/mobile',max:1600,h:'Gunakan gambar vertikal/portrait. Rekomendasi rasio 9:16, contoh 1080×1920. Ditampilkan pada layar ≤900px.'})]},
  kartu: { l: 'Kartu Anggota', F: [T('pejabat','Penandatangan kartu',{t:'repeat',fixed:2,sub:[T('j','Jabatan'),T('n','Nama dan gelar'),T('ttd','Tanda tangan',{t:'image',f:'ttd',png:1,max:700})],h:'Dua penandatangan: Rois Syuriyah dan Ketua Tanfidziyah. Unggah tanda tangan PNG berlatar transparan (JPG latar putih juga bisa).'})] },
  pay: { l: 'Rekening & QRIS', F: [T('banks','Rekening',{t:'repeat',sub:[T('bank','Bank'),T('norek','Nomor rekening'),T('an','Atas nama')]}), T('qris','Gambar QRIS',{t:'image',f:'qris',png:1,max:1000})] },
  identitas: { l: 'Identitas Organisasi', F: [T('sk1','Keterangan SK (baris 1)',{h:'Tampil pada halaman Struktur Pengurus.'}), T('sk2','Keterangan SK (baris 2)'), T('sk3','Keterangan SK (baris 3)'), T('slogan','Slogan (footer)'), T('org_judul','Judul pengantar beranda'), T('org_deskripsi','Deskripsi pengantar beranda',{t:'area'})] },
@@ -288,7 +290,7 @@ function validate(rootEl, F, data) {
     else if (f.k === 'youtube' && v && !/^[\w-]{11}$/.test(v)) m = 'Tautan/ID YouTube tidak dikenali.';
     else if (f.t === 'url' && v && !/^https?:\/\//.test(v)) m = 'Harus diawali http:// atau https://';
     else if (f.k === 'wa' && v && !/^62\d{8,13}$/.test(v)) m = 'Format 62 diikuti angka, tanpa spasi atau tanda hubung.';
-    else if (f.k === 'slides' && v && (v.length < 1 || v.length > 4)) m = 'Isi 1 sampai 4 foto.';
+
     else if (f.t === 'repeat') { $$('.rrow', w).forEach(function (row, i) { if (!validate(row, f.sub, v[i])) m = m || 'Lengkapi isian yang ditandai.'; }); }
     w.classList.toggle('err', !!m); var em = $('.em', w); if (em) em.textContent = m; if (m) ok = false;
   });
