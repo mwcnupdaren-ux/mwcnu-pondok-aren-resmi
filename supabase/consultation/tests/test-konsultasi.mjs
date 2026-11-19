@@ -226,38 +226,49 @@ await expectErr("T12b published=true sebelum slug & persetujuan penuh ditolak",
 // ====== T12d-k: kewenangan ketiga persetujuan (audit F) — boolean true saja
 // bukan bukti otorisasi; identitas & konsistensi kontak divalidasi trigger.
 await expectErr("T12d persetujuan pemohon tanpa persetujuan di kontak ditolak",
-  `update public.consultation_publications set persetujuan_pemohon = true, persetujuan_pemohon_at = now() where ticket_id='${tid}'`,
+  `update public.consultation_publications set persetujuan_pemohon = true, persetujuan_pemohon_at = now(),
+     persetujuan_pemohon_revision = content_revision where ticket_id='${tid}'`,
   "belum tercatat pada data kontak");
 await db.exec(`update public.consultation_requester_contacts set persetujuan_publikasi = true, persetujuan_publikasi_at = now() where ticket_id='${tid}'`);
 ok("T12e persetujuan kontak pemohon tercatat", true);
 await expectErr("T12f persetujuan reviewer oleh konsultan ditolak",
   `update public.consultation_publications set disetujui_reviewer = true,
-     disetujui_reviewer_oleh = 'konsul1@mwcnupondokaren.or.id', disetujui_reviewer_at = now() where ticket_id='${tid}'`,
+     disetujui_reviewer_oleh = 'konsul1@mwcnupondokaren.or.id', disetujui_reviewer_at = now(),
+     disetujui_reviewer_revision = content_revision where ticket_id='${tid}'`,
   "role reviewer yang aktif");
 await expectErr("T12g persetujuan reviewer oleh email asing ditolak",
   `update public.consultation_publications set disetujui_reviewer = true,
-     disetujui_reviewer_oleh = 'orangasing@x.or.id', disetujui_reviewer_at = now() where ticket_id='${tid}'`,
+     disetujui_reviewer_oleh = 'orangasing@x.or.id', disetujui_reviewer_at = now(),
+     disetujui_reviewer_revision = content_revision where ticket_id='${tid}'`,
   "role reviewer yang aktif");
 await expectErr("T12h persetujuan admin oleh reviewer ditolak",
   `update public.consultation_publications set disetujui_admin = true,
-     disetujui_admin_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_admin_at = now() where ticket_id='${tid}'`,
+     disetujui_admin_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_admin_at = now(),
+     disetujui_admin_revision = content_revision where ticket_id='${tid}'`,
   "role admin_konsultasi yang aktif");
 await expectErr("T12i persetujuan admin oleh email asing ditolak",
   `update public.consultation_publications set disetujui_admin = true,
-     disetujui_admin_oleh = 'orangasing@x.or.id', disetujui_admin_at = now() where ticket_id='${tid}'`,
+     disetujui_admin_oleh = 'orangasing@x.or.id', disetujui_admin_at = now(),
+     disetujui_admin_revision = content_revision where ticket_id='${tid}'`,
   "role admin_konsultasi yang aktif");
 await expectErr("T12j persetujuan reviewer tanpa waktu ditolak",
   `update public.consultation_publications set disetujui_reviewer = true,
-     disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id' where ticket_id='${tid}'`,
+     disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id',
+     disetujui_reviewer_revision = content_revision where ticket_id='${tid}'`,
   "identitas dan waktu");
 await expectErr("T12k persetujuan false dengan identitas terisi ditolak (harus bersih)",
   `update public.consultation_publications set disetujui_admin_oleh = 'adm@mwcnupondokaren.or.id' where ticket_id='${tid}'`,
   "bernilai false tetapi identitas/waktu terisi");
 
+// Terbit: ketiga persetujuan terikat content_revision (SQL006) — guard revision
+// berjalan sebelum publication_check, sehingga binding wajib disertakan.
 await db.exec(`update public.consultation_publications set
   persetujuan_pemohon = true, persetujuan_pemohon_at = now(),
+  persetujuan_pemohon_revision = content_revision,
   disetujui_reviewer = true, disetujui_reviewer_oleh = 'rev1@mwcnupondokaren.or.id', disetujui_reviewer_at = now(),
+  disetujui_reviewer_revision = content_revision,
   disetujui_admin = true, disetujui_admin_oleh = 'adm@mwcnupondokaren.or.id', disetujui_admin_at = now(),
+  disetujui_admin_revision = content_revision,
   slug = 'niat-puasa-dhuha-digabung-senin', published = true where ticket_id='${tid}'`);
 const pub = (await q("select published_at is not null p from public.consultation_publications where ticket_id='" + tid + "'"))[0].p;
 ok("T12c terbit + published_at terisi otomatis", pub);
@@ -448,9 +459,17 @@ await db.exec("update public.consultation_staff_roles set aktif = false where em
 const mJawabNonaktif = (await q(`insert into public.consultation_messages
   (ticket_id, pengirim_jenis, pengirim_email, jenis_pesan, isi)
   values ('${tid}','konsultan','konsul1@mwcnupondokaren.or.id','jawaban_konsultan','Jawaban uji reviewer nonaktif') returning id`))[0].id;
+// SQL006 mengecek status tiket sebelum cek role pada penjaga review: naikkan
+// tiket ke 'menunggu_review' melalui transisi valid (selesai -> ditugaskan ->
+// menunggu_review) agar asersi mencapai penjaga role yang menjadi target uji.
+await db.exec(`update public.consultation_tickets set status='ditugaskan' where id='${tid}'`);
+await db.exec(`update public.consultation_tickets set status='menunggu_review' where id='${tid}'`);
 await expectErr("T21b reviewer nonaktif tidak dapat melakukan review baru",
   `insert into public.consultation_reviews (ticket_id, message_id, reviewer_email, keputusan)
    values ('${tid}','${mJawabNonaktif}','rev1@mwcnupondokaren.or.id','disetujui')`, "ber-role reviewer dan aktif");
+// pulihkan status tiket ke kondisi semula (menunggu_review -> terjawab -> selesai).
+await db.exec(`update public.consultation_tickets set status='terjawab' where id='${tid}'`);
+await db.exec(`update public.consultation_tickets set status='selesai' where id='${tid}'`);
 await db.exec("update public.consultation_staff_roles set aktif = true where email = 'rev1@mwcnupondokaren.or.id'");
 ok("T21c status staf dipulihkan setelah uji nonaktif", true);
 
@@ -693,9 +712,16 @@ await expectErr("T30n konsultan tidak dapat melakukan review",
 await expectErr("T30n-1 admin tidak dapat melewati review melalui RPC status umum",
   `select public.consultation_svc_status('${tA}','terjawab','bypass review','adm@mwcnupondokaren.or.id')`,
   "Transisi dari menunggu_review hanya boleh melalui keputusan reviewer");
+// Naikkan tiket ke 'terjawab' melalui transisi valid agar alur mencapai penjaga
+// persetujuan jawaban terbaru SQL006 (pada 'menunggu_review', cek status lebih
+// dulu menolak sebelum penjaga ini sempat dievaluasi).
+await db.exec(`update public.consultation_tickets set status='terjawab' where id='${tA}'`);
 await expectErr("T30n-2 jawaban final tidak dapat terlihat sebelum review disetujui",
   `select public.consultation_svc_pesan_staf('${tA}','jawaban_final','Final prematur',true,'adm@mwcnupondokaren.or.id')`,
   "Jawaban final menunggu persetujuan");
+// kembalikan ke antrean review (terjawab -> ditugaskan -> menunggu_review).
+await db.exec(`update public.consultation_tickets set status='ditugaskan' where id='${tA}'`);
+await db.exec(`update public.consultation_tickets set status='menunggu_review' where id='${tA}'`);
 await q(`select public.consultation_svc_review('${tA}','${msgId}','disetujui',null,'rev1@mwcnupondokaren.or.id')`);
 const st4 = (await q(`select status from public.consultation_tickets where id='${tA}'`))[0].status;
 const revA = (await q(`select reviewer_email, keputusan from public.consultation_reviews where ticket_id='${tA}'`))[0];
@@ -704,9 +730,15 @@ ok("T30o review disetujui -> terjawab + identitas reviewer",
 const aksesSesudahReview = (await q(`select public.consultation_svc_akses_tiket('${buatA.nomor_tiket}','${hashA}') as r`))[0].r;
 ok("T30o-1 jawaban tampil setelah reviewer menyetujui",
   aksesSesudahReview.pesan.some(m => m.id === msgId));
+// Kembalikan tiket ke antrean review (terjawab -> ditugaskan -> menunggu_review)
+// agar RPC review mencapai penjaga duplikasi — SQL006 mengecek status lebih dulu.
+await db.exec(`update public.consultation_tickets set status='ditugaskan' where id='${tA}'`);
+await db.exec(`update public.consultation_tickets set status='menunggu_review' where id='${tA}'`);
 await expectErr("T30o-1b satu jawaban tidak dapat direview dua kali",
   `select public.consultation_svc_review('${tA}','${msgId}','minta_revisi','uji duplikasi','rev1@mwcnupondokaren.or.id')`,
   "sudah pernah direview");
+// pulihkan status 'terjawab' untuk melanjutkan alur jawaban berikutnya.
+await db.exec(`update public.consultation_tickets set status='terjawab' where id='${tA}'`);
 // Jawaban baru menggantikan jawaban lama sebagai jawaban yang dapat dilihat.
 await q(`select public.consultation_svc_status('${tA}','ditugaskan','jawaban lanjutan','adm@mwcnupondokaren.or.id')`);
 await q(`select public.consultation_svc_jawab('${tA}','Jawaban konsultan terbaru untuk tiket A.','konsul1@mwcnupondokaren.or.id')`);
