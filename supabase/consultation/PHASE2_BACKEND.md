@@ -1,8 +1,10 @@
 # Phase 2 — Backend Services (Supabase Edge Functions)
 
-**Status:** diimplementasikan **lokal**. BELUM di-deploy, BELUM di-push, dan
-**tidak ada migrasi produksi** yang dijalankan. Dokumen ini adalah kontrak
-teknis untuk audit sebelum deploy.
+**Status:** diimplementasikan **lokal** dan sudah di-commit serta di-push ke
+branch `main`. **BELUM di-deploy**, dan **tidak ada migrasi produksi** yang
+dijalankan. Perbaikan test runner dan script `test:shared` sudah di-commit
+(`0437ac5`); perubahan lain masih berada di working tree lokal dan belum
+di-commit. Dokumen ini adalah kontrak teknis untuk audit sebelum deploy.
 
 - Database: `supabase/consultation/consultation_004_services.sql` (RPC layanan)
 - HTTP: `supabase/functions/consultation-*/index.ts` (9 Edge Function)

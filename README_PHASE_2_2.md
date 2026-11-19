@@ -2,7 +2,9 @@
 
 ## Status
 
-Migrasi `consultation_006_security_hardening.sql` adalah patch lokal untuk diaudit. Belum dijalankan pada database lokal/produksi, belum di-commit, belum di-push, dan belum di-deploy.
+Migrasi `consultation_006_security_hardening.sql` sudah di-commit (`9237893`) dan di-push ke branch `main`. Migrasi ini belum dijalankan pada database lokal/produksi dan belum di-deploy.
+
+Perbaikan test runner pada `supabase/consultation/tests/test-konsultasi.mjs` dan script `test:shared` pada `supabase/consultation/tests/package.json` sudah di-commit (`0437ac5`).
 
 ## Prasyarat
 
