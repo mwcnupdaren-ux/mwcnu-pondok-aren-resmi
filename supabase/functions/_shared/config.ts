@@ -16,8 +16,13 @@ const DEFAULT_ORIGINS = [
   'https://mwcnupondokaren.or.id',
   'https://www.mwcnupondokaren.or.id',
   'https://mwcnu-pondok-aren-resmi.vercel.app',
-  'http://localhost:8643',
-  'http://127.0.0.1:8643',
+  // Hanya origin produksi yang tercantum di sini. Origin localhost/127.0.0.1
+  // tidak diizinkan secara default di produksi dan tidak memakai '*'.
+  // Origin TAMBAHAN dapat dimasukkan lewat CONSULTATION_ALLOWED_ORIGINS, tetapi
+  // variabel itu TIDAK menghapus origin bawaan di daftar ini — daftar ini
+  // adalah batas bawah, bukan batas atas. Untuk mempersempit allowlist,
+  // kurangi daftar di source ini. (verify-nia memakai daftar terpisah dan
+  // tidak membaca variabel tersebut.)
 ];
 
 export function loadConfig(env: Record<string, string | undefined>): Config {

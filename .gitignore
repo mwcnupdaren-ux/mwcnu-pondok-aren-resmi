@@ -29,3 +29,6 @@ dev.log
 _qa-*
 _qa-*.png
 .audit/
+
+# Supabase CLI temp (dibuat oleh `supabase link`)
+supabase/.temp/

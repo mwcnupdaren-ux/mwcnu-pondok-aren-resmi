@@ -1,5 +1,16 @@
 # GIT REVIEW DEPLOYMENT — Pemilahan File Sebelum Commit
 
+> **STATUS HISTORIS (ditambahkan GIT-5I).** Dokumen ini mencatat pemeriksaan
+> pada **17 November 2026** dengan `HEAD = 9237893`. Riwayat pemeriksaan lama
+> **tidak diubah**. Status file, status `deno.lock`, dan jumlah modified/untracked
+> di bawah **harus merujuk ke kondisi Git terbaru** (`git status`) sebelum
+> dipakai untuk keputusan apa pun — sebagian status tersebut sudah berubah.
+> Dokumen ini **bukan** status kesiapan deployment terkini. Rujuk laporan
+> **GIT-5H** (audit baseline backend), laporan **GIT-5I** (rekonsiliasi
+> dokumentasi), dan `supabase/consultation/PHASE2_BACKEND.md` versi terbaru.
+
+
+
 **Tanggal**: 2026-11-17 · **Branch**: `main` · **HEAD**: `9237893` (chore: finalize consultation deployment preparation)
 **Status laporan**: selesai — menunggu persetujuan sebelum perubahan Git apa pun.
 **Larangan dihormati**: tidak ada `git add/commit/push/restore/reset`, tidak ada file yang diubah/dihapus/dipindahkan, tidak ada deployment/migrasi.

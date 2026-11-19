@@ -23,8 +23,9 @@ const ALLOWED_ORIGINS = new Set([
   'https://mwcnupondokaren.or.id',
   'https://www.mwcnupondokaren.or.id',
   'https://mwcnu-pondok-aren-resmi.vercel.app',
-  'http://localhost:8643',
-  'http://127.0.0.1:8643',
+  // Hanya origin produksi; samakan dengan DEFAULT_ORIGINS di
+  // _shared/config.ts. Function ini memakai daftar tetap dan TIDAK membaca
+  // CONSULTATION_ALLOWED_ORIGINS; origin tambahan tidak berlaku di sini.
 ]);
 
 // Batas laju lokal per instance: 20 permintaan/menit per IP dan

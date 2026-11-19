@@ -40,7 +40,7 @@ di-commit. Dokumen ini adalah kontrak teknis untuk audit sebelum deploy.
 supabase/
 ├─ functions/
 │  ├─ package.json                     # penanda ESM untuk uji Node (bukan runtime)
-│  ├─ verify-nia/index.ts              # fungsi existing (tidak diubah)
+│  ├─ verify-nia/index.ts              # fungsi existing di luar modul konsultasi
 │  ├─ _shared/
 │  │  ├─ config.ts                     # env + allowlist origin
 │  │  ├─ bootstrap.ts                  # muat config / balas 500 aman
@@ -64,15 +64,33 @@ supabase/
 │  ├─ consultation-publication/index.ts
 │  └─ consultation-attachment/index.ts
 └─ consultation/
-   ├─ consultation_001_foundation.sql
-   ├─ consultation_002_tables.sql
-   ├─ consultation_003_security.sql
-   ├─ consultation_004_services.sql    # FASE 2
-   ├─ consultation_rollback.sql
+   ├─ consultation_001_foundation.sql         # FASE 1 — mesin status
+   ├─ consultation_002_tables.sql             # FASE 1 — 16 tabel
+   ├─ consultation_003_security.sql           # FASE 1 — RLS & ACL
+   ├─ consultation_004_services.sql           # FASE 2 — RPC consultation_svc_*
+   ├─ consultation_005_security_hardening.sql # FASE 2.1 — hardening lanjutan
+   ├─ consultation_006_security_hardening.sql # FASE 2.2 — guard revisi & lampiran
+   ├─ consultation_006_rollback.sql           # rollback parsial SQL006 → SQL005
+   ├─ consultation_rollback.sql               # rollback modul penuh (Phase 1 + 2)
+   ├─ MIGRATION_GUIDE.md                      # urutan SQL, verifikasi, rollback
+   ├─ CONSULTATION_ERD.md
+   ├─ DATABASE_DICTIONARY.md
+   ├─ DECISIONS_C1_C7.md
+   ├─ PHASE1_REVIEW_PACKAGE.md
+   ├─ PHASE2_BACKEND.md                       # dokumen ini
+   ├─ PHASE2_TEST_RESULTS.md
+   ├─ PGlite_TEST_RESULTS.md
    └─ tests/
-      ├─ test-konsultasi.mjs            # integrasi DB (PGlite)
-      └─ test-shared.mjs                # unit modul _shared (Node)
+      ├─ test-konsultasi.mjs                  # integrasi DB (PGlite)
+      ├─ test-shared.mjs                      # unit modul _shared (Node)
+      ├─ package.json                         # script `test` & `test:shared`
+      └─ package-lock.json
 ```
+
+Daftar di atas mengikuti nama file yang benar-benar ada di repository pada
+saat audit GIT-5H/5I. Urutan eksekusi migrasi tetap **001 → 002 → 003 → 004 →
+005 → 006** sebagaimana `MIGRATION_GUIDE.md` §1; `consultation_006_rollback.sql`
+hanya dipakai untuk kembali ke keadaan setelah SQL005.
 
 Tidak ada helper duplikat: CORS, error, validasi, secret, rate-limit, akses DB,
 autentikasi, dan audit masing-masing punya satu modul di `_shared/`.
@@ -376,11 +394,27 @@ Opsional:
 
 | Variabel | Default |
 |---|---|
-| `CONSULTATION_ALLOWED_ORIGINS` | daftar origin tambahan, dipisah koma |
+| `CONSULTATION_ALLOWED_ORIGINS` | daftar origin tambahan, dipisah koma — **hanya menambah**, tidak mempersempit |
 
-**Deploy (oleh user, bukan agen):** `supabase functions deploy consultation-*`
-dengan sakelar platform `verify_jwt` per fungsi SEBAGAI BERIKUT — ini
-satu-satunya instruksi `verify_jwt` yang berlaku:
+> **Catatan `supabase/config.toml`:** blok `[auth]` di berkas itu adalah
+> konfigurasi **lingkungan lokal** (`supabase start` / `functions serve`).
+> Nilainya **tidak** otomatis mengubah OAuth redirect URL project Supabase
+> produksi. Redirect URL Google/OAuth produksi tetap diatur di
+> **Supabase Dashboard → Authentication → URL Configuration** (dan Google
+> Cloud Console), lalu diverifikasi lewat uji login staf.
+
+**Deploy (oleh user, bukan agen):** jalankan `deploy-functions.ps1` di akar
+repo. Skrip itu men-deploy **sembilan Edge Function konsultasi** secara
+**per fungsi** dengan sakelar `verify_jwt` yang tepat, memakai Supabase CLI
+yang dipatok ke **`supabase@3.2.0`**, dan berhenti pada kegagalan pertama.
+`verify-nia` **tidak** termasuk dalam skrip tersebut (lihat §9.0.1).
+
+> **Jangan** memakai perintah generik `supabase functions deploy
+> consultation-*` tanpa sakelar. Perintah itu men-deploy semua fungsi
+> dengan `verify_jwt = true` (default platform), sehingga lima endpoint
+> pemohon akan menolak permintaan anonim dengan **401**.
+
+Tabel ini dan blok [functions.*] dalam supabase/config.toml harus konsisten. Flag CLI yang digunakan saat deployment menentukan konfigurasi yang diterapkan oleh perintah tersebut. Ketidaksesuaian di antara keduanya harus diselesaikan sebelum deployment.
 
 | Function | `verify_jwt` (platform) |
 |---|---|
@@ -396,8 +430,154 @@ sakelar platform TIDAK BOLEH aktif agar tidak menolak jalur pemohon lebih
 dulu. Perintah deploy:
 
 ```
-supabase functions deploy consultation-attachment --no-verify-jwt
+npx supabase@3.2.0 functions deploy consultation-attachment --no-verify-jwt
 ```
+
+#### 9.0.1 `verify-nia` — di luar modul konsultasi
+
+`verify-nia` adalah Edge Function **terpisah** (melayani `/v/<nia>`), bukan
+bagian dari modul konsultasi dan **tidak** termasuk dalam
+`deploy-functions.ps1`. Deployment-nya harus dilakukan **terpisah** dengan
+keputusan eksplisit dan pengujian NIA tersendiri (NIA valid, NIA tidak
+valid, dan CORS `/v/<nia>`). Bila suatu saat perlu dideploy, perintahnya
+memakai `--no-verify-jwt` karena pemanggilnya anonim, tetapi itu tidak
+boleh dianggap bagian otomatis dari rilis konsultasi.
+
+### 9.1 Rollback Edge Functions (manual, bukan otomatis)
+
+Supabase **tidak menyediakan rollback otomatis** untuk Edge Functions. CLI
+v3.2.0 hanya memiliki `functions list`, `download`, `deploy`, `delete`, `new`,
+dan `serve` — tidak ada perintah `rollback` maupun daftar versi. Management API
+juga menyediakan list/get/body/deploy/update/delete. Management API menyediakan informasi versi fungsi yang sedang aktif melalui field version, tetapi tidak menyediakan endpoint riwayat versi lama atau rollback langsung. Setiap `functions deploy` **menggantikan** kode yang
+sedang live, sehingga rollback = **deploy ulang source dari revisi Git yang
+diketahui baik**, bukan memutar balik deployment di platform.
+
+`DENO_DEPLOYMENT_ID` — format `{project_ref}_{function_id}_{version}` yang
+terlihat pada log hanyalah **pola observasi**, bukan kontrak resmi terdokumentasi.
+Identifier ini mencakup keseluruhan configuration set dan berubah bila
+komponennya berubah (misalnya build, environment variable, koneksi, atau
+database); tidak dijamin berubah pada deploy identik. Ia berguna sebagai
+petunjuk versi di log, tetapi **bukan** mekanisme rollback, tidak dapat dipakai
+untuk memilih versi lama, dan **bukan satu-satunya bukti** keberhasilan
+deployment.
+
+**Prasyarat — catat baseline sebelum setiap deploy produksi**
+
+| Yang dicatat | Contoh |
+|---|---|
+| Commit/tag source | `0c1a1ab` — baseline commit historis; tag `consultation-backend-v1` belum tersedia |
+| Waktu deploy | 2026-11-18 10:00 WIB |
+| Fungsi yang di-deploy | 9 `consultation-*` (skrip konsultasi); `verify-nia` dicatat terpisah bila diputuskan di-deploy |
+| `verify_jwt` per fungsi | sesuai tabel §9 |
+| Nama secret yang berubah | `CONSULTATION_SECRET_PEPPER` (nilai tidak dicatat) |
+
+Baseline deployment ditentukan setelah seluruh source backend dan konfigurasi
+terkait selesai di-commit serta diaudit, lalu SHA finalnya dicatat di sini —
+bukan dengan menebak SHA. `0c1a1ab` hanya baseline commit historis dan belum
+mewakili versi backend terkini; tag `consultation-backend-v1` juga belum
+tersedia. Tanpa tag/SHA yang tercatat, versi baik terakhir tidak dapat
+ditentukan secara pasti dan rollback tidak boleh ditebak.
+
+**Langkah rollback**
+
+1. **Tentukan versi baik terakhir.** Lihat riwayat yang menyentuh fungsi dan
+   tag yang tersedia:
+
+   ```
+   git log --oneline --decorate -- supabase/functions
+   git tag --list 'consultation-backend-*'
+   ```
+
+   Pilih tag/SHA dari deploy terakhir yang lulus smoke test (bukan sekadar
+   commit terakhir). Bila tidak ada tag, gunakan SHA yang dicatat saat deploy
+   pada tabel baseline. Jangan memilih berdasarkan dugaan.
+
+2. **Siapkan source dari revisi tersebut tanpa mengganggu working tree.**
+   Jangan `reset`, `rebase`, atau `checkout` branch kerja yang sedang dipakai:
+
+   ```
+   git worktree add ..\rollback-<sha> <sha>
+   git -C ..\rollback-<sha> rev-parse HEAD   # harus sama dengan <sha>
+   git -C ..\rollback-<sha> status --short   # harus kosong
+   ```
+
+   Deploy dijalankan dari worktree tersebut agar source yang dikirim persis
+   sama dengan revisi yang dipilih.
+
+3. **Ambil kode yang sedang live (opsional, untuk forensik).**
+   `npx supabase@3.2.0 functions download <nama> --remote=<ref>` menyimpan source
+   yang **sedang live** (versi bermasalah) agar bisa di-diff. Perintah ini
+   menulis ke checkout lokal — jalankan di worktree/klon sementara, bukan di
+   working tree utama. Perintah ini **tidak** mengambil versi sebelumnya.
+
+4. **Deploy hanya fungsi yang terdampak**, dengan flag `verify_jwt` yang sama
+   seperti tabel §9:
+
+   ```
+   # fungsi staf — verify_jwt AKTIF (default)
+   npx supabase@3.2.0 functions deploy consultation-review --remote=<ref>
+
+   # fungsi pemohon — verify_jwt NONAKTIF
+   npx supabase@3.2.0 functions deploy consultation-attachment --no-verify-jwt --remote=<ref>
+   ```
+
+   - Jangan `functions deploy` tanpa nama: perintah itu men-deploy **semua**
+     fungsi dari working tree, termasuk perubahan lain yang belum tentu baik.
+   - Jangan memakai `--prune`.
+   - Bila Docker tidak tersedia, `--use-api` dapat dipakai (bundling
+     server-side); perilakunya harus diuji di staging lebih dulu.
+
+5. **Secret tidak ikut ter-rollback.** Secret Edge Function bersifat
+   project-wide dan tidak memiliki riwayat versi. Rollback kode tidak
+   mengubahnya. Jangan mengganti `CONSULTATION_SECRET_PEPPER` saat rollback
+   (hash secret tiket lama akan tidak cocok). Bila secret memang berubah dan
+   harus dipulihkan, lakukan terpisah dengan `supabase secrets set` dan
+   persetujuan eksplisit.
+
+**Verifikasi setelah rollback**
+
+1. `npx supabase@3.2.0 functions list --remote=<ref>` — fungsi terdampak ada dan
+   waktu pembaruannya sesuai deploy rollback.
+2. Smoke test per fungsi:
+   - staf tanpa Bearer → `401`; akun non-staf → `403`; staf valid → `200`
+     `{ "ok": true }`;
+   - `consultation-public` anonim (mis. `{ "action": "categories" }`) → `200`;
+   - `OPTIONS` dengan origin allowlist → `204` + `Access-Control-Allow-Origin`
+     yang tepat; `GET` → `405`.
+3. Log fungsi: tidak ada `500`/`502` baru; `DENO_DEPLOYMENT_ID` dapat berubah
+   bila configuration set berubah — bukan satu-satunya bukti keberhasilan,
+   jadi periksa juga `functions list` dan smoke test di atas.
+4. Kontrak: aksi/field yang dipakai frontend masih ada; RPC yang dipanggil
+   benar-benar ada di database (mis.
+   `select to_regprocedure('public.consultation_svc_staf_daftar(text,text,integer,integer)')`).
+5. Alur kritis: buat tiket → akses dengan nomor+secret → kirim pesan; staf
+   `list`/`detail`.
+
+**Risiko kompatibilitas (frontend ↔ Edge Function ↔ database)**
+
+| Skenario | Gejala | Tindakan |
+|---|---|---|
+| Frontend lebih baru daripada function | aksi/field tidak dikenal, `400`/`500` | Rollback frontend lebih dulu, atau deploy function yang cocok; jangan biarkan UI baru memanggil API lama |
+| Function lebih baru daripada database | `500`/`502`, RPC/kolom belum ada | Deploy function lama tidak menolong; terapkan migrasi yang kurang atau deploy function yang cocok dengan DB |
+| Function lama dijalankan di database yang sudah di-hardening (mis. setelah SQL006) | guard review/publikasi dilewati — regresi keamanan | Jangan melewati batas hardening DB; re-apply SQL006 atau pertahankan function yang kompatibel |
+| `verify_jwt` salah | staf `401` massal, atau jalur anonim tertutup/terbuka | Deploy ulang dengan flag persis tabel §9 |
+| Pepper berubah | semua secret tiket lama invalid (`401`) | Pulihkan pepper lama; jangan rotasi saat rollback |
+| Allowlist CORS ikut source (`_shared/config.ts`) | origin baru hilang setelah rollback | Pastikan origin produksi ada di revisi yang di-deploy |
+| Rollback frontend | UI dan API tidak sepasang | Vercel: Instant Rollback ke deployment sebelumnya (project ini memakai Vercel); hosting lain: deploy artefak/commit sebelumnya. Frontend dan function harus dari pasangan commit yang kompatibel |
+
+**Rollback Edge Function ≠ rollback database**
+
+- Prosedur ini tidak menjalankan SQL, tidak mengubah tabel/kolom/RPC, dan
+  tidak menyentuh Storage.
+- Rollback function **tidak membatalkan SQL006**: kolom `*_revision`, trigger,
+  dan guard tetap ada. Function lama harus tetap kompatibel dengannya.
+- Rollback database hanya melalui `MIGRATION_GUIDE.md` §3a/§3b, dengan
+  persetujuan eksplisit, dan **tidak** mengembalikan kode function.
+- Urutan yang disarankan saat insiden: (1) rollback/hentikan frontend,
+  (2) rollback function terdampak, (3) rollback database hanya bila langkah
+  1–2 tidak cukup dan ada rencana re-apply. Verifikasi tiap langkah sebelum
+  lanjut.
+- Tidak ada rollback otomatis yang diasumsikan pada seluruh langkah di atas.
 
 ---
 

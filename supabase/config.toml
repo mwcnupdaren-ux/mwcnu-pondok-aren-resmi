@@ -1,0 +1,91 @@
+# ============================================================
+# Konfigurasi Supabase CLI — MWCNU Pondok Aren
+#
+# Dipakai oleh: npx supabase link / functions deploy / functions serve
+# Project ref produksi: wvfcifqolohfipvepxss
+#
+# Catatan penting soal `verify_jwt`:
+#   • true  → platform menolak permintaan tanpa JWT yang valid SEBELUM kode
+#             function jalan. Cocok untuk fungsi staf (butuh login pengurus).
+#   • false → function menerima pemanggil anonim. Proteksinya ada di dalam
+#             kode: rate-limit per IP, validasi input, CORS allowlist, dan
+#             (untuk tiket) kredensial nomor + kode akses per permintaan.
+#
+#   consultation-admin / -consultant / -review / -publication memakai
+#   authenticateStaff() sehingga tetap `true` — lapisan ekstra, bukan
+#   pengganti pemeriksaan peran di dalam function.
+# ============================================================
+
+project_id = "mwcnu-pondok-aren-resmi"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+# CATATAN: blok [auth] di bawah adalah konfigurasi LINGKUNGAN LOKAL
+# (`supabase start` / `functions serve`). Nilainya TIDAK otomatis mengubah
+# OAuth redirect URL project Supabase produksi. Redirect URL produksi tetap
+# diatur di Supabase Dashboard -> Authentication -> URL Configuration
+# (dan Google Cloud Console), lalu diverifikasi lewat uji login staf.
+[auth]
+enabled = true
+site_url = "https://mwcnupondokaren.or.id"
+additional_redirect_urls = [
+  "https://www.mwcnupondokaren.or.id",
+  "https://mwcnu-pondok-aren-resmi.vercel.app",
+  "http://localhost:8643",
+  "http://127.0.0.1:8643",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:8000",
+  "http://127.0.0.1:8000",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]
+jwt_expiry = 3600
+enable_signup = false
+
+# ── Edge Functions ───────────────────────────────────────────
+# Fungsi publik / pemohon anonim
+[functions.consultation-public]
+verify_jwt = false
+
+[functions.consultation-ticket-create]
+verify_jwt = false
+
+[functions.consultation-ticket-access]
+verify_jwt = false
+
+[functions.consultation-ticket-message]
+verify_jwt = false
+
+[functions.consultation-attachment]
+verify_jwt = false
+
+# Fungsi staf — wajib JWT
+[functions.consultation-admin]
+verify_jwt = true
+
+[functions.consultation-consultant]
+verify_jwt = true
+
+[functions.consultation-review]
+verify_jwt = true
+
+[functions.consultation-publication]
+verify_jwt = true

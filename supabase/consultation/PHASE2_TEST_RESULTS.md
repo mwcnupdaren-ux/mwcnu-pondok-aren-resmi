@@ -5,6 +5,20 @@
 - Seluruh angka di bawah berasal dari eksekusi nyata; perintahnya disertakan
   agar pemeriksa dapat mengulang.
 
+> **Catatan Rekonsiliasi (GIT-5I) — angka 121 / 154 adalah catatan historis.**
+> Laporan ini merekam eksekusi **Phase 2 awal** (Node v24.16.0, PGlite 0.3.16)
+> dengan cakupan migrasi **SQL001–SQL004** dan kelompok T01–T31. Angka di bawah
+> **tidak diubah** oleh GIT-5I.
+>
+> Angka yang lebih baru juga ditemukan, dengan cakupan berbeda dan bukan
+> pengganti otomatis: **125 asersi shared / 172 asersi integrasi** dicatat pada
+> `SUPABASE_DEPLOYMENT_AUDIT.md` (17 Nov 2026, shared 125/125) dan
+> `SUPABASE_FINAL_PRE_DEPLOYMENT_AUDIT.md` (18 Nov 2026, 125/172), setelah suite
+> diselaraskan dengan guard SQL006 (commit `0437ac5`). **72 pemeriksaan rollback**
+> hanya tercantum di laporan 18 Nov 2026 tanpa keluaran mentah tersimpan,
+> sehingga statusnya **belum direkonsiliasi sepenuhnya**. Lihat tabel sumber pada
+> laporan GIT-5I dan `GIT_REVIEW_DEPLOYMENT.md` untuk konteks Git masa itu.
+
 ## 1. Ringkasan
 
 | Suite | Cakupan | Asersi | Hasil | Exit |

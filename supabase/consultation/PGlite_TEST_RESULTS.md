@@ -4,6 +4,15 @@
 - Skrip: `tests/test-konsultasi.mjs` (dalam repo, dapat dijalankan pemeriksa).
 - Hasil akhir: **SEMUA TES LOLOS** (exit code 0) — **96 asersi, 0 gagal**.
 
+> **Catatan Rekonsiliasi (GIT-5I) — angka 96 adalah catatan historis.**
+> Angka 96 berasal dari eksekusi **Phase 1** dengan cakupan **SQL001–SQL003**
+> dan kelompok **T01–T26** (sesudah revisi audit lanjutan; sebelumnya 50 asersi
+> T01–T16 pada commit `2c35fe6`). Jadi 96 **bukan** jumlah asersi suite saat ini
+> dan tidak dibandingkan langsung dengan 121/154 (Phase 2, SQL001–004) maupun
+> 125/172 (setelah penyesuaian guard SQL006). Angka lama **sengaja dipertahankan**
+> sebagai bukti historis; tidak ada penggantian angka tanpa bukti yang dapat
+> diverifikasi. Rincian sumber dan status validitas ada pada laporan GIT-5I.
+
 ## Riwayat Pengujian
 
 | Tahap | Kelompok | Asersi | Hasil |
