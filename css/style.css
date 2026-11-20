@@ -4560,7 +4560,79 @@ footer h3{font-family:var(--fh)!important;letter-spacing:-.01em!important}
 #berita .search:focus{outline:2px solid var(--acc-line)!important;border-color:var(--acc-line)!important;background:var(--surf)!important}
 
 /* Grid arsip: sorotan + kartu */
-#newsGrid.narch{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))!important;gap:20px!important}
+/* --- 1. Daftar berita desktop: 2 kolom horizontal --- */
+@media(min-width:1024px){
+  #newsGrid.narch{display:grid!important;grid-template-columns:2fr 1fr!important;gap:28px!important}
+}
+/* Fallback modern desktop */
+@media(min-width:768px) and (max-width:1023px){
+  #newsGrid.narch{display:grid!important;grid-template-columns:2fr 1fr!important;gap:20px!important}
+}
+/* --- 2. Kartu berita horizontal: thumbnail kiri, info kanan --- */
+@media(min-width:768px){
+  #newsGrid.narch .item{
+    border:none!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;cursor:pointer;
+    display:grid!important;grid-template-columns:160px 1fr!important;gap:16px!important;width:100%!important
+  }
+  #newsGrid.narch .item .th{
+    height:220px!important;min-height:220px!important;flex-shrink:0!important
+  }
+  #newsGrid.narch .item .th img{width:100%;height:100%;object-fit:cover!important}
+  #newsGrid.narch .item .b{
+    padding:16px!important;margin:auto!important
+  }
+  #newsGrid.narch .item h3{
+    font:700 clamp(1rem,2vw,1.25rem)/1.2 var(--fh)!important;letter-spacing:-.02em!important;color:var(--ink)!important;margin:8px 0 4px!important;line-height:1.3!important;display:-webkit-box!webkit-box-orient:vertical!-webkit-line-clamp:2!important;-webkit-line-clamp:2!important;max-height:3.6rem!important
+  }
+  #newsGrid.narch .item p{
+    color:var(--mut)!important;font-size:.85rem!important;line-height:1.4!important;margin:0!important;display:-webkit-box!webkit-box-orient:vertical!-webkit-line-clamp:3!important;-webkit-line-clamp:3!important;max-height:4.2rem!important
+  }
+  #newsGrid.narch .item .more{
+    color:var(--acc-deep)!important;font:600 .86rem var(--fz)!important;margin-top:8px!important
+  }
+}
+/* --- 3. Sidebar Berita Populer desktop --- */
+@media(min-width:768px){
+  #nside{
+    order:2!important;margin-top:0!important;padding:24px 20px!important;border-left:1px solid var(--line)!important;background:var(--surf)!important;height:auto!important
+  }
+  #nside .sec-kicker{
+    color:var(--mut)!important;font:.75rem/1.2 var(--fz)!important;text-transform:uppercase!important;letter-spacing:.1em!important;margin-bottom:8px!important
+  }
+  #nside h2{
+    font:700 .9rem/1.1 var(--fh)!important;color:var(--ink)!important;margin-bottom:12px!important
+  }
+  #nside .nsitem{
+    display:flex!important;align-items:center!important;gap:10px!important;margin-bottom:12px!important;padding-bottom:12px!important;border-bottom:1px solid var(--line)!important
+  }
+  #nside .nsitem:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none!important}
+  #nside .ns-th{
+    width:48px!important;height:48px!important;flex-shrink:0!important;border-radius:8px!important;object-fit:cover!important;background:var(--acc-soft)!important
+  }
+  #nside .ns-name{
+    font:500 .75rem/1.2 var(--fz)!important;color:var(--ink)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;width:100%!important
+  }
+  #nside .ns-date{
+    color:var(--mut)!important;font:.65rem/1.1 var(--fz)!important
+  }
+}
+/* --- 4. Mobile: revert to single column --- */
+@media(max-width:700px){
+  #newsGrid.narch{display:block!important}
+  #newsGrid.narch .item{grid-template-columns:1fr!important;display:block!important}
+  #newsGrid.narch .item .th{height:188px!important;min-height:188px!important}
+  #newsGrid.narch .item .th img{width:100%;height:100%;object-fit:cover!important}
+  #newsGrid.narch .item .b{padding:20px 22px!important;flex-direction:column!important;align-items:flex-start!important}
+  #newsGrid.narch .item h3{font-size:1.12rem!important;line-height:1.3!important;margin:8px 0 4px!important}
+  #newsGrid.narch .item p{font-size:.9rem!important;line-height:1.55!important;margin:0!important}
+  #newsGrid.narch .item .more{margin-top:18px!important}
+  #nside{order:1!important;padding:12px!important;margin-top:12px!important;border-left:none!important;border-top:1px solid var(--line)!important}
+  #nside .sec-kicker,#nside h2{display:none!important}
+  #nside .nsitem{display:block!important;gap:4px!important;margin-bottom:8px!important;padding-bottom:8px!important;border-bottom:1px solid var(--line)!important}
+  #nside .ns-th{display:none!important}
+  #nside .ns-name{font:.8rem/1.2 var(--fz)!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  #nside .ns-date{display:none!important}
+}
 #newsGrid.narch .feat{grid-column:1/-1!important;display:grid!important;grid-template-columns:1.08fr 1fr!important;gap:0!important;
   border:1px solid var(--line)!important;border-radius:var(--r-lg)!important;background:var(--surf)!important;overflow:hidden!important;
   box-shadow:0 1px 2px rgba(0,0,0,.04)!important;cursor:pointer;
