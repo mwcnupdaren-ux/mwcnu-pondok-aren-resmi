@@ -29,7 +29,7 @@
 <meta name="twitter:description" content="Pengurus, agenda, kabar, galeri, dan layanan MWCNU Kecamatan Pondok Aren, Kota Tangerang Selatan.">
 <meta name="twitter:image" content="https://www.mwcnupondokaren.or.id/assets/img/og-cover.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=71">
+<link rel="stylesheet" href="/css/style.css?v=73">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -112,6 +112,7 @@
      Pil & tag dekoratif dihapus (CSS terkait tetap aman, tanpa elemen). -->
 <div class="sm-body"><p data-cms="sambutan.isi" data-cms-md>Kehadiran media digital ini merupakan bagian dari ikhtiar kita bersama untuk membangun sarana <mark>komunikasi, informasi, dan konsolidasi dakwah</mark> Islam Ahlussunnah wal Jama'ah (Aswaja) An-Nahdliyah di wilayah Kecamatan Pondok Aren.</p></div>
 <p class="sm-end" data-cms="sambutan.penutup">Wallahul Muwaffiq Ila Aqwamitthoriq, Wassalamau'alaikum Warahmatullahi Wabarakatuh.</p>
+<a class="sm-link" href="#struktur">Lihat susunan pengurus <span aria-hidden="true">&rarr;</span></a>
 </div>
 </div></section>
 <section id="layanan-home" class="ho"><div class="wrap">
@@ -128,6 +129,7 @@
 </div></section>
 <section id="kas-home" class="ho" aria-labelledby="kas-title" hidden><div class="wrap"><div class="kas-panel">
 <div class="kas-heading"><span class="sec-kicker">Transparansi Jam'iyyah</span><h2 id="kas-title">Laporan Kas MWCNU</h2><p id="kas-periode" class="kas-period"></p></div>
+<p id="kas-empty" class="kas-empty" hidden>Laporan kas sedang disiapkan.</p>
 <dl class="kas-totals"><div id="kas-pemasukan-row" hidden><dt>Total pemasukan</dt><dd id="kas-pemasukan"></dd></div><div id="kas-pengeluaran-row" hidden><dt>Total pengeluaran</dt><dd id="kas-pengeluaran"></dd></div><div id="kas-saldo-row" class="kas-saldo" hidden><dt>Saldo akhir</dt><dd id="kas-saldo"></dd></div></dl>
 <p id="kas-keterangan" class="kas-note" hidden></p>
 </div></div></section>
@@ -193,8 +195,8 @@
 </div></section>
 
 <section id="berita" class="alt vw" hidden><div class="wrap">
-<div class="pg-head"><span class="sec-kicker">Kabar &amp; Warta</span><h1>Berita &amp; Kegiatan</h1><p class="lead">Berita, laporan kegiatan, dan tulisan literasi dari MWCNU Pondok Aren.</p></div>
-<div class="toolbar"><div class="tabs" id="ntabs" role="tablist"></div><input class="search" id="nq" type="search" placeholder="Cari berita" aria-label="Cari berita" style="margin:0;max-width:280px"></div>
+<h1 class="sr-only">Berita MWCNU Pondok Aren</h1>
+<div class="toolbar"><input class="search" id="nq" type="search" placeholder="Cari berita" aria-label="Cari berita"><div class="tabs" id="ntabs" role="tablist" aria-label="Kategori berita"></div></div>
 <div class="news-picks" id="newsPicks" aria-label="Berita pilihan"></div>
 <div class="arch"><div class="news" id="newsGrid"></div><aside class="nside" id="nside" aria-label="Berita populer"></aside></div>
 <button type="button" class="news-more" id="newsMore" aria-controls="newsGrid" aria-expanded="false" hidden>Lihat Semua Berita</button>
@@ -558,7 +560,7 @@
 <script src="/js/vendor/qrcode.js?v=20"></script>
 <script src="/js/config.js?v=22"></script>
 <script src="/js/direktori.js?v=3"></script>
-<script src="/js/content.js?v=41"></script>
+<script src="/js/content.js?v=44"></script>
 <script src="/js/konsultasi.js?v=1"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
