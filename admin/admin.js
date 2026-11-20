@@ -26,7 +26,7 @@ var T = function (k, l, o) { o = o || {}; o.k = k; o.l = l; o.t = o.t || 'text';
 
 var COLS = {
  berita: { l: 'Berita & Jurnal', g: 'Konten', e: 'jurnalis', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.kategori || ''); }, F: [
-  T('judul','Judul artikel',{req:1}), T('kategori','Kategori',{t:'category',o:['Berita','Laporan','Literasi','Opini'],req:1,h:'Pilih saran atau ketik kategori baru.'}),
+  T('judul','Judul artikel',{req:1}), T('slug','Slug URL',{h:'Dibuat otomatis dari judul. Boleh diubah manual: huruf kecil, angka, dan tanda hubung. Slug yang sudah tersimpan tidak berubah saat judul diedit.'}), T('kategori','Kategori',{t:'category',o:['Berita','Laporan','Literasi','Opini'],req:1,h:'Pilih saran atau ketik kategori baru.'}),
   T('tanggal','Tanggal terbit',{t:'date',req:1}), T('penulis','Penulis',{h:'Contoh: Redaksi MWCNU / Nama jurnalis.'}),
   T('foto','Thumbnail / foto utama',{t:'image',f:'berita'}), T('ringkasan','Ringkasan artikel',{t:'area',h:'Dipakai sebagai cuplikan dan deskripsi SEO bila deskripsi SEO dikosongkan.'}),
   T('isi','Isi artikel',{t:'editor',req:1}),
@@ -271,6 +271,32 @@ function initArticleEditor(form) {
   });
 }
 function ytId(s) { s = String(s || '').trim(); var m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : s; }
+/* FASE 11D-C: slug berita. Normalisasi judul menjadi slug aman. */
+function slugify(s) {
+  var v = String(s == null ? '' : s);
+  try { v = v.normalize('NFKD').replace(/[\u0300-\u036f]/g, ''); } catch (_) {}
+  v = v.toLowerCase().replace(/['\u2018\u2019\u201c\u201d`]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  v = v.slice(0, 100).replace(/-+$/g, '');
+  if (/^\d+$/.test(v)) v = 'artikel-' + v;
+  return v || 'artikel';
+}
+/* Daftar slug yang sudah dipakai berita lain (kecuali excludeId). */
+async function beritaSlugMap(excludeId) {
+  var r = await sb.from('content_items').select('id,data').eq('type', 'berita');
+  if (r.error) throw r.error;
+  var used = {};
+  (r.data || []).forEach(function (row) {
+    if (excludeId && row.id === excludeId) return;
+    var s = row.data && row.data.slug;
+    if (s) used[s] = true;
+  });
+  return used;
+}
+async function uniqueBeritaSlug(base, excludeId) {
+  var used = await beritaSlugMap(excludeId), s = base, n = 2;
+  while (used[s]) { s = base + '-' + n; n++; }
+  return s;
+}
 function readField(w, f) {
   var el = f.t === 'editor' ? $('.article-source', w) : $('.in', w);
   if (f.t === 'bool') return el.checked;
@@ -416,7 +442,7 @@ async function viewList(key, q, flt, pub) {
     var b = e.target.closest('[data-del],[data-dup],[data-pub],[data-mv]'); if (!b) return;
     try {
       if (b.hasAttribute('data-del')) { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat menghapus konten.'); if (!confirm('Hapus data ini? Tindakan ini tidak dapat dibatalkan.')) return; var r = await sb.from('content_items').delete().eq('id', b.getAttribute('data-del')); if (r.error) throw r.error; toast('Dihapus.'); }
-      else if (b.hasAttribute('data-dup')) { var s = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-dup'); })[0]; var d = JSON.parse(JSON.stringify(s.data)); if (d.judul) d.judul += ' (salinan)'; var mx = S.items[key].reduce(function (m, x) { return Math.max(m, x.sort); }, 0); var r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: false }).select('id').single(); if (r2.error) throw r2.error; toast('Disalin sebagai draf.'); }
+      else if (b.hasAttribute('data-dup')) { var s = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-dup'); })[0]; var d = JSON.parse(JSON.stringify(s.data)); if (d.judul) d.judul += ' (salinan)'; if (key === 'berita') d.slug = await uniqueBeritaSlug(slugify(d.judul)); var mx = S.items[key].reduce(function (m, x) { return Math.max(m, x.sort); }, 0); var r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: false }).select('id').single(); if (r2.error) throw r2.error; toast('Disalin sebagai draf.'); }
       else if (b.hasAttribute('data-pub')) { var s2 = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-pub'); })[0]; if (!isAdmin() && S.me.role !== 'pengurus' && S.me.role !== 'editor' && s2.created_by !== (S.user.email || '').toLowerCase()) throw new Error('Anda hanya dapat menerbitkan konten yang Anda buat.'); var r3 = await sb.from('content_items').update({ published: !s2.published }).eq('id', s2.id).select('id').single(); if (r3.error) throw r3.error; toast(s2.published ? 'Disembunyikan.' : 'Diterbitkan.'); }
       else { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat mengubah urutan konten.'); var id = b.getAttribute('data-id'), dir = +b.getAttribute('data-mv'), vis = shown, i = vis.findIndex(function (x) { return x.id === id; }), j = i + dir; if (j < 0 || j >= vis.length) return; var A = vis[i], B = vis[j], sa = A.sort, sbv = B.sort; if (sa === sbv) { sbv = sa + dir; } var u1 = await sb.from('content_items').update({ sort: sbv }).eq('id', A.id).select('id').single(), u2 = await sb.from('content_items').update({ sort: sa }).eq('id', B.id).select('id').single(); if (u1.error || u2.error) throw (u1.error || u2.error); }
       viewList(key, $('#q') && $('#q').value, $('#flt') && $('#flt').value, $('#pubFilter') && $('#pubFilter').value);
@@ -444,6 +470,13 @@ async function viewEdit(key, id) {
   var form = $('#form'); form.__F = fields; bindForm(form);
   if (key === 'berita') {
     initArticleEditor(form);
+    /* Slug: isi otomatis dari judul selama admin belum menyentuh kolom slug. */
+    var slugWrap = fieldWrap(form, 'slug'), judulWrap = fieldWrap(form, 'judul');
+    if (slugWrap && judulWrap) {
+      var slugIn = $('.in', slugWrap), judulIn = $('.in', judulWrap), slugTouched = !!(data.slug);
+      slugIn.addEventListener('input', function () { slugTouched = true; });
+      judulIn.addEventListener('input', function () { if (!slugTouched) slugIn.value = slugify(judulIn.value); });
+    }
     $$('.seo-count', form).forEach(function (counter) {
       var field = $('#' + counter.getAttribute('data-count-for'), form), limit = counter.closest('.fld').getAttribute('data-k') === 'meta_judul' ? 60 : 160;
       if (!field) return;
@@ -455,14 +488,29 @@ async function viewEdit(key, id) {
     e.preventDefault(); var d = readForm(form, fields), categoryField = key === 'berita' && fields.filter(function (f) { return f.k === 'kategori'; })[0];
     var categoryAllowed = key !== 'berita' || (!!d.kategori && (S.me.role !== 'jurnalis' || categoryField.o.indexOf(d.kategori) >= 0));
     if (!can(c, d) || !categoryAllowed) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
-    var btn = $('#save'); btn.disabled = true; var pub = $('#pub').checked, r2;
+    var btn = $('#save'); btn.disabled = true; var pub = $('#pub').checked, r2, slugNote = '';
     try {
+      if (key === 'berita') {
+        /* Slug: pertahankan slug tersimpan, buat dari judul bila kosong, lalu pastikan unik. */
+        var wantedSlug = slugify(d.slug || (item && item.data && item.data.slug) || d.judul);
+        d.slug = await uniqueBeritaSlug(wantedSlug, item ? item.id : null);
+        if (d.slug !== wantedSlug) slugNote = 'Slug disesuaikan menjadi ' + d.slug + ' karena sudah dipakai berita lain.';
+      }
       /* Kembalikan hanya kunci utama: hindari payload JSON besar, tetapi
          .single() tetap mendeteksi bila RLS tidak mengizinkan baris tersimpan
          untuk dibaca atau tidak ada baris yang cocok pada UPDATE. */
-      if (item) r2 = await sb.from('content_items').update({ data: d, published: pub }).eq('id', item.id).select('id').single();
+      if (item) {
+        if (key === 'berita') {
+          /* Gabungkan data lama + formulir agar field JSONB yang tidak dikelola
+             formulir (mis. metadata tambahan) tidak ikut terhapus. */
+          var merged = Object.assign({}, item.data || {});
+          Object.keys(d).forEach(function (k) { merged[k] = d[k]; });
+          d = merged;
+        }
+        r2 = await sb.from('content_items').update({ data: d, published: pub }).eq('id', item.id).select('id').single();
+      }
       else { var all = await sb.from('content_items').select('sort').eq('type', key); if (all.error) throw all.error; var mx = (all.data || []).reduce(function (m, x) { return Math.max(m, x.sort || 0); }, 0); r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: pub }).select('id').single(); }
-      if (r2.error) throw r2.error; toast('Tersimpan.'); location.hash = '#/' + key;
+      if (r2.error) throw r2.error; toast('Tersimpan.' + (slugNote ? ' ' + slugNote : '')); location.hash = '#/' + key;
     } catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); btn.disabled = false; }
   });
 }
