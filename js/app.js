@@ -23,7 +23,101 @@ function ph(u){if(!u)return null;u=imgURL(u);if(!u)return null;var i=PH.indexOf(
 /* Laporan Kas hanya ditampilkan ke publik setelah toggle CMS diaktifkan.
    FASE 12A: bila angka laporan belum tersedia, tampilkan pesan yang jelas
    dan jangan tampilkan baris angka kosong. */
-(function(){var section=document.getElementById('kas-home'),data=MW.set('kas')||{};if(!section)return;function setText(id,value){var el=document.getElementById(id);if(el)el.textContent=value||''}function money(v){if(v===''||v===null||v===undefined)return '';var n=Number(v);if(!Number.isFinite(n)||n<0)return '';return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n)}var enabled=data.tampil===true;section.hidden=false;setText('kas-periode',enabled?data.periode:'');var shown=0;if(enabled){[['pemasukan','pemasukan'],['pengeluaran','pengeluaran'],['saldo','saldo']].forEach(function(pair){var amount=money(data[pair[0]]),row=document.getElementById('kas-'+pair[1]+'-row');if(amount&&row){row.hidden=false;setText('kas-'+pair[1],amount);shown++}})}var empty=document.getElementById('kas-empty'),totals=section.querySelector('.kas-totals');if(!shown){if(empty)empty.hidden=false;if(totals)totals.hidden=true;section.classList.add('kas-pending')}else{if(empty)empty.hidden=true;if(totals)totals.hidden=false;section.classList.remove('kas-pending')}var note=document.getElementById('kas-keterangan');if(note&&enabled&&String(data.keterangan||'').trim()){note.textContent=String(data.keterangan).trim();note.hidden=false}})();
+(function(){
+  var section=document.getElementById('kas-home'),data=MW.set('kas')||{};
+  if(!section)return;
+  function setText(id,value){var el=document.getElementById(id);if(el)el.textContent=value||''}
+  function money(v){
+    if(v===''||v===null||v===undefined)return '';
+    var n=Number(v);
+    if(!Number.isFinite(n)||n<0)return '';
+    return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);
+  }
+  var enabled=data.tampil===true;
+  section.hidden=false;
+  setText('kas-periode',enabled?data.periode:'');
+  var updatedRow=document.getElementById('kas-updated');
+  if(updatedRow){
+    var upd=enabled&&data.pembaruan?String(data.pembaruan).trim():'';
+    if(upd){
+      updatedRow.textContent='Pembaruan terakhir: '+upd;
+      updatedRow.hidden=false;
+    }else{
+      updatedRow.hidden=true;
+    }
+  }
+
+  var shown=0;
+  if(enabled){
+    [['saldo_awal','saldo-awal'],['pemasukan','pemasukan'],['pengeluaran','pengeluaran'],['saldo','saldo']].forEach(function(pair){
+      var amount=money(data[pair[0]]),row=document.getElementById('kas-'+pair[1]+'-row');
+      if(amount&&row){row.hidden=false;setText('kas-'+pair[1],amount);shown++}
+    });
+  }
+
+  /* Diagram arus kas bulanan & ringkasan transaksi (hanya render jika data terstruktur resmi tersedia) */
+  var chartBox=document.getElementById('kas-flow-chart'),chartBody=document.getElementById('kas-chart-body');
+  if(chartBox&&chartBody){
+    var months=enabled&&Array.isArray(data.arus_kas)?data.arus_kas.filter(function(m){return m&&m.bulan&&(Number(m.masuk)||Number(m.keluar))}):[];
+    if(months.length){
+      var maxVal=Math.max.apply(Math,months.map(function(m){return Math.max(Number(m.masuk)||0,Number(m.keluar)||0)}));
+      chartBody.innerHTML=months.map(function(m){
+        var inH=maxVal>0?Math.round(((Number(m.masuk)||0)/maxVal)*100):0;
+        var outH=maxVal>0?Math.round(((Number(m.keluar)||0)/maxVal)*100):0;
+        return '<div class="kas-chart-col"><div class="kas-chart-bars"><span class="kas-bar in" style="height:'+inH+'%" title="Masuk: '+money(m.masuk)+'"></span><span class="kas-bar out" style="height:'+outH+'%" title="Keluar: '+money(m.keluar)+'"></span></div><small class="kas-chart-label">'+esc(m.bulan)+'</small></div>';
+      }).join('');
+      chartBox.hidden=false;
+    }else{
+      chartBox.hidden=true;
+    }
+  }
+
+  var transBox=document.getElementById('kas-transactions'),transList=document.getElementById('kas-trans-list');
+  if(transBox&&transList){
+    var txs=enabled&&Array.isArray(data.transaksi)?data.transaksi.filter(function(t){return t&&t.uraian&&t.jumlah}):[];
+    if(txs.length){
+      transList.innerHTML=txs.slice(0,5).map(function(t){
+        var isOut=t.jenis==='keluar'||t.jenis==='pengeluaran';
+        return '<div class="kas-trans-item"><div class="kas-trans-info"><b>'+esc(t.uraian)+'</b><small>'+esc(t.tanggal||'')+'</small></div><span class="kas-trans-amount '+(isOut?'out':'in')+'">'+(isOut?'-':'+')+' '+money(t.jumlah)+'</span></div>';
+      }).join('');
+      transBox.hidden=false;
+    }else{
+      transBox.hidden=true;
+    }
+  }
+
+  var empty=document.getElementById('kas-empty'),dashboard=document.getElementById('kas-dashboard');
+  if(!shown){
+    if(empty)empty.hidden=false;
+    if(dashboard)dashboard.hidden=true;
+    section.classList.add('kas-pending');
+  }else{
+    if(empty)empty.hidden=true;
+    if(dashboard)dashboard.hidden=false;
+    section.classList.remove('kas-pending');
+  }
+
+  var note=document.getElementById('kas-keterangan');
+  if(note){
+    if(enabled&&String(data.keterangan||'').trim()){
+      note.textContent=String(data.keterangan).trim();
+      note.hidden=false;
+    }else{
+      note.hidden=true;
+    }
+  }
+
+  var docRow=document.getElementById('kas-doc-row'),docLink=document.getElementById('kas-doc-link');
+  if(docRow&&docLink){
+    var docUrl=enabled&&data.dokumen?String(data.dokumen).trim():'';
+    if(docUrl){
+      docLink.href=safeURL(docUrl);
+      docRow.hidden=false;
+    }else{
+      docRow.hidden=true;
+    }
+  }
+})();
 var ICONS={"ambulans": "<path d=\"M10 10H6\"/><path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\"/><path d=\"M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14\"/><path d=\"M8 8v4\"/><path d=\"M9 18h6\"/><circle cx=\"17\" cy=\"18\" r=\"2\"/><circle cx=\"7\" cy=\"18\" r=\"2\"/>", "zakat": "<path d=\"M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16\"/><path d=\"m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9\"/><path d=\"m2 13 6 6\"/>", "majelis": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>", "konsultasi": "<path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22Z\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/>", "beasiswa": "<path d=\"M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z\"/><path d=\"M22 10v6\"/><path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\"/>", "kesehatan": "<path d=\"M11 2v2\"/><path d=\"M5 2v2\"/><path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\"/><path d=\"M8 15a6 6 0 0 0 12 0v-3\"/><circle cx=\"20\" cy=\"10\" r=\"2\"/>", "info": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>", "kalender": "<path d=\"M8 2v4\"/><path d=\"M16 2v4\"/><rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"/><path d=\"M3 10h18\"/>", "buku": "<path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/>", "hati": "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/>", "telepon": "<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z\"/>", "lokasi": "<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>"};
 
 // Cincin sembilan bintang (motif)
@@ -103,16 +197,22 @@ e.preventDefault();try{sq.focus()}catch(x){}});
 skStats();
 show('Tanfidziyah');
 // Agenda
-var AG=MW.md('agenda',function(x){return{d:x.tanggal,t:x.judul,k:x.kategori||'',loc:x.lokasi||''}},[{d:"2026-09-15",t:"Lailatul Ijtima' di PRNU Pondok Karya",k:"Lailatul Ijtima'",loc:"Masjid Baiturrahim, Pondok Karya"},
+window.AG=MW.md('agenda',function(x){return{d:x.tanggal,t:x.judul,k:x.kategori||'',loc:x.lokasi||''}},[{d:"2026-09-15",t:"Lailatul Ijtima' di PRNU Pondok Karya",k:"Lailatul Ijtima'",loc:"Masjid Baiturrahim, Pondok Karya"},
 {d:"2026-09-09",t:"Rapat Harian Tanfidziyah",k:"Rapat",loc:"Omah Singgah NU Alfath"},
 {d:"2026-09-22",t:"Turba MWCNU Pondok Aren di PRNU Pondok Pucung",k:"Turba",loc:"Yayasan Islam Jam'iyyah Al-Munibin, Kel. Pondok Pucung"}]);
+var AG=window.AG;
 var BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 function agDate(x){var p=x.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function agFmt(d){return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)}
 function agCard(a,past){var d=agDate(a.d),e=new Date(d.getTime()+90000000);
 a={d:String(a.d||''),t:String(a.t||''),k:String(a.k||''),loc:String(a.loc||'')};var map='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a.loc+', Pondok Aren, Tangerang Selatan');
 var cal='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(a.t)+'&dates='+agFmt(d)+'/'+agFmt(e)+'&location='+encodeURIComponent(a.loc);
-return '<article class="ag'+(past?' past':'')+'"><div class="agd"><b>'+d.getDate()+'</b><small>'+BLN[d.getMonth()]+' '+d.getFullYear()+'</small></div><div class="agb"><span class="chip">'+esc(a.k)+'</span><h3>'+esc(a.t)+'</h3><p><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg><span>'+esc(a.loc)+'</span></p><div class="aga"><a href="'+esc(map)+'" target="_blank" rel="noopener">Lihat lokasi</a>'+(past?'':'<a class="pr" href="'+esc(cal)+'" target="_blank" rel="noopener">Tambah ke kalender</a>')+'</div></div></article>'}
+var locBtn=a.loc?'<a class="ag-loc" href="'+esc(map)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg><span>Lihat lokasi</span></a>':'';
+var calBtn=past?'':'<a class="pr ag-cal" href="'+esc(cal)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Tambah ke kalender</span></a>';
+var katChip=a.k?'<span class="chip ag-chip">'+esc(a.k)+'</span>':'';
+var locP=a.loc?'<p class="ag-loc-text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg><span>'+esc(a.loc)+'</span></p>':'';
+var actions=(locBtn||calBtn)?'<div class="aga">'+locBtn+calBtn+'</div>':'';
+return '<article class="ag'+(past?' past':'')+'"><div class="agd" aria-label="'+d.getDate()+' '+BLN[d.getMonth()]+' '+d.getFullYear()+'"><b class="agd-num">'+d.getDate()+'</b><small class="agd-mon">'+BLN[d.getMonth()]+' '+d.getFullYear()+'</small></div><div class="agb">'+katChip+'<h3 class="ag-title">'+esc(a.t)+'</h3>'+locP+actions+'</div></article>'}
 function agDraw(){var t0=new Date();t0.setHours(0,0,0,0);
 var up=AG.filter(function(a){return agDate(a.d)>=t0}).sort(function(a,b){return agDate(a.d)-agDate(b.d)}),
 ps=AG.filter(function(a){return agDate(a.d)<t0}).sort(function(a,b){return agDate(b.d)-agDate(a.d)});
@@ -120,16 +220,60 @@ var h='<h3 class="agh">Akan datang</h3>'+(up.length?up.map(function(a){return ag
 if(ps.length)h+='<h3 class="agh">Sudah lewat</h3>'+ps.map(function(a){return agCard(a,true)}).join('');
 put(document.getElementById('agBox'),h)}
 agDraw();
+function agHomeCard(a,past){var d=agDate(a.d),e=new Date(d.getTime()+90000000);
+a={d:String(a.d||''),t:String(a.t||''),k:String(a.k||''),loc:String(a.loc||'')};
+var map='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a.loc+', Pondok Aren, Tangerang Selatan');
+var cal='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(a.t)+'&dates='+agFmt(d)+'/'+agFmt(e)+'&location='+encodeURIComponent(a.loc);
+var locBtn=a.loc?'<a class="ag-loc" href="'+esc(map)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg><span>Lihat lokasi</span></a>':'';
+var calBtn=past?'':'<a class="pr ag-cal" href="'+esc(cal)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Tambah ke kalender</span></a>';
+var katChip=a.k?'<span class="chip ag-chip">'+esc(a.k)+'</span>':'';
+var locP=a.loc?'<p class="ag-loc-text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg><span>'+esc(a.loc)+'</span></p>':'';
+var actions='<div class="aga">'+(locBtn||calBtn)+'<a class="ag-more-hint" href="#agenda">Buka agenda &rarr;</a></div>';
+return '<article class="ag ag-clickable'+(past?' past':'')+'" data-nav="#agenda" tabindex="0" role="link" aria-label="'+esc(a.t)+', buka daftar agenda"><div class="agd" aria-label="'+d.getDate()+' '+BLN[d.getMonth()]+' '+d.getFullYear()+'"><b class="agd-num">'+d.getDate()+'</b><small class="agd-mon">'+BLN[d.getMonth()]+' '+d.getFullYear()+'</small></div><div class="agb">'+katChip+'<h3 class="ag-title"><a href="#agenda">'+esc(a.t)+'</a></h3>'+locP+actions+'</div></article>'}
 function homeAgendaDraw(){
   var today=new Date();today.setHours(0,0,0,0);
-  var upcoming=AG.filter(function(a){return agDate(a.d)>=today}).sort(function(a,b){return agDate(a.d)-agDate(b.d)});
-  var isUpcoming=upcoming.length>0,items=isUpcoming?upcoming.slice(0,3):AG.filter(function(a){return agDate(a.d)<today}).sort(function(a,b){return agDate(b.d)-agDate(a.d)}).slice(0,3);
-  var h='<h3 class="agh">'+(isUpcoming?'Agenda mendatang':'Kegiatan terakhir')+'</h3>';
-  h+=items.length?items.map(function(a){return agCard(a,!isUpcoming)}).join(''):'<div class="agenda-home-empty"><b>Belum ada agenda</b><span>Agenda berikutnya akan diumumkan di sini.</span></div>';
+  var list=window.AG||AG;
+  var upcoming=list.filter(function(a){return agDate(a.d)>=today}).sort(function(a,b){return agDate(a.d)-agDate(b.d)});
+  var isUpcoming=upcoming.length>0;
+  var targetItem=isUpcoming?upcoming[0]:list.filter(function(a){return agDate(a.d)<today}).sort(function(a,b){return agDate(b.d)-agDate(a.d)})[0];
+  var h='';
+  if(targetItem){
+    h+='<div class="agenda-home-meta"><span class="agh-badge">'+(isUpcoming?'Agenda Terdekat':'Kegiatan Telah Berlangsung')+'</span><span class="agh-note">'+(isUpcoming?'Jadwal kegiatan terverifikasi jam\'iyyah':'Arsip kegiatan terbaru yang telah berlangsung')+'</span></div>';
+    h+='<div class="agenda-home-grid">'+agHomeCard(targetItem,!isUpcoming)+'</div>';
+  }else{
+    h+='<div class="agenda-home-empty"><div class="ag-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="12" cy="14" r="2"/></svg></div><div class="ag-empty-copy"><b>Belum ada jadwal kegiatan</b><p>Jadwal kegiatan jam\'iyyah berikutnya akan dipublikasikan di sini setelah ditetapkan oleh pengurus.</p></div></div>';
+  }
   var box=document.getElementById('homeAgenda');
-  if(box){box.classList.toggle('is-single',items.length===1);box.classList.toggle('is-duo',items.length===2);put(box,h)}
+  if(box){
+    box.classList.toggle('has-items',!!targetItem);
+    box.classList.toggle('is-empty',!targetItem);
+    box.classList.add('is-single');
+    box.classList.remove('is-duo','is-trio');
+    put(box,h);
+  }
 }
+window.homeAgendaDraw=homeAgendaDraw;
 homeAgendaDraw();
+var homeAgendaBox=document.getElementById('homeAgenda');
+if(homeAgendaBox){
+  homeAgendaBox.addEventListener('click',function(e){
+    var card=e.target.closest('.ag-clickable');
+    if(!card)return;
+    if(e.target.closest('a, button'))return;
+    var dest=card.getAttribute('data-nav')||'#agenda';
+    location.hash=dest;
+  });
+  homeAgendaBox.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){
+      var card=e.target.closest('.ag-clickable');
+      if(card&&e.target===card){
+        e.preventDefault();
+        var dest=card.getAttribute('data-nav')||'#agenda';
+        location.hash=dest;
+      }
+    }
+  });
+}
 // Program unggulan
 var P=MW.md('program',function(x){return{t:x.judul||'',s:x.deskripsi||'',k:MW.lines(x.kegiatan),a:[x.tombol||'Tanya tentang program',safeURL(x.tautan||'#berita')]}},[{t:"Dakwah dan pengajian Aswaja",s:"Menguatkan pemahaman dan amaliah Ahlussunnah wal Jama'ah An-Nahdliyah melalui dakwah dan pengajian bersama warga.",k:["Lailatul Ijtima'","Yasin dan tahlil","Pengajian Aswaja","Doa penutup"],a:["Lihat berita kegiatan","#berita"]},
 {t:"Penguatan ranting",s:"Mendampingi dan memperkuat koordinasi Pengurus Ranting NU di 11 kelurahan se-Pondok Aren.",k:["Tawaqufan di ranting","Silaturahmi pengurus dan ranting","11 Pengurus Ranting NU"],a:["Cari Pengurus Ranting","#ranting"]},
