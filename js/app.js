@@ -15,10 +15,10 @@ function ph(u){if(!u)return null;u=imgURL(u);if(!u)return null;var i=PH.indexOf(
 
 
 (function(){var h=MW.set('hero')||{};
-  var d=imgURL(h.cover_desktop||'')||'/assets/img/og-cover.png';
-  var m=imgURL(h.cover_mobile||'')||'/assets/img/og-cover.png';
-  document.documentElement.style.setProperty('--hcover-des', 'url("'+d+'")');
-  document.documentElement.style.setProperty('--hcover-mob', 'url("'+m+'")');
+  var d=imgURL(h.cover_desktop||'');
+  var m=imgURL(h.cover_mobile||'');
+  if(d) document.documentElement.style.setProperty('--hcover-des', 'url("' + d + '")');
+  if(m) document.documentElement.style.setProperty('--hcover-mob', 'url("' + m + '")');
 })();
 /* Laporan Kas hanya ditampilkan ke publik setelah toggle CMS diaktifkan.
    FASE 12A: bila angka laporan belum tersedia, tampilkan pesan yang jelas
@@ -487,8 +487,7 @@ var nt=document.getElementById('ntabs'),ng=document.getElementById('newsGrid'),c
 N.forEach(function(n){if(cats.indexOf(n[0])<0)cats.push(n[0])});
 function nImg(src,alt,cls){return '<img'+(cls?' class="'+esc(cls)+'"':'')+' loading="lazy" src="'+esc(safeURL(src))+'" alt="'+esc(alt)+'">'}
 /* FASE 8H: carousel Berita Pilihan (mobile-only via CSS). Tanpa autoplay/timer. */
-function renderNewsPicks(){var box=document.getElementById('newsPicks');if(!box)return;newsPickIdx=[];if(!N||!N.length){box.hidden=true;box.textContent='';return}var max=Math.min(5,Math.max(1,N.length-1)),picks=N.filter(function(n){return n[6]&&n[6].featured});N.forEach(function(n){if(picks.indexOf(n)<0&&picks.length<max)picks.push(n)});picks=picks.slice(0,max);newsPickIdx=picks.map(function(n){return N.indexOf(n)});if(!picks.length){box.hidden=true;box.textContent='';return}box.hidden=false;box.innerHTML='<h2 class="np-title">Berita Pilihan</h2><div class="np-track">'+picks.map(function(n){var i=N.indexOf(n),th=n[4]==null?'<span class="np-th"><span class="np-ph" aria-hidden="true"></span></span>':'<span class="np-th"><img loading="lazy" src="'+esc(safeURL(PH[n[4]]))+'" alt=""></span>';return '<a class="np-card" href="'+newsHref(n)+'">'+th+'<span class="np-b"><small>'+esc(n[0])+'</small><b>'+esc(n[1])+'</b></span></a>'}).join('')+'</div>'}
-/* FASE 8H: sinkronkan class daftar + tombol perluas (mobile). */
+function renderNewsPicks(){var box=document.getElementById("newsPicks");if(!box)return;newsPickIdx=[];box.hidden=true;box.style.display="none";box.textContent="";}
 function syncNewsList(){var g=document.getElementById('newsGrid'),b=document.getElementById('newsMore');if(!g||!b)return;if(newsExpanded)g.classList.add('is-expanded');else g.classList.remove('is-expanded');var deskLimit=isMobileNews()?7:9;b.hidden=curN.length<=deskLimit;b.textContent=newsExpanded?'Tampilkan Lebih Sedikit':'Lihat Semua Berita';b.setAttribute('aria-expanded',newsExpanded?'true':'false')}
 /* FASE 8H: perilaku rekomendasi khusus /berita hanya pada mobile; desktop tetap seperti semula. */
 function isMobileNews(){try{return window.matchMedia('(max-width:700px)').matches}catch(e){return innerWidth<=700}}
@@ -518,13 +517,13 @@ if(x.info&&x.info.length)h+='<div class="ai"><h3>Sekilas kegiatan</h3><dl>'+x.in
 if(x.list&&x.list.length)h+='<h3>Rangkaian acara</h3><ol class="alist">'+x.list.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ol>';
 if(x.ph&&x.ph.filter(function(k){return PH[k]}).length)h+='<h3>Foto kegiatan</h3><div class="aph">'+x.ph.filter(function(k){return PH[k]}).map(function(k){return nImg(PH[k],'Foto kegiatan','')}).join('')+'</div>';
 if(x.vid&&x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).length)h+='<h3>Tonton di TVNU Pondok Aren</h3>'+x.vid.filter(function(k){return V[k]&&/^[\w-]{11}$/.test(V[k][0])}).map(function(k){return '<a class="avid" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+encodeURIComponent(V[k][0])+'"><span class="play sm"></span><span><b>'+esc(V[k][1])+'</b><small>'+esc(V[k][2])+', TVNU Pondok Aren</small></span></a>'}).join('');
-h+='</div><div class="ashare" aria-label="Bagikan artikel"><b>Bagikan</b><a class="share-btn share-wa" target="_blank" rel="noopener" aria-label="Bagikan lewat WhatsApp" href="https://wa.me/?text='+encodeURIComponent(n[1]+' '+location.href)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.8a8.6 8.6 0 0 1-12.7 7.5L3 20.5l1.3-4.6a8.6 8.6 0 1 1 16.2-4.1Z"/><path d="M8.2 7.8c.2-.5.5-.5.8-.5h.5c.2 0 .4.1.5.4l.7 1.7c.1.2.1.4 0 .6l-.5.7c-.2.2-.2.4 0 .6.5.9 1.2 1.6 2.1 2.1.2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.6-.1l1.7.8c.3.1.4.3.4.5 0 .4-.2 1.2-.8 1.7-.5.5-1.2.7-2 .5-1.1-.2-2.4-.9-3.7-2.1-1.5-1.4-2.5-3.1-2.7-4.3-.2-.8 0-1.4.4-1.7Z"/></svg><span>WhatsApp</span></a><a class="share-btn share-fb" target="_blank" rel="noopener" aria-label="Bagikan lewat Facebook" href="https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 21v-8h2.7l.4-3H14V8.1c0-.9.3-1.5 1.6-1.5h1.7V3.9c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1V10H8.2v3h2.7v8H14Z"/></svg><span>Facebook</span></a><button class="share-btn share-copy" id="cpl" type="button" aria-label="Salin tautan artikel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l3-3A5 5 0 0 0 13 2.9l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg><span>Salin tautan</span></button></div>';
+h+='</div><div class="ashare" aria-label="Bagikan artikel"><b class="ashare-title">Bagikan Artikel</b><a class="share-btn share-wa" target="_blank" rel="noopener" aria-label="Bagikan lewat WhatsApp" href="https://wa.me/?text='+encodeURIComponent(n[1]+' '+location.href)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>WhatsApp</span></a><a class="share-btn share-fb" target="_blank" rel="noopener" aria-label="Bagikan lewat Facebook" href="https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href)+'"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg><span>Facebook</span></a><a class="share-btn share-x" target="_blank" rel="noopener" aria-label="Bagikan lewat X (Twitter)" href="https://twitter.com/intent/tweet?text='+encodeURIComponent(n[1])+'&url='+encodeURIComponent(location.href)+'"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X</span></a><a class="share-btn share-tg" target="_blank" rel="noopener" aria-label="Bagikan lewat Telegram" href="https://t.me/share/url?url='+encodeURIComponent(location.href)+'&text='+encodeURIComponent(n[1])+'"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg><span>Telegram</span></a><button class="share-btn share-copy" id="cpl" type="button" aria-label="Salin tautan artikel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l3-3A5 5 0 0 0 13 2.9l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg><span>Salin tautan</span></button></div>';
 h+='</div>';
 put(document.getElementById('arBody'),h);
 var side=document.getElementById('arSide'),related=N.filter(function(item,index){return index!==idx&&item[0]===n[0]});
-N.forEach(function(item,index){if(index!==idx&&related.indexOf(item)<0&&related.length<4)related.push(item)});
-related=related.slice(0,4);
-/* FASE 11D: tampilkan rekomendasi hanya bila ada artikel lain; jangan render daftar kosong. */
+N.forEach(function(item,index){if(index!==idx&&related.indexOf(item)<0&&related.length<5)related.push(item)});
+related=related.slice(0,5);
+/* FASE 11D/14: tampilkan rekomendasi berita dengan sidebar teroptimasi. */
 var arGrid=document.querySelector('#baca .ar-grid');
 if(side){
   if(!related.length){
@@ -533,7 +532,10 @@ if(side){
   }else{
     side.hidden=false;
     if(arGrid)arGrid.classList.remove('no-side');
-    put(side,'<h2 class="ns-h">Baca juga</h2>'+related.map(function(item){var thumb=item[4]==null?'<span class="nsph" aria-hidden="true"></span>':'<img class="nsth" loading="lazy" src="'+esc(safeURL(PH[item[4]]))+'" alt="">';return '<a class="nsitem plain" href="'+newsHref(item)+'">'+thumb+'<span class="nst"><b>'+esc(item[1])+'</b><em>'+esc(item[0])+' &middot; '+esc(item[2])+'</em></span></a>'}).join('')+'<a class="ar-side-more" href="#berita">Jelajahi semua berita <span aria-hidden="true">&rarr;</span></a>');
+    put(side,'<div class="ar-side-card"><div class="ar-side-head"><span class="ar-side-kicker">Rekomendasi</span><h2 class="ns-h">Berita Terkait</h2></div><div class="ar-side-list">'+related.map(function(item){
+      var thumb=item[4]==null?'<span class="nsph" aria-hidden="true"></span>':'<img class="nsth" loading="lazy" src="'+esc(safeURL(PH[item[4]]))+'" alt="'+esc(item[1])+'">';
+      return '<a class="nsitem plain" href="'+newsHref(item)+'">'+thumb+'<div class="nst"><span class="ns-chip">'+esc(item[0])+'</span><b>'+esc(item[1])+'</b><em>'+esc(item[2])+'</em></div></a>';
+    }).join('')+'</div><a class="ar-side-more" href="#berita">Jelajahi Semua Berita <span aria-hidden="true">&rarr;</span></a></div>');
   }
 }
 try{
@@ -574,7 +576,7 @@ drawN('Semua');route();
 function rtOf(n){var x=n[6]||{},ps=x.p||[];var w=(n[1]+' '+(x.lead||'')+' '+ps.join(' ')).split(/\s+/).length;return Math.max(1,Math.round(w/180))}
 var _ns=document.getElementById('nside');
 if(_ns&&N&&N.length){var _cats=[['Semua','Semua'],['Berita','Berita'],['Laporan','Laporan'],['Literasi','Literasi']];try{_cats=_cats.map(function(c){var n=N.filter(function(x){return c[0]=='Semua'||x[0]==c[0]}).length;return [c[0],c[1],n]})}catch(e){}
-put(_ns,'<h3 class="ns-h">Berita Populer</h3>'+N.slice(0,5).map(function(n,i){return '<a class="nsitem" href="'+newsHref(n)+'"><span class="nsnum">'+('0'+(i+1))+'</span>'+(n[4]==null?'<span class="nsph"></span>':'<img class="nsth" loading="lazy" src="'+PH[n[4]]+'" alt="">')+'<span class="nst"><b>'+esc(n[1])+'</b><em>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</em></span></a>'}).join('')+'<h3 class="ns-h ns-h2">Kategori</h3><div class="ncat">'+_cats.map(function(c){return '<button type="button" class="ncatb" data-cat="'+c[0]+'"><span>'+c[1]+'</span><small>'+c[2]+'</small></button>'}).join('')+'</div><div class="nsub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><b>Berita pilihan, setiap pagi.</b><p>Ringkasan kabar penting langsung ke WhatsApp Anda.</p></div><a href="https://wa.me/6285161033689?text=Assalamu%27alaikum%2C%20saya%20ingin%20berlangganan%20kabar%20MWCNU%20Pondok%20Aren" target="_blank" rel="noopener">Daftar</a></div>');
+put(_ns,'<h3 class="ns-h">Berita Populer</h3>'+N.slice(0,5).map(function(n,i){return '<a class="nsitem" href="'+newsHref(n)+'"><span class="nsnum">'+('0'+(i+1))+'</span>'+(n[4]==null?'<span class="nsph"></span>':'<img class="nsth" loading="lazy" src="'+PH[n[4]]+'" alt="">')+'<span class="nst"><b>'+esc(n[1])+'</b><em>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</em></span></a>'}).join('')+'<h3 class="ns-h ns-h2">Kategori Populer</h3><div class="ncat">'+_cats.map(function(c){return '<button type="button" class="ncatb" data-cat="'+c[0]+'"><span>'+c[1]+'</span><small>'+c[2]+'</small></button>'}).join('')+'</div><div class="nsub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><b>Berita pilihan, setiap pagi.</b><p>Ringkasan kabar penting langsung ke WhatsApp Anda.</p></div><a href="https://wa.me/6285161033689?text=Assalamu%27alaikum%2C%20saya%20ingin%20berlangganan%20kabar%20MWCNU%20Pondok%20Aren" target="_blank" rel="noopener">Daftar</a></div>');
 [].forEach.call(_ns.querySelectorAll('.ncatb'),function(b){b.onclick=function(){drawN(b.dataset.cat);var a=document.getElementById('berita');if(a)a.scrollIntoView({behavior:'smooth',block:'start'})}})}
 var _hb=document.getElementById('hbtn');if(_hb)_hb.onclick=function(){openGs()};var GS=null;function openGs(){var el=document.getElementById('gSearch');if(!el)return;el.hidden=false;document.body.style.overflow='hidden';var inp=document.getElementById('gsq');if(inp){inp.value='';inp.focus()}drawGs('')}
 var _hn=document.getElementById('homeNews');
@@ -1140,19 +1142,24 @@ addEventListener('scroll',pg,{passive:true});pg();
 var CARD='.pk,.stc,.ne,.agh,.gl,.cl,.av,.bi,.bdet,.binfo,.play,.chip';
 function mark(root){[].forEach.call((root||document).querySelectorAll(CARD),function(e){e.classList.add('fx')})}
 var rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
-var io=('IntersectionObserver' in window&&!rm)?new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{threshold:.08,rootMargin:'0px 0px -6% 0px'}):null;
+var io=('IntersectionObserver' in window&&!rm)?new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'}):null;
 if(io)document.documentElement.classList.add('js-rv');
 /* Setiap elemen di-observe TEPAT SEKALI. Sebelumnya boot() dipanggil ulang oleh
    MutationObserver sehingga observe() menumpuk: elemen yang sudah ter-observe
    sering menggantung tanpa pernah melaporkan irisan, .in tak pernah dipasang,
    dan konten tertinggal tak terlihat. */
+/* FASE 14A: reveal homepage dipulihkan. Kartu homepage diberi stagger
+   70–100ms via --rvd; elemen tidak pernah di-observe dua kali (guard .rv).
+   Hero (.hero2) tidak termasuk dalam selektor mana pun di sini. */
 function rev(){
-  [].forEach.call(document.querySelectorAll('.ho .wrap > *, .ho .stc, .ho .bncard, .ho .lycard, .ho .kcard, .ho .cats a, .ho .strow .stc, .vw .wrap > *, .fx'),function(e){
+  [].forEach.call(document.querySelectorAll('.ho .wrap > *, .ho .stc, .ho .bncard, .ho .lycard, .ho .kcard, .ho .news article, .ho .ag, .ho .kas-panel, .ho .cats a, .ho .strow .stc, .vw .wrap > *, .fx'),function(e){
     if(e.classList.contains('rv')||e.closest('.dd'))return;
+    /* Hero dipertahankan: tidak pernah dianimasikan (FASE 14A §12). */
+    if(e.closest('.hero2'))return;
     if(!io)return;
     e.classList.add('rv');
     var p=e.parentNode,i=p?[].indexOf.call(p.children,e):0;
-    e.style.transitionDelay=(i?Math.min(i,6)*70:0)+'ms';
+    e.style.setProperty('--rvd',(i?Math.min(i,8)*80:0)+'ms');
     io.observe(e);
   });
 }
