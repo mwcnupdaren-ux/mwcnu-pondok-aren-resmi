@@ -119,63 +119,95 @@
   };
 
   function validConfig() { try { var u = new URL(String(C.supabaseUrl || '')); return u.protocol === 'https:' && /^[a-z0-9-]+\.supabase\.co$/i.test(u.hostname) && /^((sb_publishable_[A-Za-z0-9_-]+)|(eyJ[A-Za-z0-9._-]+))$/.test(String(C.supabaseKey || '')); } catch (e) { return false; } }
-  var rendered = false;
+
+  /* Status render: data dapat dirender ulang saat data terbaru tiba,
+     tidak ada lagi guard "render sekali saja" yang menolak data Supabase. */
+  var renderCount = 0;
+  var lastData = null;   /* JSON string dari data terakhir yang dirender ke DOM */
+  var appReady = false;  /* apakah js/app.js sudah termuat dan dieksekusi */
+  var appScript = null;  /* elemen script app.js yang sedang/udah dimuat */
+
+  function applyRender() { try { M.apply(); if (window.console) console.log('[MWC cache] applyRender dipanggil, render ke-' + renderCount); } catch (e) { if (window.console) console.error(e); } }
+
+  /* Rute aktif (mis. #berita/<slug>) dirender app.js dari data saat M.D diterapkan.
+     Setelah data remote menggantikan cache, router dipicu ulang agar halaman yang
+     sedang tampil memakai data terbaru — tanpa memuat ulang halaman. */
+  function rerenderRoute() {
+    try { if (typeof window.MWC_RERENDER === 'function') window.MWC_RERENDER(); else window.dispatchEvent(new Event('hashchange')); } catch (e) {}
+  }
+
+  /* Terapkan data ke M.D lalu muat/terapkan js/app.js.
+     Dipanggil berkali-kali aman: render ulang hanya jika data berubah. */
   function go(d) {
-    if (rendered) return; rendered = true; M.D = d || null;
-    try { if (d) M.prep(); } catch (e) { M.D = null; }
-    var s = document.createElement('script'); s.src = (location.protocol === 'file:' ? 'js/app.js?v=79' : '/js/app.js?v=79');
-    s.onload = function () { try { M.apply(); } catch (e) { if (window.console) console.error(e); } };
+    var next = d || null;
+    var nextJson = JSON.stringify(next);
+    if (nextJson === lastData) { M.D = next; return; } /* data identik: hindari render ulang */
+    M.D = next;
+    lastData = nextJson;
+    renderCount++;
+    try { M.prep(); } catch (e) { M.D = null; }
+    if (appReady) { applyRender(); rerenderRoute(); return; }
+    if (appScript) return; /* app.js masih dimuat; onload akan menerapkan M.D terbaru */
+    var s = document.createElement('script');
+    s.src = (location.protocol === 'file:' ? 'js/app.js?v=80' : '/js/app.js?v=80');
+    appScript = s;
+    s.onload = function () { appReady = true; applyRender(); };
     document.body.appendChild(s);
   }
+
+  /* Tampilkan pemberitahuan kosong/gagal hanya ketika tidak ada data sama sekali,
+     tanpa menghapus konten yang masih valid dan tanpa mencipta data palsu. */
+  function showEmpty(msg) {
+    try {
+      var el = document.getElementById('mwc-empty-state');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'mwc-empty-state';
+        el.setAttribute('role', 'status');
+        el.setAttribute('aria-live', 'polite');
+        var target = document.getElementById('top') || document.body;
+        target.insertBefore(el, target.firstChild);
+      }
+      el.textContent = msg;
+    } catch (e) {}
+  }
+
   if (!validConfig()) return go(null);
   var cache = null; try { cache = JSON.parse(localStorage.getItem('mwc_data') || 'null'); } catch (e) {}
   if (window.MWC_CFG_FALLBACK) return go(cache);
   var H = { apikey: C.supabaseKey, Authorization: 'Bearer ' + C.supabaseKey };
   function q(path) { return fetch(C.supabaseUrl + '/rest/v1/' + path, { headers: H, cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }); }
-  /* Penanda sekali pakai: mencegah halaman memuat ulang berulang saat data CMS berubah. */
-  function syncFlag(v) { try { if (v) sessionStorage.setItem('mwc_sync', '1'); else sessionStorage.removeItem('mwc_sync'); } catch (e) {} }
-  function synced() { try { return sessionStorage.getItem('mwc_sync') === '1'; } catch (e) { return true; } }
-  /* Data yang sudah pernah dimuat ulang pada kunjungan ini (bertahan meski
-     flag mwc_sync sekali pakai sudah dikonsumsi). */
-  function syncedData() { try { return sessionStorage.getItem('mwc_sync_data'); } catch (e) { return null; } }
-  /* Cache dipakai lebih dulu agar halaman langsung terisi; data terbaru menyusul. */
-  var timer = setTimeout(function () { go(cache); }, cache ? 0 : 3000);
+
+  /* A. Halaman dibuka: tampilkan cache segera jika tersedia (pembukaan cepat),
+     tetapi jangan anggap cache sebagai data final. Konten masih dapat diperbarui. */
+  if (cache) {
+    go(cache);
+    if (window.console) console.log('[MWC cache] cache dirender, render ke-' + renderCount);
+  } else {
+    go(null);
+  }
+
   Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc,id.asc'), q('site_settings?select=key,value&order=key.asc')]).then(function (r) {
     var d = { items: {}, set: {} };
     r[0].forEach(function (x) { (d.items[x.type] = d.items[x.type] || []).push(x.data); });
     r[1].forEach(function (x) { d.set[x.key] = x.value; });
-    var next = JSON.stringify(d), prev = syncedData();
+    var next = JSON.stringify(d);
     try { localStorage.setItem('mwc_data', next); } catch (e) {}
-    clearTimeout(timer);
-    if (!rendered) { syncFlag(false); go(d); return; } /* belum tampil: langsung pakai data terbaru */
-    if (prev === next || prev === null && !cache) { syncFlag(false); return; } /* sudah sama dengan data yang pernah dimuat */
-    if (synced()) {                                 /* sudah pernah dimuat ulang pada kunjungan ini */
-      syncFlag(false);
-      try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
-      return;
+    /* B. Supabase merespons: data remote menggantikan cache jika berbeda.
+       Jika identik, jangan rendering ulang. Tidak ada pemuatan ulang halaman. */
+    if (next !== lastData) {
+      go(d);
+      if (window.console) console.log('[MWC cache] data remote menggantikan cache, render ke-' + renderCount + ', DOM sekarang: ' + (document.querySelector('#baca figure.af img.ah') ? document.querySelector('#baca figure.af img.ah').getAttribute('src').slice(-40) : '-'));
+    } else {
+      if (window.console) console.log('[MWC cache] data remote sama dengan cache, tidak ada rendering ulang');
     }
-    /* Jangan reload diam-diam saat ada isian formulir yang belum dikirim.
-       Data CMS baru sudah masuk cache dan akan tampil pada pemuatan berikutnya. */
-    var hasDraft = false;
-    try {
-      hasFormCheck: {
-        var els = document.querySelectorAll('input:not([type=hidden]):not([type=search]), textarea, select');
-        for (var i = 0; i < els.length; i++) {
-          var el = els[i];
-          if (el.disabled || el.readOnly) continue;
-          if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'submit' || el.type === 'button') continue;
-          if (String(el.value || '').trim()) { hasDraft = true; break hasFormCheck; }
-        }
-      }
-    } catch (e) {}
-    if (hasDraft) {
-      try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
-      syncFlag(false); return; /* pakai data baru pada pemuatan berikutnya */
+  }).catch(function (err) {
+    /* C & D. Supabase gagal: pertahankan cache terakhir; jika belum ada cache,
+       tampilkan empty/error state, jangan halaman kosong tanpa penjelasan,
+       jangan buat data palsu. */
+    if (!cache) {
+      showEmpty('Data terbaru tidak tersedia saat ini. Tampilan menggunakan data bawaan.');
     }
-    /* Tampilkan perubahan CMS yang baru disimpan. Flag mwc_sync sekali pakai
-       hanya disetel tepat sebelum reload; salinan data terbaru disimpan
-       terpisah agar perbandingan berikutnya tetap akurat. */
-    try { sessionStorage.setItem('mwc_sync_data', next); } catch (e) {}
-    syncFlag(true); location.reload();
-  }).catch(function () { clearTimeout(timer); go(cache); });
+    if (window.console) console.error('[MWC cache] Supabase gagal:', err);
+  });
 })();
