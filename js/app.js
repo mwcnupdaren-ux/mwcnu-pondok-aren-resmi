@@ -550,7 +550,7 @@ if(ad.mode==='Google AdSense'){var client=String(cfg.client||''),unit=String(ad.
 }else{var src=MW.safeImage(ad.image);if(!src)return;var img=document.createElement('img');img.src=src;img.alt=String(ad.alt||'Iklan');img.loading='lazy';img.decoding='async';var href=String(ad.href||'').trim();if(href){var a=document.createElement('a');a.href=safeURL(href);a.rel='sponsored noopener';a.target='_blank';a.appendChild(img);box.appendChild(a)}else box.appendChild(img)}
 host.insertBefore(box,host.firstChild)}
 function route(){var h=location.hash.slice(1);try{h=decodeURIComponent(h)}catch(e){}var m='',anchorTarget=null,bIndex=-1;
-if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/),paths={'/berita':'berita','/sejarah':'sejarah','/visi-misi':'visi','/struktur':'struktur','/ranting':'ranting','/galeri':'galeri','/layanan':'layanan','/majelis':'majelis','/konsultasi':'konsultasi','/zis':'zis','/kontak':'kontak'};if(pn==='/program')h='program';else if(pm)h='banom'+(pm[1]?'/'+pm[1]:'');else if(paths[pn])h=paths[pn]}
+if(!h){var pn=location.pathname.replace(/\/+$/,''),pm=pn.match(/\/banom(?:\/([^\/]+))?$/),paths={'/berita':'berita','/sejarah':'sejarah','/visi-misi':'visi','/struktur':'struktur','/ranting':'ranting','/galeri':'galeri','/layanan':'layanan','/majelis':'majelis','/konsultasi':'konsultasi','/zis':'zis','/kontak':'kontak'};if(pn==='/program')h='program';else if(pm)h='banom'+(pm[1]?'/'+pm[1]:'');else if(paths[pn])h=paths[pn];var bpm=pn.match(/^\/berita\/([A-Za-z0-9_-]+)$/);if(bpm&&!h)h='berita/'+bpm[1]}
 /* FASE T5: alias rute lama halaman banom statis → halaman direktori dinamis.
    Hash di URL diubah langsung agar tautan lama tetap berfungsi. */
 var LEGACY_BANOM={'banom-gpansor':'gp-ansor','banom-fatayat':'fatayat-nu','banom-ipnu':'ipnu','banom-ippnu':'ippnu'};
@@ -570,7 +570,7 @@ var mobileNews=isMobileNews();
 var routeNewsTitle=document.getElementById('route-news-title');if(routeNewsTitle)routeNewsTitle.textContent=(v==='berita'&&mobileNews)?'Berita Rekomendasi':'Berita pilihan';
 VW.forEach(function(id){document.getElementById(id).hidden=id!=v});
 [].forEach.call(document.querySelectorAll('.ho'),function(e){e.hidden=!!v});document.body.classList.toggle('inview',!!v);
-if(m)setG(m);if(mm||sm)renderArticle(mm?mm[1]:sm[1]);else if(v==='baca')renderArticleMissing();if(v){if(v==='berita')renderRouteNews(-1,{category:curCat,exclude:newsPickIdx});else renderRouteNews(articleIndex(mm?mm[1]:sm?sm[1]:-1))}var adPage=(v==='banom-page'||v==='banom-profile')?'banom':v==='ranting-detail'?'ranting':v;renderPrimaryAd(adPage);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':((v=='banom-page'||v=='banom-profile')?'banom':((v=='struktur-organisasi'||v=='pengurus')?'struktur':(v=='ranting-detail'?'ranting':(v||'top')))));closeDD();
+if(m)setG(m);if(mm||sm){var _sr=document.getElementById('arBody');if(_sr&&_sr.getAttribute('data-server-rendered')==='true'){_sr.removeAttribute('data-server-rendered');try{document.title=(articleByRef(mm?mm[1]:sm[1])&&articleByRef(mm?mm[1]:sm[1])[1]?articleByRef(mm?mm[1]:sm[1])[1]+' | MWCNU Pondok Aren':document.title)}catch(e){}}else renderArticle(mm?mm[1]:sm[1])}else if(v==='baca')renderArticleMissing();if(v){if(v==='berita')renderRouteNews(-1,{category:curCat,exclude:newsPickIdx});else renderRouteNews(articleIndex(mm?mm[1]:sm?sm[1]:-1))}var adPage=(v==='banom-page'||v==='banom-profile')?'banom':v==='ranting-detail'?'ranting':v;renderPrimaryAd(adPage);if(anchorTarget){window.scrollTo(0,0);requestAnimationFrame(function(){anchorTarget.scrollIntoView({behavior:'smooth',block:'start'})})}else if(h=='sambutan'){var sb=document.getElementById('sambutan');if(sb)sb.scrollIntoView()}else if(!v&&h&&h!='top'&&document.getElementById(h)){document.getElementById(h).scrollIntoView({behavior:'smooth',block:'start'})}else window.scrollTo(0,0);mark(v=='baca'?'berita':((v=='banom-page'||v=='banom-profile')?'banom':((v=='struktur-organisasi'||v=='pengurus')?'struktur':(v=='ranting-detail'?'ranting':(v||'top')))));closeDD();
 if(v=='banom-profile')bpRender(bIndex);
 if(v=='sejarah')pgRenderSejarah();
 if(v=='visi')pgRenderVisi();
@@ -619,7 +619,7 @@ function ensureSlug(n,idx){
   return x.slug;
 }
 N.forEach(function(n,idx){ensureSlug(n,idx);});
-function newsHref(n){return '#berita/'+((n&&n[6]&&n[6].slug)||N.indexOf(n))}
+function newsHref(n){return '/berita/'+((n&&n[6]&&n[6].slug)||N.indexOf(n))}
 function articleIndex(ref){
   if(!N||ref==null)return -1;
   if(typeof ref==='number')return ref;
@@ -749,7 +749,7 @@ var th=(n[4]==null?'<div class="th ph0"><span class="ph0l"></span></div>':'<div 
 var meta='<div class="meta">'+(i==0?'<span class="chip top">Terbaru</span>':'')+'<span class="chip">'+esc(n[0])+'</span><small>'+esc(n[2])+' &middot; '+rtOf(n)+' menit baca</small></div>';
 var body='<div class="b">'+meta+'<h3>'+esc(n[1])+'</h3><span class="more">'+(i==0?'Baca laporan lengkap':'Baca selengkapnya')+'</span></div>';
 var a=document.createElement('article');a.className=i==0?'feat':'item';
-put(a,th+body);act(a,function(){location.hash=newsHref(n)});
+put(a,th+body);act(a,function(){try{history.pushState(null,'',newsHref(n));route()}catch(e){location.href=newsHref(n)}});
 ng.appendChild(a)});
 refreshBeritaRecs()}
 document.getElementById('nq').oninput=function(){drawN(curCat)};
