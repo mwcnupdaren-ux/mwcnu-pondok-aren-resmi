@@ -13,17 +13,54 @@
       "source": "/program",
       "destination": "/"
     },
-    { "source": "/berita", "destination": "/" },
-    { "source": "/sejarah", "destination": "/" },
-    { "source": "/visi-misi", "destination": "/" },
-    { "source": "/struktur", "destination": "/" },
-    { "source": "/ranting", "destination": "/" },
-    { "source": "/galeri", "destination": "/" },
-    { "source": "/layanan", "destination": "/" },
-    { "source": "/majelis", "destination": "/" },
-    { "source": "/konsultasi", "destination": "/" },
-    { "source": "/zis", "destination": "/" },
-    { "source": "/kontak", "destination": "/" },
+    {
+      "source": "/berita/:slug",
+      "destination": "/api/article-meta?slug=:slug"
+    },
+    {
+      "source": "/berita",
+      "destination": "/"
+    },
+    {
+      "source": "/sejarah",
+      "destination": "/"
+    },
+    {
+      "source": "/visi-misi",
+      "destination": "/"
+    },
+    {
+      "source": "/struktur",
+      "destination": "/"
+    },
+    {
+      "source": "/ranting",
+      "destination": "/"
+    },
+    {
+      "source": "/galeri",
+      "destination": "/"
+    },
+    {
+      "source": "/layanan",
+      "destination": "/"
+    },
+    {
+      "source": "/majelis",
+      "destination": "/"
+    },
+    {
+      "source": "/konsultasi",
+      "destination": "/"
+    },
+    {
+      "source": "/zis",
+      "destination": "/"
+    },
+    {
+      "source": "/kontak",
+      "destination": "/"
+    },
     {
       "source": "/banom",
       "destination": "/"
