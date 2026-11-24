@@ -1,0 +1,142 @@
+[
+  {
+    "id": "0acaecff-ff03-42f8-be7d-85ed63a5b983",
+    "type": "berita",
+    "judul": "MWCNU Pondok Aren Gelar Lailatul Ijtima' dan Tawaqufan di Pondok Kacang Barat",
+    "published": true,
+    "slug": null,
+    "foto": "/assets/img/img-897feccb.webp",
+    "created_at": "2026-11-09 20:11:29.10858+00",
+    "updated_at": "2026-11-10 08:18:31.460588+00"
+  },
+  {
+    "id": "92fd61e6-1364-4058-bf4e-f058c720fd84",
+    "type": "berita",
+    "judul": "Halal Bi Halal Keluarga Besar NU Pondok Aren Angkat Tema Membumikan Dakwah dan Menguatkan Ranting",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo65sw4s3ts.webp",
+    "created_at": "2026-11-09 20:11:29.10858+00",
+    "updated_at": "2026-11-19 23:17:47.787221+00"
+  },
+  {
+    "id": "ae6d9241-216e-40ab-b466-3f19399d53db",
+    "type": "berita",
+    "judul": "Launching QRIS, MWCNU Pondok Aren Melangkah Maju dari Koin NU",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo6gi8ok9b9.webp",
+    "created_at": "2026-11-09 20:11:29.10858+00",
+    "updated_at": "2026-11-19 23:30:33.381223+00"
+  },
+  {
+    "id": "e9a4b515-a16d-41bc-81bb-d310b936170d",
+    "type": "berita",
+    "judul": "Turba MWCNU Pondok Aren di PRNU Jurangmangu Timur",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo6xawbzzdl.webp",
+    "created_at": "2026-11-09 20:11:29.10858+00",
+    "updated_at": "2026-11-19 23:40:44.18471+00"
+  },
+  {
+    "id": "b18c0158-672a-4ad9-b38e-7d222632c3a4",
+    "type": "berita",
+    "judul": "KH Fathur Rahman: Tradisi dan Warisan Ulama Harus Terus Dilestarikan",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwb77b899eck.webp",
+    "created_at": "2026-11-10 21:26:47.580924+00",
+    "updated_at": "2026-11-10 21:26:47.580924+00"
+  },
+  {
+    "id": "eb978bd1-b4af-4817-b27e-7cc557ac5a71",
+    "type": "berita",
+    "judul": "Sikapi Dinamika Nasional, PBNU dan PWNU Se-Indonesia Rilis 6 Pernyataan Sikap",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwi8jd8vraps.webp",
+    "created_at": "2026-11-15 19:36:43.57422+00",
+    "updated_at": "2026-11-15 19:41:23.034738+00"
+  },
+  {
+    "id": "91880c5c-623b-4aa0-812d-0912850027cd",
+    "type": "berita",
+    "judul": "MWCNU Pondok Aren Gelar Tarling di Musholla Al-Ikhwan, Kenalkan Prinsip Dasar NU",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwia2wzxktl3.webp",
+    "created_at": "2026-11-15 20:20:13.210272+00",
+    "updated_at": "2026-11-15 20:20:13.210272+00"
+  },
+  {
+    "id": "599ca2da-df16-4f12-a91e-09ca498e471f",
+    "type": "berita",
+    "judul": "Pentingnya Menjaga Tradisi Aswaja di Era Modern: Pesan KH. M. Thoha",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo5xei4lf9x.webp",
+    "created_at": "2026-11-19 23:12:04.700371+00",
+    "updated_at": "2026-11-19 23:12:04.700371+00"
+  },
+  {
+    "id": "99c61340-3f25-4fae-a471-a1f93f53cb34",
+    "type": "berita",
+    "judul": "Menyiapkan Bekal Akhirat: Pesan KH. Ahmad Misbah di Pondok Aren",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo7hzbdr68m.webp",
+    "created_at": "2026-11-19 23:56:00.674478+00",
+    "updated_at": "2026-11-19 23:56:00.674478+00"
+  },
+  {
+    "id": "20537a67-d5eb-42de-9c18-ab131d8be214",
+    "type": "berita",
+    "judul": "Aksi Sosial GP Ansor-Banser Pondok Aren & Griya Al Fath di Idul Adha",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo81v1dqqjb.webp",
+    "created_at": "2026-11-20 00:09:36.320328+00",
+    "updated_at": "2026-11-20 00:09:36.320328+00"
+  },
+  {
+    "id": "c533df16-e18b-4afb-b59a-749ccac13959",
+    "type": "berita",
+    "judul": "Menjaga Istiqomah: Pesan KH. Mohammad Jamil di Pondok Jaya Aren",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwo8wb0tz682.webp",
+    "created_at": "2026-11-20 00:33:33.894792+00",
+    "updated_at": "2026-11-20 00:33:33.894792+00"
+  },
+  {
+    "id": "f13d845b-cfd0-47a1-b4b8-a2cf60670dd8",
+    "type": "berita",
+    "judul": "PBNU Bantah Tegas Isu Aliran Dana Rp70 Miliar untuk Muktamar",
+    "published": true,
+    "slug": null,
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwob3hssc3gv.webp",
+    "created_at": "2026-11-20 01:35:01.01103+00",
+    "updated_at": "2026-11-20 01:35:01.01103+00"
+  },
+  {
+    "id": "d13af14b-52e7-44fd-a503-514adb1b5ca6",
+    "type": "berita",
+    "judul": "Merindukan Reuni di Surga 'Adn: Empat Bekal untuk Berkumpul Kembali Bersama Keluarga",
+    "published": true,
+    "slug": "merindukan-reuni-di-surga-adn-empat-bekal-untuk-berkumpul-kembali-bersama-keluarga",
+    "foto": "https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/berita/2026/mwqvgcatl2gm.webp",
+    "created_at": "2026-11-21 20:40:57.096876+00",
+    "updated_at": "2026-11-21 20:40:57.096876+00"
+  }
+]
+
+[
+  {
+    "database_role": "postgres",
+    "total_berita": 13,
+    "published": 13,
+    "unpublished": 0,
+    "status_null": 0
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "version": "phase-2e",
+  "source": "PHASE-2C-SOURCE-EXPORT-NORMALIZED.json",
+  "approved_from": "PHASE-2D-EDITORIAL-SLUG-MAPPING.md",
+  "mappings": [
+    {"uuid": "0acaecff-ff03-42f8-be7d-85ed63a5b983", "slug": "lailatul-ijtima-tawaqufan-mwcnu-pondok-aren-pondok-kacang-barat", "action": "backfill"},
+    {"uuid": "92fd61e6-1364-4058-bf4e-f058c720fd84", "slug": "halal-bi-halal-nu-pondok-aren-membumikan-dakwah-menguatkan-ranting", "action": "backfill"},
+    {"uuid": "ae6d9241-216e-40ab-b466-3f19399d53db", "slug": "launching-qris-mwcnu-pondok-aren-melangkah-maju-dari-koin-nu", "action": "backfill"},
+    {"uuid": "e9a4b515-a16d-41bc-81bb-d310b936170d", "slug": "turba-mwcnu-pondok-aren-di-prnu-jurangmangu-timur", "action": "backfill"},
+    {"uuid": "b18c0158-672a-4ad9-b38e-7d222632c3a4", "slug": "kh-fathur-rahman-tradisi-dan-warisan-ulama-harus-terus-dilestarikan", "action": "backfill"},
+    {"uuid": "eb978bd1-b4af-4817-b27e-7cc557ac5a71", "slug": "pbnu-pwnu-se-indonesia-rilis-6-pernyataan-sikap-dinamika-nasional", "action": "backfill"},
+    {"uuid": "91880c5c-623b-4aa0-812d-0912850027cd", "slug": "mwcnu-pondok-aren-gelar-tarling-di-musholla-al-ikhwan-kenalkan-prinsip-dasar-nu", "action": "backfill"},
+    {"uuid": "599ca2da-df16-4f12-a91e-09ca498e471f", "slug": "pentingnya-menjaga-tradisi-aswaja-di-era-modern-pesan-kh-m-thoha", "action": "backfill"},
+    {"uuid": "99c61340-3f25-4fae-a471-a1f93f53cb34", "slug": "menyiapkan-bekal-akhirat-pesan-kh-ahmad-misbah-di-pondok-aren", "action": "backfill"},
+    {"uuid": "20537a67-d5eb-42de-9c18-ab131d8be214", "slug": "aksi-sosial-gp-ansor-banser-griya-al-fath-pondok-aren-idul-adha", "action": "backfill"},
+    {"uuid": "c533df16-e18b-4afb-b59a-749ccac13959", "slug": "menjaga-istiqomah-pesan-kh-mohammad-jamil-di-pondok-jaya-aren", "action": "backfill"},
+    {"uuid": "f13d845b-cfd0-47a1-b4b8-a2cf60670dd8", "slug": "pbnu-bantah-isu-dana-rp70-miliar-muktamar", "action": "backfill"},
+    {"uuid": "d13af14b-52e7-44fd-a503-514adb1b5ca6", "slug": "merindukan-reuni-di-surga-adn-empat-bekal-untuk-berkumpul-kembali-bersama-keluarga", "action": "preserve"}
+  ]
+}
+EOF
+echo done

@@ -9,7 +9,7 @@ node_modules/
 .vscode/
 
 # Artefak pengembangan (Q&A screenshot, skrip debug, backup) - tidak ikut di-push
-mwcnu-pondok-aren/
+/mwcnu-pondok-aren/
 baseline/
 qa.mjs
 qa-*.mjs
