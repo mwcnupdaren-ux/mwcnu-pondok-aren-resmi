@@ -42,25 +42,45 @@ module.exports = async (req,res) => {
   if(!data){ res.status(404).setHeader('Content-Type','text/plain; charset=utf-8').send('Not Found'); return; }
 
   const d = data.data || {};
+  d.slug = d.slug || slug;
   const title = d.meta_judul || d.judul || 'Berita MWCNU Pondok Aren';
   const desc = d.meta_desc || d.ringkasan || d.lead || '';
-  const img = safeImg(d.foto) || 'https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/hero/2026/mwkj0e742sr6.webp';
+  const img = safeImg(d.foto);
   const date = d.tanggal || d.created_at || '';
   const body = d.isi || d.body || '';
   const canonical = `https://www.mwcnupondokaren.or.id/berita/${slug}`;
-
-  let shell = '';
-  try { shell = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8'); } catch (e) { shell = ''; }
-
-  const arBody = `<div id="arBody" data-server-rendered="true">
-  <div class="article-head"><h1 class="at">${esc(d.judul||title)}</h1></div>
+  const arBody = `<article id="arBody" class="ar" data-server-rendered="true">
+  <div class="article-head"><div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a></div><div class="kick">${esc(d.kategori||'Berita')}</div><h1 class="at">${esc(d.judul||title)}</h1><div class="article-byline"><span>${esc(d.penulis||'Redaksi MWCNU Pondok Aren')}</span><i aria-hidden="true">·</i><span>${esc(date)}</span></div></div>
+  ${img?`<figure class="af"><img class="ah" src="${esc(img)}" alt="${esc(d.judul||title)}">${d.caption?`<figcaption>${esc(d.caption)}</figcaption>`:''}</figure>`:''}
   <div class="article-content"><div class="abody">${rich(body)}</div></div>
-</div>`;
+  <div class="ashare" aria-label="Bagikan artikel"><b class="ashare-title">Bagikan Artikel</b><a class="share-btn share-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${title} ${canonical}`)}"><span>WhatsApp</span></a></div>
+</article>`;
+  const articleSection = `<section id="baca" class="vw"><div class="wrap"><div class="ar-grid no-side">${arBody}</div></div></section>`;
 
-  let html = shell ? shell.replace('</main>', arBody + '</main>') : `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>${esc(title)} | MWCNU Pondok Aren</title></head><body>${arBody}</body></html>`;
+  let html = '';
+  try { html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8'); } catch (e) { html = ''; }
+  html = html ? html.replace(/<section id="baca"[\s\S]*?<\/section>/, articleSection) : `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>${esc(title)} | MWCNU Pondok Aren</title></head><body><main>${articleSection}</main></body></html>`;
   html = html.replace(/<title>.*?<\/title>/, `<title>${esc(title)} | MWCNU Pondok Aren</title>`);
   html = html.replace(/<meta name="description" content=".*?">/, `<meta name="description" content="${esc(desc)}">`);
   html = html.replace(/<link rel="canonical" href=".*?">/, `<link rel="canonical" href="${esc(canonical)}">`);
+  if (html.includes('<meta property="og:image:secure_url"')) html = html.replace(/<meta property="og:image:secure_url" content=".*?">/, img ? `<meta property="og:image:secure_url" content="${esc(img)}">` : '');
+  html = html.replace(/<meta property="og:type" content=".*?">/, '<meta property="og:type" content="article">');
+  html = html.replace(/<meta property="og:title" content=".*?">/, `<meta property="og:title" content="${esc(title)}">`);
+  html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${esc(desc)}">`);
+  html = html.replace(/<meta property="og:url" content=".*?">/, `<meta property="og:url" content="${esc(canonical)}">`);
+  html = html.replace(/<meta name="twitter:title" content=".*?">/, `<meta name="twitter:title" content="${esc(title)}">`);
+  html = html.replace(/<meta name="twitter:description" content=".*?">/, `<meta name="twitter:description" content="${esc(desc)}">`);
+  html = html.replace(/<meta name="twitter:card" content=".*?">/, `<meta name="twitter:card" content="${img ? 'summary_large_image' : 'summary'}">`);
+  if (!img) html = html.replace(/<meta property="og:image:(?:width|height|alt)" content=".*?">\s*/g, '');
+  if (img) {
+    html = html.replace(/<meta property="og:image" content=".*?">/, `<meta property="og:image" content="${esc(img)}">`);
+    html = html.replace(/<meta name="twitter:image" content=".*?">/, `<meta name="twitter:image" content="${esc(img)}">`);
+    html = html.replace(/<meta property="og:image:alt" content=".*?">/, `<meta property="og:image:alt" content="${esc(title)}">`);
+  } else {
+    html = html.replace(/<meta property="og:image" content=".*?">\s*/,'');
+    html = html.replace(/<meta name="twitter:image" content=".*?">\s*/,'');
+    html = html.replace(/<meta property="og:image:(?:width|height|alt)" content=".*?">\s*/g,'');
+  }
   if (!/window\.__ARTICLE_SLUG__/.test(html)) {
     html = html.replace('</body>', `<script>window.__ARTICLE_SLUG__=${JSON.stringify(slug)};</script></body>`);
   } else {
