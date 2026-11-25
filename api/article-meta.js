@@ -49,13 +49,16 @@ module.exports = async (req,res) => {
   const date = d.tanggal || d.created_at || '';
   const body = d.isi || d.body || '';
   const canonical = `https://www.mwcnupondokaren.or.id/berita/${slug}`;
-  const arBody = `<article id="arBody" class="ar" data-server-rendered="true">
+  /* Cangkang artikel untuk pembaca tanpa JavaScript. Versi ini hanya berisi
+     isi artikel; app.js tidak boleh menganggapnya final (lihat script di bawah). */
+  const serverFirstRender = { slug };
+  const arBody = `<article id="arBody" class="ar"${serverFirstRender.slug ? ' data-server-rendered="true"' : ''}>
   <div class="article-head"><div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a></div><div class="kick">${esc(d.kategori||'Berita')}</div><h1 class="at">${esc(d.judul||title)}</h1><div class="article-byline"><span>${esc(d.penulis||'Redaksi MWCNU Pondok Aren')}</span><i aria-hidden="true">·</i><span>${esc(date)}</span></div></div>
   ${img?`<figure class="af"><img class="ah" src="${esc(img)}" alt="${esc(d.judul||title)}">${d.caption?`<figcaption>${esc(d.caption)}</figcaption>`:''}</figure>`:''}
   <div class="article-content"><div class="abody">${rich(body)}</div></div>
   <div class="ashare" aria-label="Bagikan artikel"><b class="ashare-title">Bagikan Artikel</b><a class="share-btn share-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${title} ${canonical}`)}"><span>WhatsApp</span></a></div>
 </article>`;
-  const articleSection = `<section id="baca" class="vw"><div class="wrap"><div class="ar-grid no-side">${arBody}</div></div></section>`;
+  const articleSection = `<section id="baca" class="vw"><div class="wrap"><div class="ar-grid">${arBody}<aside class="ar-side nside" id="arSide" aria-label="Berita yang mungkin Anda suka"></aside></div></div></section>`;
 
   let html = '';
   try { html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8'); } catch (e) { html = ''; }
