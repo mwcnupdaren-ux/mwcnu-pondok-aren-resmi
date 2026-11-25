@@ -47,9 +47,19 @@
 - Error console yang teramati **bukan** akibat perubahan ini (berasal dari lingkungan lokal):
   - `consultation-public` CORS/`ERR_FAILED` karena origin `localhost:4174` tidak diizinkan (config produksi).
   - `qris` diblokir ORB — perilaku adblocker/CORS pada `localhost`.
-- **Temuan terpisah (di luar ruang lingkup, belum diperbaiki):**
-  - `js/app.js` masih mereferensikan `assets/img/img-1a2f09f7.webp` yang sudah dihapus di commit `fb6dbb9`. Di server lokal menghasilkan 404 di blok "Foto kegiatan" artikel Halal Bi Halal; perlu keputusan pengguna apakah mengembalikan aset (dilarang tanpa izin) atau menghapus referensinya.
-- **Keterbatasan verifikasi:** seluruh pengujian dilakukan di server lokal (port 4174), bukan produksi Vercel. Perilaku CDN/cache produksi belum diuji pada fase ini.
+- **Diperbaiki pada fase 10C:** referensi `assets/img/img-1a2f09f7.webp` (dihapus di commit `fb6dbb9`) tidak lagi dirender. `js/app.js` kini memiliki daftar `REMOVED_ASSETS` + `phSafe()` sehingga path aset terhapus dilewati, dan `img` yang gagal dimuat diganti foto cadangan valid lewat delegasi `error` di fase capture (tanpa handler inline, aman terhadap CSP). `supabase/seed.sql` juga tidak lagi merujuk aset tersebut.
+- **Keterbatasan verifikasi:** pengujian HTTP/SSR memakai server lokal (port 4174); perilaku CDN/cache produksi belum diuji. Pengujian interaksi browser **tidak** dapat dijalankan pada sesi ini karena browser otomasi di mesin ini tidak mengeksekusi JavaScript halaman (semua skrip, termasuk init script, tidak berjalan); sebagai gantinya `js/app.js` dieksekusi penuh di Node dengan DOM tiruan (lulus tanpa error) dan logika render gambar/sidebar diuji dengan data CMS Supabase sungguhan.
+
+**5b. Pengujian Fase 10C (bukti aktual)**
+
+| Pemeriksaan | Hasil | Bukti |
+|---|---|---|
+| `node --check js/app.js` + `git diff --check` | Lulus | exit 0 |
+| Eksekusi utuh `js/app.js` di Node (DOM tiruan) | Lulus | `{ ok: true, errors: [] }` |
+| Scan referensi gambar data bawaan `buildNews()` | Lulus | 4 artikel, tanpa aset terhapus/file hilang |
+| Render foto artikel dari data CMS Supabase (13 artikel) | Lulus | `img-1a2f09f7` dibuang; tidak ada src ke file hilang |
+| Sidebar berita terkait | Lulus | tepat 5 item, tidak tersembunyi saat artikel lain tersedia |
+| `api/article-meta.js` (3 slug + 1 slug tak dikenal) | Lulus | HTTP 200; title/canonical/og:type/twitter:card spesifik; `data-server-rendered` + `aside#arSide` ada; slug tak dikenal → 404 |
 
 **6. Git**
 
@@ -60,5 +70,5 @@
 
 **Tindakan lanjutan**
 
-1. Putuskan penanganan `img-1a2f09f7.webp` (kembalikan aset atau hapus referensi di `js/app.js`) — belum dilakukan.
-2. Verifikasi produksi setelah deployment: `og:*`/`twitter:*` artikel, sidebar SSR, dan layout mobile.
+1. Verifikasi produksi setelah deployment: `og:*`/`twitter:*` artikel, sidebar SSR, dan layout mobile.
+2. Hapus/rapikan referensi `img-1a2f09f7.webp` di data CMS (`foto_tambahan` artikel Halal Bi Halal) melalui dashboard admin agar data sumber ikut bersih (perubahan data produksi memerlukan otorisasi terpisah).
