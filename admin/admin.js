@@ -510,7 +510,14 @@ async function viewEdit(key, id) {
         r2 = await sb.from('content_items').update({ data: d, published: pub }).eq('id', item.id).select('id').single();
       }
       else { var all = await sb.from('content_items').select('sort').eq('type', key); if (all.error) throw all.error; var mx = (all.data || []).reduce(function (m, x) { return Math.max(m, x.sort || 0); }, 0); r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: pub }).select('id').single(); }
-      if (r2.error) throw r2.error; toast('Tersimpan.' + (slugNote ? ' ' + slugNote : '')); location.hash = '#/' + key;
+      if (r2.error) throw r2.error;
+      /* FASE 10F: data sudah benar-benar tersimpan di server, jadi status "belum
+         disimpan" harus dibersihkan SEBELUM pindah halaman. Tanpa ini, hashchange
+         memicu guard route() yang masih melihat S.dirty = true dan menampilkan
+         konfirmasi "Perubahan belum disimpan" padahal simpan berhasil. */
+      S.dirty = false; routeGuardSkip = true;
+      toast('Tersimpan.' + (slugNote ? ' ' + slugNote : ''));
+      if (location.hash === '#/' + key) route(); else location.hash = '#/' + key;
     } catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); btn.disabled = false; }
   });
 }
