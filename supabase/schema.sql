@@ -35,7 +35,7 @@ create or replace function public.can_edit(t text, d jsonb default '{}'::jsonb) 
 language sql stable security definer set search_path = public as $$
   select case public.staff_role()
     when 'super_admin' then true
-    when 'pengurus' then (t = 'berita' and coalesce(d ->> 'kategori','Berita') in ('Berita','Laporan','Literasi','Opini')) or t in ('agenda','video','galeri','kegiatan','majelis')
+    when 'pengurus' then (t = 'berita' and coalesce(d ->> 'kategori','Berita') in ('Berita','Laporan','Literasi','Opini')) or t in ('agenda','video','galeri','kegiatan','majelis','penulis')
     when 'jurnalis' then t = 'berita' and coalesce(d ->> 'kategori','') in ('Literasi','Opini')
     when 'ustadz' then t = 'tanya_jawab'
     else false end
@@ -80,6 +80,14 @@ create table if not exists public.content_items (
 alter table public.content_items add column if not exists created_by text;
 alter table public.content_items add column if not exists updated_by text;
 create index if not exists content_items_type_sort on public.content_items (type, sort, created_at);
+
+-- 3b) PROFIL PENULIS -----------------------------------------------------
+-- Profil publik penulis artikel: nama pena/nama lengkap, pendidikan, bidang,
+-- dan pengalaman mengajar/bekerja. Disimpan sebagai jenis konten 'penulis'
+-- agar memakai RLS, riwayat perubahan, dan alur draf yang sama dengan konten
+-- lain. Artikel merujuknya lewat data.penulis_id (uuid) dan/atau data.penulis.
+-- Publik hanya membaca baris yang published = true.
+comment on table public.content_items is 'Konten CMS. type=penulis menyimpan profil penulis artikel (judul=nama, ringkasan=bio, info=pendidikan/bidang/pengalaman).';
 
 -- 4) RIWAYAT PERUBAHAN --------------------------------------------------
 create table if not exists public.change_log (

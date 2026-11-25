@@ -14,10 +14,20 @@
   /* teks kaya sederhana: "## Judul", "- butir", paragraf dipisah baris kosong, **tebal** */
   M.rich = function (s) {
     function inline(value) {
-      return M.esc(value)
+      /* Penanda gaya dikenali sebelum escaping (lihat articleInlineHTML). */
+      var marks = [];
+      function mark(open, body) { var i = marks.length; marks.push(open); return '\u0001' + i + '\u0001' + body + '\u0002'; }
+      var raw = String(value == null ? '' : value).replace(/<(size=(\d{2})|align=(left|center|right))>(.*?)<\/(?:size|align)>/g, function (all, attr, px, al, body) {
+        if (px) { var n = +px; return n >= 12 && n <= 72 ? mark('<span data-fs="' + n + '">', body) : body; }
+        return mark('<span data-al="' + al + '">', body);
+      });
+      return M.esc(raw)
         .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) { return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>'; })
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        .replace(/~~(.+?)~~/g, '<s>$1</s>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\u0001(\d+)\u0001/g, function (_, i) { return marks[+i] || ''; })
+        .replace(/\u0002/g, '</span>');
     }
     return String(s || '').replace(/\r/g, '').split(/\n\s*\n/).filter(function (b) { return b.trim(); }).map(function (block) {
       var lines = block.split('\n'), first = lines[0].trim(), m;

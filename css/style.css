@@ -10022,6 +10022,24 @@ footer.cie-footer {
   border:1px solid var(--line)!important;border-radius:16px!important;
   background:color-mix(in srgb,var(--acc) 5%,var(--surf))!important;
 }
+/* FASE 10G: kartu profil penulis di akhir artikel. */
+.ar-author{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:start;margin:32px 0 6px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surf)}
+.ar-author-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;display:block}
+.ar-author-ph{display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--acc) 14%,var(--surf));color:var(--acc);font-weight:800;font-size:1.4rem;line-height:1;text-align:center}
+.ar-author-body{min-width:0}
+.ar-author-k{display:block;font:700 .64rem/1.4 var(--fz);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.ar-author-n{display:block;font-size:1.02rem;line-height:1.3;color:var(--ink)}
+.ar-author-bio{margin:6px 0 0;color:var(--mut);font-size:.9rem;line-height:1.6}
+.ar-author-dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:10px 0 0;font-size:.88rem}
+.ar-author-dl dt{color:var(--mut);font-weight:600}
+.ar-author-dl dd{margin:0;color:var(--ink)}
+.ar-author-exp{margin-top:10px}
+.ar-author-exp ul{margin:4px 0 0;padding-left:18px;font-size:.88rem;line-height:1.6}
+.ar-author-kontak{margin:10px 0 0;font-size:.84rem;color:var(--mut)}
+/* Gaya teks artikel dari editor CMS (ukuran & perataan) */
+.abody [data-fs],.abody [data-al]{display:inline}
+.abody [data-al]{display:block;text-align:inherit}
+@media(max-width:560px){.ar-author{grid-template-columns:48px 1fr;padding:14px}.ar-author-photo{width:48px;height:48px}}
 .ar-inline-k{
   font:700 .66rem/1 var(--fz)!important;letter-spacing:.14em!important;
   text-transform:uppercase!important;color:var(--acc-deep)!important;

@@ -68,6 +68,17 @@ Jalur klik yang diuji dengan browser nyata (klik sungguhan, bukan simulasi): kar
 | Guard tetap berfungsi | — | Tidak dilonggarkan. | Sesudah perbaikan, edit yang **belum** disimpan lalu pindah halaman tetap memunculkan dialog. |
 | Metode uji | — | Uji end-to-end di halaman `admin/` nyata dengan `window.__SB__` di-mock (tanpa menyentuh Supabase produksi). | Urutan terukur: `1-load dirty=false` → `2-typed dirty=true` → `3-saved hash=#/berita, tanpa dialog` → `4-typed-again dirty=true` → `5-nav-away dialog muncul`. |
 
+**5f. Fase 10G — Alur editorial, alat format artikel, dan profil penulis**
+
+| Fitur | Yang ditambahkan | Bukti uji |
+|---|---|---|
+| Alur draf & tinjauan | Status artikel kini empat tahap: **Draf** → **Menunggu tinjauan** → **Terbit** / **Ditolak** (`data.tinjauan`, `data.catatan_editor`, `data.ditinjau_oleh`, `data.ditinjau_pada`). Penulis memakai tombol **Simpan & ajukan tinjauan**; editor melihat tombol **Tinjau** untuk menyetujui (terbit) atau mengembalikan dengan catatan. Filter daftar bertambah “Menunggu tinjauan” dan “Ditolak”. | E2E browser (Supabase di-mock): penulis → `tinjauan='diajukan'`, `published=false`; editor setujui → `published=true`, `tinjauan='disetujui'`, `ditinjau_oleh` terisi; tolak → `tinjauan='ditolak'` + catatan tersimpan. |
+| Alat format isi artikel | Toolbar editor: sub-subjudul, garis bawah, coret, hapus format, **ukuran teks** (Normal/Kecil/Sedang/Besar/Judul kutipan), dan perataan kiri/tengah/kanan. Disimpan sebagai penanda terbatas `<size=NN>` / `<align=…>` di markdown, sehingga tetap kompatibel dengan data lama. | 9 kasus parser admin + publik lulus; round-trip markdown→HTML→markdown mempertahankan semua format; sanitizer publik hanya menerima `data-fs` 12–72 dan `data-al` left/center/right (nilai aneh/CSS bebas ditolak, 9 kasus lulus). |
+| Profil penulis | Koleksi CMS baru **Profil Penulis** (Nama, Foto, Bidang, Pendidikan, Pengalaman mengajar/bekerja, Profil singkat, Kontak opsional). Artikel memilih penulis dari profil; publik menampilkan kartu penulis (nama, bio, Bidang, Pendidikan, Pengalaman) di akhir artikel. | Integrasi `content.js`+`app.js` asli di Node: 10/10 pemeriksaan lulus (blok `.ar-author`, nama, bidang, pendidikan, 2 butir pengalaman, bio, `aria-label`). Screenshot preview: kartu tampil rapi di desktop. |
+| Bug yang ditemukan & diperbaiki | (1) `articleInlineHTML`/`M.rich` melakukan escape **sebelum** mengenali penanda format → format tidak pernah tampil; (2) pemilik artikel (`created_by`) ditolak membuka editornya sendiri; (3) tombol **Tinjau** tidak muncul untuk editor karena artikelnya dianggap “writable”. | Ketiganya diperbaiki dan diuji ulang: format tampil, penulis bisa membuka editor, tombol Tinjau muncul untuk editor/pengurus. |
+
+Catatan: skema `content_items` dipakai ulang untuk `type='penulis'` (bukan tabel baru), sehingga RLS, riwayat perubahan, dan alur draf otomatis berlaku. Publik hanya menerima baris `published=true` karena query publik memfilter `published=eq.true`. **Perubahan skema (`supabase/schema.sql`) belum dijalankan ke database produksi** — perlu dijalankan manual oleh admin (izin terpisah).
+
 **Risiko dan Catatan**
 
 - Error console yang teramati **bukan** akibat perubahan ini (berasal dari lingkungan lokal):

@@ -27,7 +27,7 @@ var T = function (k, l, o) { o = o || {}; o.k = k; o.l = l; o.t = o.t || 'text';
 var COLS = {
  berita: { l: 'Berita & Jurnal', g: 'Konten', e: 'jurnalis', ord: 'date', ti: function (d) { return d.judul; }, su: function (d) { return fd(d.tanggal) + ' · ' + (d.kategori || ''); }, F: [
   T('judul','Judul artikel',{req:1}), T('slug','Slug URL',{h:'Dibuat otomatis dari judul. Boleh diubah manual: huruf kecil, angka, dan tanda hubung. Slug yang sudah tersimpan tidak berubah saat judul diedit.'}), T('kategori','Kategori',{t:'category',o:['Berita','Laporan','Literasi','Opini'],req:1,h:'Pilih saran atau ketik kategori baru.'}),
-  T('tanggal','Tanggal terbit',{t:'date',req:1}), T('penulis','Penulis',{h:'Contoh: Redaksi MWCNU / Nama jurnalis.'}),
+  T('tanggal','Tanggal terbit',{t:'date',req:1}), T('penulis','Penulis',{t:'select',o:['Redaksi MWCNU Pondok Aren'],h:'Pilih dari profil penulis (menu Penulis). Nama ini tampil di artikel bersama profil penulisnya.'}),
   T('foto','Thumbnail / foto utama',{t:'image',f:'berita'}), T('ringkasan','Ringkasan artikel',{t:'area',h:'Dipakai sebagai cuplikan dan deskripsi SEO bila deskripsi SEO dikosongkan.'}),
   T('isi','Isi artikel',{t:'editor',req:1}),
   T('tag','Tag / kata kunci',{h:'Pisahkan dengan koma. Contoh: Halal Bi Halal, Pondok Aren'}), T('featured','Tampilkan sebagai sorotan',{t:'bool'}),
@@ -48,6 +48,14 @@ var COLS = {
   T('nama','Nama majelis',{req:1}), T('asuh','Pengasuh / ustadz'), T('hari','Hari',{t:'select',o:HARI}), T('jam','Jam',{h:'Contoh: 19.30'}), T('tempat','Tempat'), T('ranting','Ranting / kelurahan',{t:'select',o:RT}), T('hp','Nomor HP kontak',{h:'Contoh: 0812xxxxxxx'})] },
  tanya_jawab: { l: 'Tanya Jawab Agama', g: 'Konten', e: 'ustadz', ti: function (d) { return d.q; }, su: function (d) { return d.k || ''; }, F: [
   T('k','Topik',{t:'select',o:TOPIK,req:1}), T('q','Pertanyaan',{t:'area',req:1}), T('a','Jawaban',{t:'rich',req:1,h:'Jawaban sebaiknya sudah ditinjau pengurus yang berwenang.'})] },
+ penulis: { l: 'Profil Penulis', g: 'Konten', e: 'pengurus', ti: function (d) { return d.judul; }, su: function (d) { return [d.bidang, d.pendidikan].filter(Boolean).join(' · '); }, F: [
+  T('judul','Nama penulis',{req:1,h:'Tampil sebagai nama penulis pada artikel, mis. Ust. Ahmad Fauzi, S.Pd.'}),
+  T('foto','Foto penulis',{t:'image',f:'penulis'}),
+  T('bidang','Bidang',{h:'Contoh: Pendidikan Agama Islam, Dakwah, Jurnalistik.'}),
+  T('pendidikan','Pendidikan',{h:'Contoh: S1 Pendidikan Agama Islam, UIN Syarif Hidayatullah Jakarta.'}),
+  T('pengalaman','Pengalaman mengajar / bekerja',{t:'area',h:'Satu baris satu pengalaman. Contoh: Guru PAI SMP Negeri 5 Tangsel (2015–sekarang).'}),
+  T('ringkasan','Profil singkat',{t:'area',h:'Satu sampai dua kalimat yang tampil di bawah nama penulis pada artikel.'}),
+  T('kontak','Kontak publik (opsional)',{h:'Email atau nomor yang boleh dipublikasikan. Kosongkan bila tidak untuk publik.'})] },
  layanan: { l: 'Program & Layanan', g: 'Beranda', e: 'admin', filter: null, ti: function (d) { return d.judul; }, su: function (d) { return (d.tampil === false ? 'Disembunyikan · ' : '') + [d.keterangan, d.tautan].filter(Boolean).join(' · '); }, F: [
   T('judul','Judul',{req:1}), T('deskripsi','Deskripsi singkat',{t:'area'}), T('keterangan','Keterangan',{h:'Contoh: Pengajian rutin setiap pekan atau Kitab Fathul Qarib. Tampil di kartu layanan publik.'}), T('ikon','Ikon',{t:'select',o:IKON,req:1}), T('tautan','Tautan tujuan',{dl:LINKS,h:'Halaman internal (contoh #ambulans) atau alamat lengkap https://…'}), T('tampil','Tampilkan di beranda',{t:'bool'})] },
  program: { l: 'Program Khidmat', g: 'Beranda', e: 'admin', ti: function (d) { return d.judul; }, su: function (d) { return d.tombol || ''; }, F: [
@@ -171,6 +179,30 @@ function shell(title, active, body, actions) {
   S.dirty = false;
 }
 function noAccess() { shell('Tidak ada akses', '', '<div class="panel empty">Peran Anda tidak memiliki akses ke bagian ini.</div>'); }
+/* FASE 10G: status alur editorial artikel.
+   Draf (belum terbit) → Menunggu tinjauan (diajukan penulis) → Terbit
+   → Ditolak (dikembalikan editor dengan catatan). */
+function itemStatus(x) {
+  var d = x.data || {};
+  if (x.published) return 'published';
+  if (d.tinjauan === 'ditolak') return 'rejected';
+  if (d.tinjauan === 'diajukan') return 'review';
+  return 'draft';
+}
+var STATUS_INFO = {
+  published: { l: 'Terbit', cls: '' },
+  review: { l: 'Menunggu tinjauan', cls: 'w' },
+  rejected: { l: 'Ditolak', cls: 'd' },
+  draft: { l: 'Draf', cls: 'x' }
+};
+function statusChip(x) { var s = STATUS_INFO[itemStatus(x)] || STATUS_INFO.draft; return '<span class="chip ' + s.cls + '">' + s.l + '</span>'; }
+/* FASE 10G: profil penulis tersedia dari cache S.items.penulis. */
+function penulisProfileByName(nama) {
+  var n = String(nama || '').trim().toLowerCase(); if (!n) return null;
+  var list = (S.items && S.items.penulis) || [];
+  for (var i = 0; i < list.length; i++) { if (String((list[i].data && list[i].data.judul) || '').trim().toLowerCase() === n) return list[i]; }
+  return null;
+}
 
 /* ---------- pembuat formulir ---------- */
 function fieldHTML(f, v) {
@@ -178,10 +210,12 @@ function fieldHTML(f, v) {
   if (f.t === 'bool') return h + '<label class="chk"><input class="in" type="checkbox" ' + (v === false || (v === undefined && f.def === false) ? '' : 'checked') + '> ' + esc(f.l) + '</label>' + hint + '</div>';
   if (f.t === 'category') return h + lab + '<input class="in" id="' + id + '" type="text" list="' + id + '_options" value="' + esc(v) + '" maxlength="48" autocomplete="off"><datalist id="' + id + '_options">' + (f.o || []).map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>' + hint + '<span class="em"></span></div>';
   if (f.t === 'editor') return h + lab + '<div class="article-editor-wrap"><div class="article-toolbar" role="toolbar" aria-label="Pemformatan isi artikel">' +
-    '<button type="button" data-editor-block="p" title="Paragraf">Paragraf</button><button type="button" data-editor-block="h2" title="Subjudul">Subjudul</button><button type="button" data-editor-block="blockquote" title="Kutipan">Kutipan</button><span></span>' +
-    '<button type="button" data-editor-cmd="bold" aria-label="Tebal" title="Tebal"><b>B</b></button><button type="button" data-editor-cmd="italic" aria-label="Miring" title="Miring"><i>I</i></button><button type="button" data-editor-cmd="insertUnorderedList" aria-label="Daftar berpoin" title="Daftar berpoin">• Daftar</button><button type="button" data-editor-cmd="insertOrderedList" aria-label="Daftar bernomor" title="Daftar bernomor">1. Daftar</button><button type="button" data-editor-cmd="createLink" aria-label="Sisipkan tautan" title="Sisipkan tautan">Tautan</button></div>' +
+    '<button type="button" data-editor-block="p" title="Paragraf">Paragraf</button><button type="button" data-editor-block="h2" title="Subjudul">Subjudul</button><button type="button" data-editor-block="h3" title="Sub-subjudul">Sub-sub</button><button type="button" data-editor-block="blockquote" title="Kutipan">Kutipan</button><span></span>' +
+    '<button type="button" data-editor-cmd="bold" aria-label="Tebal" title="Tebal (Ctrl+B)"><b>B</b></button><button type="button" data-editor-cmd="italic" aria-label="Miring" title="Miring (Ctrl+I)"><i>I</i></button><button type="button" data-editor-cmd="underline" aria-label="Bergaris bawah" title="Bergaris bawah (Ctrl+U)"><u>U</u></button><button type="button" data-editor-cmd="strikeThrough" aria-label="Coret" title="Coret">S</button><button type="button" data-editor-cmd="insertUnorderedList" aria-label="Daftar berpoin" title="Daftar berpoin">• Daftar</button><button type="button" data-editor-cmd="insertOrderedList" aria-label="Daftar bernomor" title="Daftar bernomor">1. Daftar</button><button type="button" data-editor-cmd="createLink" aria-label="Sisipkan tautan" title="Sisipkan tautan">Tautan</button><button type="button" data-editor-cmd="removeFormat" aria-label="Hapus format" title="Hapus format teks">Hapus format</button><span></span>' +
+    '<label class="article-tool-size" title="Ukuran teks terpilih">Ukuran <select class="in" data-editor-size aria-label="Ukuran teks"><option value="">Normal</option><option value="18">Kecil</option><option value="24">Sedang</option><option value="32">Besar</option><option value="42">Judul kutipan</option></select></label><span></span>' +
+    '<button type="button" data-editor-cmd="justifyLeft" title="Rata kiri">Kiri</button><button type="button" data-editor-cmd="justifyCenter" title="Rata tengah">Tengah</button><button type="button" data-editor-cmd="justifyRight" title="Rata kanan">Kanan</button></div>' +
     '<div class="article-editor" id="' + id + '" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Isi artikel" data-placeholder="Mulai menulis artikel di sini…"></div><textarea class="in article-source" hidden>' + esc(v) + '</textarea></div>' +
-    '<small class="h">Gunakan subjudul untuk membagi bahasan, paragraf pendek, dan daftar bila diperlukan.</small><span class="em"></span></div>';
+    '<small class="h">Gunakan subjudul untuk membagi bahasan, paragraf pendek, dan daftar bila diperlukan. Pilih teks lalu atur ukuran untuk menonjolkan kutipan atau angka penting.</small><span class="em"></span></div>';
   if (f.t === 'select') {
     /* Opsi boleh berupa teks atau {v,l} (nilai berbeda dari label), dipakai
        modul direktori untuk relasi ber-UUID. */
@@ -214,7 +248,23 @@ function fieldWrap(rootEl, key) {
   return direct || $('[data-k="' + key + '"]', rootEl);
 }
 function articleInlineHTML(s) {
-  return esc(s).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) { return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>'; }).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  var raw = String(s == null ? '' : s);
+  /* Penanda gaya terbatas dikenali SEBELUM escaping, karena esc() mengubah
+     '<' menjadi &lt; dan penanda tidak akan pernah cocok. Hanya angka 12–72
+     dan arah yang dikenal yang diterima; sisanya diperlakukan sebagai teks. */
+  var marks = [];
+  function mark(open, body) { var i = marks.length; marks.push(open); return '\u0001' + i + '\u0001' + body + '\u0002'; }
+  raw = raw.replace(/<(size=(\d{2})|align=(left|center|right))>(.*?)<\/(?:size|align)>/g, function (all, attr, px, al, body) {
+    if (px) { var n = +px; return n >= 12 && n <= 72 ? mark('<span data-fs="' + n + '">', body) : body; }
+    return mark('<span data-al="' + al + '">', body);
+  });
+  return esc(raw)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) { return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>'; })
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\u0001(\d+)\u0001/g, function (_, i) { return marks[+i] || ''; })
+    .replace(/\u0002/g, '</span>');
 }
 function articleMarkdownHTML(s) {
   var blocks = String(s || '').replace(/\r/g, '').split(/\n\s*\n/).filter(function (b) { return b.trim(); });
@@ -235,6 +285,17 @@ function articleEditorMarkdown(root) {
     if (tag === 'br') return '\n';
     if (tag === 'strong' || tag === 'b') return '**' + body + '**';
     if (tag === 'em' || tag === 'i') return '*' + body + '*';
+    if (tag === 'u') return '<u>' + body + '</u>';
+    if (tag === 's' || tag === 'strike' || tag === 'del') return '~~' + body + '~~';
+    /* Ukuran & perataan disimpan sebagai span pembawa gaya terbatas; nilai
+       dibatasi ke daftar aman agar tidak ada gaya sembarang masuk ke artikel. */
+    if (tag === 'span') {
+      var fs = node.getAttribute('data-fs'), al = node.getAttribute('data-al');
+      var open = '', close = '';
+      if (fs && /^\d{1,2}$/.test(fs)) { open += '<size=' + fs + '>'; close = '</size>' + close; }
+      if (al && /^(left|center|right)$/.test(al)) { open += '<align=' + al + '>'; close = '</align>' + close; }
+      return open + body + close;
+    }
     if (tag === 'a') { var href = node.getAttribute('href') || ''; return /^https?:\/\//i.test(href) ? '[' + body + '](' + href + ')' : body; }
     return body;
   }
@@ -245,6 +306,10 @@ function articleEditorMarkdown(root) {
     if (tag === 'ul' || tag === 'ol') return [].map.call(node.children, function (li, i) { return (tag === 'ul' ? '- ' : (i + 1) + '. ') + inline(li).trim(); }).join('\n');
     if (tag === 'blockquote') return inline(node).split('\n').map(function (line) { return '> ' + line; }).join('\n');
     var value = inline(node).trim();
+    /* Perataan blok (tombol Kiri/Tengah/Kanan) disimpan sebagai penanda agar
+       ikut tersimpan di sumber markdown dan dapat dirender ulang. */
+    var al = node.style && node.style.textAlign;
+    if (al && /^(left|center|right)$/.test(al) && value) value = '<align=' + al + '>' + value + '</align>';
     if (/^h[1-6]$/.test(tag)) return '## ' + value;
     return value;
   }
@@ -256,8 +321,28 @@ function initArticleEditor(form) {
     editor.innerHTML = articleMarkdownHTML(source.value);
     function sync() { source.value = articleEditorMarkdown(editor); source.dispatchEvent(new Event('input', { bubbles: true })); }
     editor.addEventListener('input', sync);
+    /* Tampilkan gaya terbatas dari penanda <size=n>/<align=…> agar penulis
+       melihat hasilnya langsung di editor. */
+    function paintMarks() {
+      [].forEach.call(editor.querySelectorAll('span[data-fs]'), function (el) { var n = +el.getAttribute('data-fs'); if (n >= 12 && n <= 72) el.style.fontSize = n + 'px'; });
+      [].forEach.call(editor.querySelectorAll('span[data-al]'), function (el) { var a = el.getAttribute('data-al'); if (/^(left|center|right)$/.test(a)) el.style.textAlign = a; });
+    }
+    paintMarks();
+    function applySize(px) {
+      var sel = window.getSelection();
+      if (!sel || !sel.rangeCount || sel.isCollapsed) { toast('Pilih teks yang akan diubah ukurannya.', 1); return; }
+      var range = sel.getRangeAt(0), span = document.createElement('span');
+      span.setAttribute('data-fs', String(px));
+      span.style.fontSize = px + 'px';
+      try { span.appendChild(range.extractContents()); range.insertNode(span); } catch (e) { toast('Tidak dapat mengubah ukuran teks itu.', 1); return; }
+      sel.removeAllRanges();
+      var r2 = document.createRange(); r2.selectNodeContents(span); sel.addRange(r2);
+      sync();
+    }
     editor.addEventListener('paste', function (e) { e.preventDefault(); var text = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, text); });
     toolbar.addEventListener('mousedown', function (e) { if (e.target.closest('button')) e.preventDefault(); });
+    var sizeSelect = $('[data-editor-size]', toolbar);
+    if (sizeSelect) sizeSelect.addEventListener('change', function () { var px = +sizeSelect.value; sizeSelect.value = ''; if (px) { editor.focus(); applySize(px); } });
     toolbar.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return; editor.focus();
       if (b.hasAttribute('data-editor-block')) document.execCommand('formatBlock', false, b.getAttribute('data-editor-block'));
@@ -410,7 +495,7 @@ async function viewList(key, q, flt, pub) {
   try { await loadItems(key); } catch (e) { return toast(errMsg(e), 1); }
   var list = S.items[key].slice(); if (c.ord === 'date') list.sort(function (a, b) { return String(b.data.tanggal || '').localeCompare(String(a.data.tanggal || '')); });
   var ff = c.filter && c.F.filter(function (f) { return f.k === c.filter; })[0];
-  var shown = list.filter(function (x) { return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || (pub === 'published' ? x.published : !x.published)); });
+  var shown = list.filter(function (x) { var st = itemStatus(x); return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || (pub === 'published' ? x.published : pub === 'draft' ? !x.published : st === pub)); });
   var movable = !c.ord && !q && !pub;
   var rows = shown.map(function (x, i) {
     /* Selaras policy items_update di supabase/schema.sql:
@@ -419,19 +504,23 @@ async function viewList(key, q, flt, pub) {
     var me = (S.user.email || '').toLowerCase(), r = S.me.role;
     var writable = isAdmin()
       || (r === 'pengurus' && key === 'berita')
-      || ((r === 'pengurus' || r === 'editor') && ['agenda','video','galeri','kegiatan','majelis'].indexOf(key) >= 0 && x.created_by === me)
+      || ((r === 'pengurus' || r === 'editor') && ['agenda','video','galeri','kegiatan','majelis','penulis'].indexOf(key) >= 0 && x.created_by === me)
       || (r === 'jurnalis' && key === 'berita' && ['Literasi','Opini'].indexOf((x.data && x.data.kategori) || '') >= 0 && x.created_by === me)
       || (r === 'ustadz' && key === 'tanya_jawab' && x.created_by === me);
+    /* Editor/pengurus yang berhak menerbitkan dapat meninjau tulisan orang lain.
+       Tombol tetap tampil untuk artikel yang sedang menunggu tinjauan, karena
+       keputusan terbit/kembalikan berbeda dari sekadar menyunting. */
+    var reviewable = key === 'berita' && (isAdmin() || r === 'pengurus' || r === 'editor') && itemStatus(x) !== 'published' && x.created_by !== me;
     /* Jurnalis tidak boleh menerbitkan sendiri (ditegakkan guard_publish di schema.sql). */
     var canPub = writable && !(r === 'jurnalis' && !x.published);
     var media = safeMediaURL(x.data.foto || x.data.logo), title = c.ti(x.data) || '(tanpa judul)';
     var thumb = media ? '<img class="row-thumb" src="' + esc(media) + '" alt="" loading="lazy">' : '';
     var more = '<details class="row-menu"><summary class="act" aria-label="Aksi lainnya" title="Aksi lainnya">•••</summary><div class="row-menu-items">' + (movable ? '<button class="act" data-mv="-1" data-id="' + x.id + '" title="Naikkan urutan">Naikkan</button><button class="act" data-mv="1" data-id="' + x.id + '" title="Turunkan urutan">Turunkan</button>' : '') + '<button class="act" data-dup="' + x.id + '">Salin sebagai draf</button><button class="act d" data-del="' + x.id + '">Hapus</button></div></details>';
-    return '<tr><td class="t"><span class="row-title">' + thumb + '<span><b>' + esc(title) + '</b><small>' + esc(c.su(x.data)) + '</small></span></span></td><td class="hm"><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></td><td class="a">' + (writable ? '<a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a>' + (canPub ? '<button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button>' : '') + more : '<span class="chip">Hanya baca</span>') + '</td></tr>';
+    return '<tr><td class="t"><span class="row-title">' + thumb + '<span><b>' + esc(title) + '</b><small>' + esc(c.su(x.data)) + '</small></span></span></td><td class="hm">' + statusChip(x) + '</td><td class="a">' + (reviewable ? '<button class="act g" data-review="' + x.id + '">Tinjau</button>' : '') + (writable ? '<a class="act" data-nav href="#/' + key + '/' + x.id + '">Ubah</a>' + (canPub ? '<button class="act" data-pub="' + x.id + '">' + (x.published ? 'Sembunyikan' : 'Terbitkan') + '</button>' : '') + more : (reviewable ? '' : '<span class="chip">Hanya baca</span>')) + '</td></tr>';
   }).join('');
   var managed = S.set.managed && S.set.managed[key];
   shell(c.l, key, (!managed ? '<div class="note">Jenis ini belum dikelola CMS, jadi situs masih memakai data bawaan. ' + (isAdmin() ? '<button class="btn s" id="mng">Aktifkan pengelolaan</button> (situs akan memakai data di sini, termasuk bila kosong)' : 'Minta admin mengaktifkannya.') + '</div>' : '') +
-    '<div class="panel"><div class="bar"><input type="search" id="q" placeholder="Cari…" value="' + esc(q || '') + '">' + (ff ? '<select id="flt" aria-label="Filter ' + esc(ff.l.toLowerCase()) + '"><option value="">Semua ' + esc(ff.l.toLowerCase()) + '</option>' + ff.o.map(function (o) { return '<option' + (o === flt ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' : '') + '<select id="pubFilter" aria-label="Status publikasi"><option value="">Semua status</option><option value="published"' + (pub === 'published' ? ' selected' : '') + '>Terbit</option><option value="draft"' + (pub === 'draft' ? ' selected' : '') + '>Draf</option></select></div>' +
+    '<div class="panel"><div class="bar"><input type="search" id="q" placeholder="Cari…" value="' + esc(q || '') + '">' + (ff ? '<select id="flt" aria-label="Filter ' + esc(ff.l.toLowerCase()) + '"><option value="">Semua ' + esc(ff.l.toLowerCase()) + '</option>' + ff.o.map(function (o) { return '<option' + (o === flt ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' : '') + '<select id="pubFilter" aria-label="Status publikasi"><option value="">Semua status</option><option value="published"' + (pub === 'published' ? ' selected' : '') + '>Terbit</option><option value="review"' + (pub === 'review' ? ' selected' : '') + '>Menunggu tinjauan</option><option value="rejected"' + (pub === 'rejected' ? ' selected' : '') + '>Ditolak</option><option value="draft"' + (pub === 'draft' ? ' selected' : '') + '>Draf</option></select></div>' +
     (shown.length ? '<table><thead><tr><th>Judul</th><th class="hm">Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="empty">' + (list.length ? 'Tidak ada yang cocok.' : 'Belum ada data.') + '</div>') + '</div>',
     '<a class="btn" data-nav href="#/' + key + '/new">+ Tambah</a>');
   var qi = $('#q'); qi.addEventListener('input', function () { clearTimeout(qi.__t); qi.__t = setTimeout(function () { viewList(key, qi.value, $('#flt') && $('#flt').value, $('#pubFilter').value); var n = $('#q'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); });
@@ -439,8 +528,31 @@ async function viewList(key, q, flt, pub) {
   $('#pubFilter').onchange = function () { viewList(key, $('#q').value, $('#flt') && $('#flt').value, this.value); };
   if ($('#mng')) $('#mng').onclick = function () { var m = Object.assign({}, S.set.managed || {}); m[key] = true; saveSet('managed', m).then(function () { toast('Pengelolaan diaktifkan.'); viewList(key); }).catch(function (e) { toast('Gagal mengaktifkan: ' + errMsg(e), 1); }); };
   $('.main').addEventListener('click', async function (e) {
-    var b = e.target.closest('[data-del],[data-dup],[data-pub],[data-mv]'); if (!b) return;
+    var b = e.target.closest('[data-del],[data-dup],[data-pub],[data-mv],[data-review]'); if (!b) return;
     try {
+      if (b.hasAttribute('data-review')) {
+        /* Tinjau tulisan penulis: setujui (terbit) atau kembalikan dengan catatan editor. */
+        if (!isAdmin() && S.me.role !== 'pengurus' && S.me.role !== 'editor') throw new Error('Hanya editor atau pengurus yang dapat meninjau artikel.');
+        var rv = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-review'); })[0];
+        if (!rv) return;
+        /* Alur eksplisit: putuskan dulu, baru minta catatan bila mengembalikan. */
+        var approve = confirm('OK = Setujui & terbitkan.\nBatal = Kembalikan ke penulis.\n\n' + (c.ti(rv.data) || '(tanpa judul)'));
+        var note = '';
+        if (!approve) {
+          note = prompt('Catatan untuk penulis (alasan dikembalikan):', '');
+          if (note === null) return;
+        } else if (!confirm('Konfirmasi terakhir: terbitkan artikel ini sekarang?')) { return; }
+        var nextData = Object.assign({}, rv.data || {});
+        nextData.tinjauan = approve ? 'disetujui' : 'ditolak';
+        nextData.catatan_editor = approve ? '' : note.slice(0, 500);
+        nextData.ditinjau_oleh = (S.user && S.user.email) || '';
+        nextData.ditinjau_pada = new Date().toISOString().slice(0, 10);
+        var rv2 = await sb.from('content_items').update({ data: nextData, published: !!approve }).eq('id', rv.id).select('id').single();
+        if (rv2.error) throw rv2.error;
+        toast(approve ? 'Artikel disetujui dan diterbitkan.' : 'Artikel dikembalikan ke penulis.');
+        viewList(key, $('#q') && $('#q').value, $('#flt') && $('#flt').value, $('#pubFilter') && $('#pubFilter').value);
+        return;
+      }
       if (b.hasAttribute('data-del')) { if (!isAdmin()) throw new Error('Hanya Super Admin yang dapat menghapus konten.'); if (!confirm('Hapus data ini? Tindakan ini tidak dapat dibatalkan.')) return; var r = await sb.from('content_items').delete().eq('id', b.getAttribute('data-del')); if (r.error) throw r.error; toast('Dihapus.'); }
       else if (b.hasAttribute('data-dup')) { var s = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-dup'); })[0]; var d = JSON.parse(JSON.stringify(s.data)); if (d.judul) d.judul += ' (salinan)'; if (key === 'berita') d.slug = await uniqueBeritaSlug(slugify(d.judul)); var mx = S.items[key].reduce(function (m, x) { return Math.max(m, x.sort); }, 0); var r2 = await sb.from('content_items').insert({ type: key, data: d, sort: mx + 10, published: false }).select('id').single(); if (r2.error) throw r2.error; toast('Disalin sebagai draf.'); }
       else if (b.hasAttribute('data-pub')) { var s2 = S.items[key].filter(function (x) { return x.id === b.getAttribute('data-pub'); })[0]; if (!isAdmin() && S.me.role !== 'pengurus' && S.me.role !== 'editor' && s2.created_by !== (S.user.email || '').toLowerCase()) throw new Error('Anda hanya dapat menerbitkan konten yang Anda buat.'); var r3 = await sb.from('content_items').update({ published: !s2.published }).eq('id', s2.id).select('id').single(); if (r3.error) throw r3.error; toast(s2.published ? 'Disembunyikan.' : 'Diterbitkan.'); }
@@ -455,7 +567,16 @@ async function viewEdit(key, id) {
      (README/chatlogs: 226.0.5) — the write is still verified by RLS, but the returned
      payload is only the primary key so large JSON / forbidden columns cannot cause a
      save failure that looks like a permission or missing-row error. */
-  var item = null; if (id !== 'new') { var r = await sb.from('content_items').select('*').eq('id', id).single(); if (r.error || !r.data || !(can(c, r.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita')) { toast('Data tidak ditemukan atau Anda tidak berhak mengubahnya.', 1); return location.hash = '#/' + key; } item = r.data; }
+  var item = null; if (id !== 'new') {
+    var r = await sb.from('content_items').select('*').eq('id', id).single();
+    var owned = r.data && String(r.data.created_by || '').toLowerCase() === String(S.user && S.user.email || '').toLowerCase();
+    if (r.error || !r.data || !(can(c, r.data) || isAdmin() || owned || (S.me.role === 'pengurus' && key === 'berita'))) {
+      toast('Data tidak ditemukan atau Anda tidak berhak mengubahnya.', 1); return location.hash = '#/' + key;
+    }
+    item = r.data;
+  }
+  /* FASE 10G: muat profil penulis agar pemilih penulis pada form artikel terisi. */
+  if (key === 'berita' && !(S.items && S.items.penulis)) { try { await loadItems('penulis'); } catch (e) { S.items = S.items || {}; S.items.penulis = []; } }
 
   var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita', penulis: (S.me && S.me.nama) || '' } : {}));
   if (item && !can(c, item.data)) return noAccess();
@@ -464,9 +585,28 @@ async function viewEdit(key, id) {
      Kotak centang dikunci agar percobaan tidak berujung galat dari server. */
   var pubLocked = S.me.role === 'jurnalis' && !pubDefault;
   var hint = (!item && S.me.role === 'jurnalis') ? '<div class="note">Penyerahan ke tinjauan: tulisan Jurnalis disimpan sebagai <b>draf</b> dan perlu ditinjau Pengurus sebelum terbit.</div>' : '';
-  var fields = c.F.map(function (f) { if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; } return f; });
+  /* FASE 10G: status tinjauan terlihat oleh penulis & editor. */
+  if (key === 'berita' && item) {
+    var _st = itemStatus(item), _note = String((item.data && item.data.catatan_editor) || '');
+    if (_st === 'review') hint += '<div class="note">Status: <b>menunggu tinjauan</b>. Artikel belum tampil di situs sampai disetujui editor.</div>';
+    else if (_st === 'rejected') hint += '<div class="note">Dikembalikan editor' + (_note ? ': <b>' + esc(_note) + '</b>' : '.') + ' Perbaiki lalu ajukan tinjauan kembali.</div>';
+    else if (_st === 'draft') hint += '<div class="note">Status: <b>draf</b>. Bila sudah siap, ajukan tinjauan agar editor dapat memeriksa sebelum terbit.</div>';
+  }
+  var fields = c.F.map(function (f) {
+    if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; }
+    /* Opsi penulis diambil dari profil penulis yang sudah dibuat. */
+    if (key === 'berita' && f.k === 'penulis') {
+      var fp = Object.assign({}, f), names = ((S.items && S.items.penulis) || []).map(function (x) { return String((x.data && x.data.judul) || '').trim(); }).filter(Boolean);
+      fp.o = ['Redaksi MWCNU Pondok Aren'].concat(names.filter(function (n, i, a) { return a.indexOf(n) === i; }));
+      fp.h = 'Pilih dari profil penulis (menu Profil Penulis). ' + (names.length ? names.length + ' profil tersedia.' : 'Belum ada profil penulis — buat di menu Penulis agar profil tampil di artikel.');
+      return fp;
+    }
+    return f;
+  });
   var fieldsHTML = key === 'berita' ? articleFormHTML(fields, data) : formHTML(fields, data);
-  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel ' + (key === 'berita' ? 'article-form' : '') + '" id="form" novalidate>' + fieldsHTML + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button><a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
+  /* Tombol ajukan tinjauan: hanya untuk yang tidak dapat menerbitkan sendiri (penulis). */
+  var canSubmitReview = key === 'berita' && pubLocked;
+  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel ' + (key === 'berita' ? 'article-form' : '') + '" id="form" novalidate>' + fieldsHTML + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button>' + (canSubmitReview ? '<button class="btn o" id="submitReview" type="button">Simpan &amp; ajukan tinjauan</button>' : '') + '<a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
   var form = $('#form'); form.__F = fields; bindForm(form);
   if (key === 'berita') {
     initArticleEditor(form);
@@ -484,17 +624,26 @@ async function viewEdit(key, id) {
       field.addEventListener('input', updateCount); updateCount();
     });
   }
+  if (canSubmitReview) {
+    var reviewBtn = $('#submitReview');
+    if (reviewBtn) reviewBtn.addEventListener('click', function () { form.__submitReview = true; if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { cancelable: true })); form.__submitReview = false; });
+  }
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); var d = readForm(form, fields), categoryField = key === 'berita' && fields.filter(function (f) { return f.k === 'kategori'; })[0];
     var categoryAllowed = key !== 'berita' || (!!d.kategori && (S.me.role !== 'jurnalis' || categoryField.o.indexOf(d.kategori) >= 0));
     if (!can(c, d) || !categoryAllowed) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
     var btn = $('#save'); btn.disabled = true; var pub = $('#pub').checked, r2, slugNote = '';
+    /* FASE 10G: kirim ke tinjauan bila tombol ajukan dipakai. */
+    if (key === 'berita' && form.__submitReview) { d.tinjauan = 'diajukan'; d.catatan_editor = ''; pub = false; }
     try {
       if (key === 'berita') {
         /* Slug: pertahankan slug tersimpan, buat dari judul bila kosong, lalu pastikan unik. */
         var wantedSlug = slugify(d.slug || (item && item.data && item.data.slug) || d.judul);
         d.slug = await uniqueBeritaSlug(wantedSlug, item ? item.id : null);
         if (d.slug !== wantedSlug) slugNote = 'Slug disesuaikan menjadi ' + d.slug + ' karena sudah dipakai berita lain.';
+        /* Hubungkan artikel ke profil penulis (bila namanya cocok dengan profil). */
+        var _pw = penulisProfileByName(d.penulis);
+        d.penulis_id = _pw ? _pw.id : '';
       }
       /* Kembalikan hanya kunci utama: hindari payload JSON besar, tetapi
          .single() tetap mendeteksi bila RLS tidak mengizinkan baris tersimpan
