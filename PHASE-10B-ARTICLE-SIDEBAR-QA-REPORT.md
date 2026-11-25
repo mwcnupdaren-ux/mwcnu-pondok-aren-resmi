@@ -60,6 +60,14 @@ Detail diagnosis kasus 1: `index.html` menaruh 8 blok beranda (`.ho`) di depan `
 
 Jalur klik yang diuji dengan browser nyata (klik sungguhan, bukan simulasi): kartu utama homepage, kartu samping homepage, kartu `#berita`, dan sidebar `#arSide` → semuanya berpindah ke `/berita/<slug>` dengan `ho tampil = 0` dan 5 item sidebar.
 
+**5e. Fase 10F — Notifikasi "Perubahan belum disimpan" muncul setelah simpan berhasil**
+
+| Aspek | Temuan | Perbaikan | Bukti (A/B browser nyata) |
+|---|---|---|---|
+| Akar masalah | `viewEdit()` menyimpan baris ke Supabase lalu langsung `location.hash = '#/' + key` dengan `S.dirty` masih `true`, sehingga guard `route()`/`hashchange` menampilkan konfirmasi "Perubahan belum disimpan" padahal data sudah tertulis. | `S.dirty = false` dan `routeGuardSkip = true` di-set **sebelum** pindah halaman (pola sama dengan `admin/direktori.js`). Jika hash tujuan sama dengan hash sekarang, daftar dirender ulang di tempat. | Sebelum: dialog muncul saat simpan (langkah 3). Sesudah: simpan → pindah ke `#/berita` tanpa dialog. |
+| Guard tetap berfungsi | — | Tidak dilonggarkan. | Sesudah perbaikan, edit yang **belum** disimpan lalu pindah halaman tetap memunculkan dialog. |
+| Metode uji | — | Uji end-to-end di halaman `admin/` nyata dengan `window.__SB__` di-mock (tanpa menyentuh Supabase produksi). | Urutan terukur: `1-load dirty=false` → `2-typed dirty=true` → `3-saved hash=#/berita, tanpa dialog` → `4-typed-again dirty=true` → `5-nav-away dialog muncul`. |
+
 **Risiko dan Catatan**
 
 - Error console yang teramati **bukan** akibat perubahan ini (berasal dari lingkungan lokal):
