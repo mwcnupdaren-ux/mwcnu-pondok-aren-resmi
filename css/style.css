@@ -6544,6 +6544,9 @@ html:not([data-theme="dark"]) #kontak .contact-aside{background:#0C3B2B!importan
 }
 
 html.js-rv #majelis .rv,html.js-rv #konsultasi .rv,html.js-rv #kontak .rv{opacity:1!important;transform:none!important;filter:none!important;transition:none!important;will-change:auto!important}
+/* FASE 10E: konten artikel harus selalu terlihat. Reveal observer dipakai untuk
+   blok beranda; isi bacaan (#baca) tidak boleh tertinggal transparan. */
+html.js-rv #baca .rv,html.js-rv #baca .rv:not(.in){opacity:1!important;transform:none!important;filter:none!important;transition:none!important;will-change:auto!important}
 #kontak .pg-head-actions{display:none}
 #kontak .wrap>.back{margin-bottom:18px}
 

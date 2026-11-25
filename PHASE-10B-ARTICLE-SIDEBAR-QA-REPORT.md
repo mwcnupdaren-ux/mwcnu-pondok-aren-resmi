@@ -51,6 +51,15 @@
 
 Detail diagnosis kasus 1: `index.html` menaruh 8 blok beranda (`.ho`) di depan `#baca`; `index.html` dirender utuh oleh `api/article-meta.js`, sehingga crawler dan pembaca tanpa JS melihat hero beranda + hero artikel sekaligus. Perbaikan dilakukan di server (bukan hanya CSS) agar tidak bergantung pada JS.
 
+**5d. Fase 10E — Kartu berita homepage tidak bisa diklik**
+
+| Kasus | Akar masalah (terbukti) | Perbaikan | Bukti |
+|---|---|---|---|
+| Kartu berita di homepage tidak merespons klik | `put()`/`cleanHTML()` menyaring `href`: hanya `#`, `http(s)://`, `mailto:`, `tel:` yang lolos. Semua kartu memakai `href="/berita/<slug>"`, sehingga atribut `href` **dibuang** dan kartu menjadi tak bertautan. | `js/app.js`: aturan `href` kini menerima path internal absolut `/(?!/)` (plus tolak `\\` dan karakter kontrol). `javascript:`, `data:`, `//evil.test` tetap ditolak. | Sebelum: klik kartu → `TimeoutError`, URL tetap `/`. Sesudah: klik kartu utama & kartu samping → `/berita/<slug>` dengan H1 benar. |
+| (Ditemukan saat uji) halaman artikel tampak kosong setelah klik | `rev()` memberi kelas `.rv` ke `.ar-grid` (opacity 0, translateY) tetapi observer tidak pernah melaporkan irisan setelah rute aktif, sehingga isi artikel tertinggal transparan. | `rev()` melewati elemen `.closest('#baca')`; ditambah aturan CSS pengaman `html.js-rv #baca .rv` → `opacity:1; transform:none`. | Sesudah: `.ar-grid` `opacity: 1`, artikel + sidebar terlihat pada screenshot; 4 jalur klik lulus tanpa `pageerror`. |
+
+Jalur klik yang diuji dengan browser nyata (klik sungguhan, bukan simulasi): kartu utama homepage, kartu samping homepage, kartu `#berita`, dan sidebar `#arSide` → semuanya berpindah ke `/berita/<slug>` dengan `ho tampil = 0` dan 5 item sidebar.
+
 **Risiko dan Catatan**
 
 - Error console yang teramati **bukan** akibat perubahan ini (berasal dari lingkungan lokal):
