@@ -62,7 +62,19 @@ module.exports = async (req,res) => {
 
   let html = '';
   try { html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8'); } catch (e) { html = ''; }
-  html = html ? html.replace(/<section id="baca"[\s\S]*?<\/section>/, articleSection) : `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>${esc(title)} | MWCNU Pondok Aren</title></head><body><main>${articleSection}</main></body></html>`;
+  html = html ? html.replace(/<section id="baca"[\s\S]*?<\/section>/, () => articleSection) : `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>${esc(title)} | MWCNU Pondok Aren</title></head><body><main>${articleSection}</main></body></html>`;
+  /* FASE 10D: halaman artikel tidak boleh menampilkan blok beranda (.ho).
+     js/app.js menyembunyikannya lewat route(), tetapi pembaca tanpa JS dan
+     crawler melihat hero beranda + hero artikel sekaligus (hero terlihat dobel).
+     Semua .ho di luar bagian artikel diberi atribut hidden di HTML server. */
+  {
+    const sectionStart = html.indexOf(articleSection);
+    const head = sectionStart < 0 ? html : html.slice(0, sectionStart);
+    const tailStart = sectionStart < 0 ? html.length : sectionStart + articleSection.length;
+    const tail = sectionStart < 0 ? '' : html.slice(tailStart);
+    const hideHo = (part) => part.replace(/<(section|div|article|aside)((?=[^>]*class="[^"]*\bho\b)[^>]*)>/g, (m, tag, attrs) => (/(^|\s)hidden(\s|=|$)/.test(attrs) ? m : `<${tag}${attrs} hidden>`));
+    html = hideHo(head) + (sectionStart < 0 ? '' : articleSection) + hideHo(tail);
+  }
   html = html.replace(/<title>.*?<\/title>/, `<title>${esc(title)} | MWCNU Pondok Aren</title>`);
   html = html.replace(/<meta name="description" content=".*?">/, `<meta name="description" content="${esc(desc)}">`);
   html = html.replace(/<link rel="canonical" href=".*?">/, `<link rel="canonical" href="${esc(canonical)}">`);

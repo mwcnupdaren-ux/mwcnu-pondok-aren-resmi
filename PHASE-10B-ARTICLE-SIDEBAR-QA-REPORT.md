@@ -42,7 +42,16 @@
 | Metadata halaman artikel (SSR) | Lulus | `<title>` spesifik, `canonical` `/berita/<slug>` |
 | Screenshot visual desktop & mobile | Lulus | header/topbar tampil, artikel + sidebar rapi; foto ke-1, ke-3, ke-4 blok "Foto kegiatan" 404 di lingkungan lokal |
 
-**5. Risiko dan Catatan**
+**5c. Fase 10D — Dua kasus yang dilaporkan pengguna**
+
+| Kasus | Kondisi sebelum | Status | Perbaikan / bukti |
+|---|---|---|---|
+| Hero section terlihat dobel pada halaman artikel | **Belum diperbaiki.** HTML SSR artikel masih memuat 9 elemen `.ho` (hero beranda + blok beranda), hanya 1 yang `hidden`. `js/app.js` menyembunyikannya lewat `route()`, jadi tanpa JS/crawler/SSR-hero terlihat dobel. | **Diperbaiki** | `api/article-meta.js`: semua elemen `.ho` di luar bagian artikel diberi `hidden` di HTML server. Verifikasi: `ho tampil = 0` pada artikel; beranda tetap normal (9 `.ho`, 1 `hidden` dari markup). |
+| Share link menampilkan thumbnail hero beranda | **Sudah benar.** `og:image`, `og:image:secure_url`, `twitter:image` sudah memakai foto artikel (`/media/berita/...`), bukan `/media/hero/...`. | **Tidak perlu diubah** | Diuji pada 3 artikel: jenis gambar = `FOTO ARTIKEL`, `twitter:image` identik dengan `og:image`. Catatan: crawler (WhatsApp/Facebook) menyimpan cache preview lama — perlu di-refresh di sisi platform agar thumbnail lama hilang. |
+
+Detail diagnosis kasus 1: `index.html` menaruh 8 blok beranda (`.ho`) di depan `#baca`; `index.html` dirender utuh oleh `api/article-meta.js`, sehingga crawler dan pembaca tanpa JS melihat hero beranda + hero artikel sekaligus. Perbaikan dilakukan di server (bukan hanya CSS) agar tidak bergantung pada JS.
+
+**Risiko dan Catatan**
 
 - Error console yang teramati **bukan** akibat perubahan ini (berasal dari lingkungan lokal):
   - `consultation-public` CORS/`ERR_FAILED` karena origin `localhost:4174` tidak diizinkan (config produksi).
@@ -71,4 +80,5 @@
 **Tindakan lanjutan**
 
 1. Verifikasi produksi setelah deployment: `og:*`/`twitter:*` artikel, sidebar SSR, dan layout mobile.
+2. Setelah deploy, minta platform (WhatsApp/Facebook) me-refresh cache preview untuk artikel yang thumbnail-nya masih hero beranda.
 2. Hapus/rapikan referensi `img-1a2f09f7.webp` di data CMS (`foto_tambahan` artikel Halal Bi Halal) melalui dashboard admin agar data sumber ikut bersih (perubahan data produksi memerlukan otorisasi terpisah).
