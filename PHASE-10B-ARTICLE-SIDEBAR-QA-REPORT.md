@@ -99,10 +99,11 @@ Desain 10G (profil sebagai konten `type=penulis`) diganti karena RLS-nya tidak m
 | Pemeriksaan | Hasil |
 |---|---|
 | `select` anon ke `author_profiles` | HTTP 200, 0 baris (belum ada profil) |
-| `insert` anon ke `author_profiles` | Ditolak — `42501 new row violates row-level security policy` |
+| `insert` anon ke `author_profiles` | Ditolak — `42501 permission denied for table` |
 | `is_staff()` anon | `false` |
-| Query persis `content.js` (`published=eq.true&order=nama.asc`) | HTTP 200 |
-| Anon meminta kolom `email` | Ditolak (setelah perbaikan grant) |
+| Query persis `content.js` | HTTP 200 |
+| Filter `published=eq.true` (anon) | HTTP 200 (setelah kolom `published` ikut di-grant) |
+| Anon meminta kolom `email` | **401** — `42501`, email tidak dapat dibaca publik |
 
 **Langkah kecil yang masih tersisa:** jalankan ulang `supabase/schema.sql` (hanya blok grant `anon` pada bagian **7** yang berubah). Tanpa itu, publik **tidak bisa membaca profil penulis** (HTTP 401 `permission denied`) sehingga kartu penulis tidak akan muncul.
 
@@ -123,6 +124,19 @@ Dua perbaikan:
 2. `supabase/schema.sql` menambahkan `published` ke grant kolom anon, sehingga filter itu tetap sah bila kelak dipakai lagi. Kolom ini hanya menandai status tampil, bukan data pribadi.
 
 Pelajaran yang dicatat di skema: **grant per-kolom harus mencakup kolom yang dipakai `WHERE`/`ORDER BY`**, bukan hanya kolom yang ditampilkan.
+
+**Status akhir setelah skema final dijalankan (diverifikasi langsung ke produksi):**
+
+| Uji | Hasil |
+|---|---|
+| Query situs (`order=nama`, kolom tampilan) | 200 |
+| Filter `published=eq.true` oleh anon | 200 |
+| Kolom `email` oleh anon | 401 `42501` |
+| `insert` oleh anon | 401 `42501` |
+| `is_staff()` sebagai anon | `false` |
+| `can_review()` sebagai anon | `null` (bukan true) |
+
+Kesimpulan: publik dapat membaca profil yang terbit saja, tanpa akses ke email maupun hak tulis. Fitur profil penulis siap dipakai.
 
 **Tindakan manual yang tersisa (izin terpisah, belum dilakukan):** jalankan `supabase/schema.sql` versi baru di SQL Editor agar tabel `author_profiles` + RLS-nya ada, lalu penulis membuka `/admin` → **Profil Saya**.
 
