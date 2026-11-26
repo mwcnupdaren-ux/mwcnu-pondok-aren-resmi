@@ -296,11 +296,12 @@ grant select, insert, update, delete on public.site_settings, public.content_ite
 grant select, insert, update, delete on public.staff to authenticated;
 grant select on public.change_log to authenticated;
 grant usage, select on sequence public.change_log_id_seq to authenticated;
-grant select on public.author_profiles to anon;
 grant select, insert, update, delete on public.author_profiles to authenticated;
 /* Privasi: publik hanya boleh membaca kolom yang tampil di situs.
    Email (identitas akun) dan kolom internal tidak boleh dibaca anon,
-   karena RLS membatasi baris — bukan kolom. */
+   karena RLS membatasi baris — bukan kolom.
+   Urutan penting: grant tabel penuh untuk anon harus dicabut DULU, karena
+   GRANT SELECT (kolom) setelahnya TIDAK menghapus hak tabel penuh. */
 revoke select on public.author_profiles from anon;
 grant select (id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak) on public.author_profiles to anon;
 
