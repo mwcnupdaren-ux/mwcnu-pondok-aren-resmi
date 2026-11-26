@@ -92,6 +92,19 @@ Desain 10G (profil sebagai konten `type=penulis`) diganti karena RLS-nya tidak m
 | Artikel | Dropdown penulis kini berisi profil (`penulis_id`), bukan nama bebas. Menyimpan artikel mengisi `data.penulis_id` + `data.penulis` dari profil. | Uji: pilih “Nyai Siti Aminah” → payload `penulis_id: ap2`, `penulis: Nyai Siti Aminah`. |
 | Publik | `content.js` mengambil `author_profiles?published=eq.true`; `app.js` membentuk `PENULIS` dari `MW.authors()` dan merender kartu penulis. | Integrasi `content.js`+`app.js` asli: **11/11** pemeriksaan lulus (nama, bidang, pendidikan, 2 butir pengalaman, bio, kontak, byline). |
 | Koleksi `type=penulis` di CMS | Dihapus dari `COLS` admin dan `can_edit` agar tidak ada dua sumber kebenaran. | `can_edit` kembali ke daftar semula (skema perlu dijalankan ulang untuk mencabut izin `penulis`). |
+| Privasi kolom (diperbaiki setelah skema dijalankan) | `grant select` ke `anon` berlaku untuk **semua kolom**, sedangkan RLS hanya membatasi baris. Akibatnya kunci anon bisa meminta `email` penulis. Kini anon hanya mendapat select kolom tampilan (`id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak`); `email` dan kolom internal hanya untuk `authenticated`. | Uji produksi: `GET /author_profiles?select=email` dengan anon key → **401 permission denied**. Query yang dipakai situs (hanya kolom tampilan) tetap 200. |
+
+**Verifikasi langsung ke database produksi (read-only, setelah skema dijalankan):**
+
+| Pemeriksaan | Hasil |
+|---|---|
+| `select` anon ke `author_profiles` | HTTP 200, 0 baris (belum ada profil) |
+| `insert` anon ke `author_profiles` | Ditolak — `42501 new row violates row-level security policy` |
+| `is_staff()` anon | `false` |
+| Query persis `content.js` (`published=eq.true&order=nama.asc`) | HTTP 200 |
+| Anon meminta kolom `email` | Ditolak (setelah perbaikan grant) |
+
+**Langkah kecil yang masih tersisa:** jalankan ulang `supabase/schema.sql` (hanya 5 baris terakhir berubah: `revoke select ... from anon` + `grant select (kolom)`). Tanpa itu, tabel tetap berfungsi tetapi kolom `email` masih dapat diminta lewat anon key. Data tidak berubah sama sekali.
 
 **Tindakan manual yang tersisa (izin terpisah, belum dilakukan):** jalankan `supabase/schema.sql` versi baru di SQL Editor agar tabel `author_profiles` + RLS-nya ada, lalu penulis membuka `/admin` → **Profil Saya**.
 
