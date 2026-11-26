@@ -301,9 +301,14 @@ grant select, insert, update, delete on public.author_profiles to authenticated;
    Email (identitas akun) dan kolom internal tidak boleh dibaca anon,
    karena RLS membatasi baris — bukan kolom.
    Urutan penting: grant tabel penuh untuk anon harus dicabut DULU, karena
-   GRANT SELECT (kolom) setelahnya TIDAK menghapus hak tabel penuh. */
+   GRANT SELECT (kolom) setelahnya TIDAK menghapus hak tabel penuh.
+   Kolom `published` WAJIB ikut di-grant: query publik memakai filter
+   `published=eq.true`, dan PostgREST menolak (42501) bila kolom yang dipakai
+   di WHERE tidak memiliki hak select. Membaca kolom ini tidak membocorkan
+   data pribadi; RLS tetap membatasi barisnya. */
 revoke select on public.author_profiles from anon;
-grant select (id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak) on public.author_profiles to anon;
+grant select (id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak, published)
+  on public.author_profiles to anon;
 
 -- 8) PENYIMPANAN FOTO (bucket publik "media") ---------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
