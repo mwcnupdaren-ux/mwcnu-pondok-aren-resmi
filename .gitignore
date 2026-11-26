@@ -29,6 +29,8 @@ dev.log
 _qa-*
 _qa-*.png
 .audit/
+# Skrip & tangkapan sementara selama pengujian (lokal saja)
+.tmp-*
 
 # Supabase CLI temp (dibuat oleh `supabase link`)
 supabase/.temp/
