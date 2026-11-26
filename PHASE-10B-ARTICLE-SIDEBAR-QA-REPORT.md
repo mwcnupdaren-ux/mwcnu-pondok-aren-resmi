@@ -138,6 +138,14 @@ Pelajaran yang dicatat di skema: **grant per-kolom harus mencakup kolom yang dip
 
 Kesimpulan: publik dapat membaca profil yang terbit saja, tanpa akses ke email maupun hak tulis. Fitur profil penulis siap dipakai.
 
+**5h. Fase 10I — Hook berita mengikuti berita terbaru + byline "Admin"**
+
+| Aspek | Temuan | Perbaikan | Bukti |
+|---|---|---|---|
+| Hook/daftar berita tidak mengikuti terbaru | `drawN()` mengurutkan tanggal **lalu ada blok yang memaksa satu artikel `featured` ke posisi pertama** (`curN.unshift(_f)`), sehingga urutan kembali melenceng. Di data produksi 13 dari 15 artikel bertanda `featured`, jadi hampir semua bisa tampil di depan. | Blok pengangkatan featured dihapus. Urutan murni tanggal terbaru; `featured` hanya memecah seri tanggal. Hook `renderRouteNews` juga diurutkan tanggal desc (kategori aktif tetap diutamakan). | A/B dari sumber: sebelum → `curN.unshift(_f)` ada; sesudah → tidak ada. Data produksi: hook = 3 berita terbaru (26 Nov, 22 Nov, 20 Nov), daftar urut menurun. |
+| Byline "Admin" tampil di publik | 4 artikel terbit ber-`penulis: "Admin"`. | `bylineOf()`: pakai nama profil bila artikel tertaut, dan tampilkan "Redaksi MWCNU Pondok Aren" untuk nilai `Admin`/kosong. **Data CMS tidak diubah.** | Uji render 4 artikel tersebut dengan data produksi: byline tidak lagi "Admin". |
+| Penautan artikel lama | Belum ada satu pun profil penulis di `author_profiles`, jadi belum ada yang bisa ditautkan. | Disiapkan `supabase/migrasi-profil-penulis.sql` (idempoten, tidak menghapus apa pun) untuk **Anda review dan jalankan sendiri**: membuat profil Redaksi dan menautkan artikel yang belum punya `penulis_id`. | Belum dijalankan — menunggu persetujuan karena mengubah data live. |
+
 **Tindakan manual yang tersisa (izin terpisah, belum dilakukan):** jalankan `supabase/schema.sql` versi baru di SQL Editor agar tabel `author_profiles` + RLS-nya ada, lalu penulis membuka `/admin` → **Profil Saya**.
 
 **Risiko dan Catatan**
