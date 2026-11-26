@@ -298,6 +298,11 @@ grant select on public.change_log to authenticated;
 grant usage, select on sequence public.change_log_id_seq to authenticated;
 grant select on public.author_profiles to anon;
 grant select, insert, update, delete on public.author_profiles to authenticated;
+/* Privasi: publik hanya boleh membaca kolom yang tampil di situs.
+   Email (identitas akun) dan kolom internal tidak boleh dibaca anon,
+   karena RLS membatasi baris — bukan kolom. */
+revoke select on public.author_profiles from anon;
+grant select (id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak) on public.author_profiles to anon;
 
 -- 8) PENYIMPANAN FOTO (bucket publik "media") ---------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
