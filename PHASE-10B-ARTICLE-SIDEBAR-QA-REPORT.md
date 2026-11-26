@@ -104,7 +104,17 @@ Desain 10G (profil sebagai konten `type=penulis`) diganti karena RLS-nya tidak m
 | Query persis `content.js` (`published=eq.true&order=nama.asc`) | HTTP 200 |
 | Anon meminta kolom `email` | Ditolak (setelah perbaikan grant) |
 
-**Langkah kecil yang masih tersisa:** jalankan ulang `supabase/schema.sql` (hanya 5 baris terakhir berubah: `revoke select ... from anon` + `grant select (kolom)`). Tanpa itu, tabel tetap berfungsi tetapi kolom `email` masih dapat diminta lewat anon key. Data tidak berubah sama sekali.
+**Langkah kecil yang masih tersisa:** jalankan ulang `supabase/schema.sql` (hanya blok grant `anon` pada bagian **7** yang berubah). Tanpa itu, publik **tidak bisa membaca profil penulis** (HTTP 401 `permission denied`) sehingga kartu penulis tidak akan muncul.
+
+**Koreksi 10H-1 (penting, ditemukan lewat verifikasi produksi):** versi pertama menaruh `grant select on public.author_profiles to anon` lalu `revoke select ... from anon`. Di PostgreSQL, `GRANT SELECT (kolom)` **tidak** menghapus hak tabel penuh, dan `REVOKE select` mencabut **semua** hak `select` — termasuk yang per-kolom. Hasilnya anon tidak bisa membaca apa pun (401). Urutan benar: **cabut dulu hak tabel penuh, lalu beri grant per-kolom.** Blok final:
+
+```sql
+revoke select on public.author_profiles from anon;
+grant select (id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak)
+  on public.author_profiles to anon;
+```
+
+Setelah dijalankan ulang, harapan yang harus terpenuhi: query situs → **200**, permintaan kolom `email` → **401**.
 
 **Tindakan manual yang tersisa (izin terpisah, belum dilakukan):** jalankan `supabase/schema.sql` versi baru di SQL Editor agar tabel `author_profiles` + RLS-nya ada, lalu penulis membuka `/admin` → **Profil Saya**.
 
