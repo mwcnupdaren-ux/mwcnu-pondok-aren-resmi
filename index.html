@@ -30,7 +30,33 @@
 <meta name="twitter:description" content="Portal resmi Majelis Wakil Cabang Nahdlatul Ulama (MWCNU) Kecamatan Pondok Aren, Kota Tangerang Selatan: pengurus, agenda, kabar, galeri, layanan, dan ranting.">
 <meta name="twitter:image" content="https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/hero/2026/mwkj0e742sr6.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://wvfcifqolohfipvepxss.supabase.co" crossorigin>
+<!-- Hero awal: gambar cadangan resmi agar latar hero tidak kosong saat data CMS
+     masih dimuat. app.js menimpa variabel ini dengan cover terbaru dari CMS. -->
+<link rel="preload" as="image" href="https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/hero/2026/mwkj0e742sr6.webp" media="(min-width:901px)" fetchpriority="high">
+<link rel="preload" as="image" href="https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/hero/2026/mwkizgtfve0b.webp" media="(max-width:900px)" fetchpriority="high">
 <link rel="stylesheet" href="/css/style.css?v=79">
+<script>
+/* Latar hero dipasang sebelum paint pertama. Cache CMS dipakai bila ada;
+   jika belum ada, gambar cadangan di atas yang tampil. Data CMS tetap
+   menjadi sumber utama karena app.js memperbarui variabel yang sama. */
+(function () {
+  var d = 'https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/hero/2026/mwkj0e742sr6.webp';
+  var m = 'https://wvfcifqolohfipvepxss.supabase.co/storage/v1/object/public/media/hero/2026/mwkizgtfve0b.webp';
+  function ok(u) { return typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(u); }
+  try {
+    var c = JSON.parse(localStorage.getItem('mwc_data') || 'null');
+    var h = c && c.set && c.set.hero;
+    if (h) {
+      if (ok(h.cover_desktop)) d = h.cover_desktop;
+      if (ok(h.cover_mobile)) m = h.cover_mobile;
+    }
+  } catch (e) {}
+  var r = document.documentElement;
+  r.style.setProperty('--hcover-des', 'url("' + d + '")');
+  r.style.setProperty('--hcover-mob', 'url("' + m + '")');
+})();
+</script>
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 </head>
 <body spellcheck="false">
@@ -566,7 +592,7 @@
 <script src="/js/vendor/qrcode.js?v=20"></script>
 <script src="/js/config.js?v=22"></script>
 <script src="/js/direktori.js?v=3"></script>
-<script src="/js/content.js?v=46"></script>
+<script src="/js/content.js?v=47"></script>
 <script src="/js/konsultasi.js?v=1"></script>
 <div id="gSearch" hidden role="dialog" aria-modal="true" aria-label="Cari dalam situs">
 <div class="gs-back" id="gsBack"></div>
