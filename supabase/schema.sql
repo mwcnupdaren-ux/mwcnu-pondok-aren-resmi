@@ -81,13 +81,51 @@ alter table public.content_items add column if not exists created_by text;
 alter table public.content_items add column if not exists updated_by text;
 create index if not exists content_items_type_sort on public.content_items (type, sort, created_at);
 
--- 3b) PROFIL PENULIS -----------------------------------------------------
--- Profil publik penulis artikel: nama pena/nama lengkap, pendidikan, bidang,
--- dan pengalaman mengajar/bekerja. Disimpan sebagai jenis konten 'penulis'
--- agar memakai RLS, riwayat perubahan, dan alur draf yang sama dengan konten
--- lain. Artikel merujuknya lewat data.penulis_id (uuid) dan/atau data.penulis.
--- Publik hanya membaca baris yang published = true.
-comment on table public.content_items is 'Konten CMS. type=penulis menyimpan profil penulis artikel (judul=nama, ringkasan=bio, info=pendidikan/bidang/pengalaman).';
+-- 3b) PROFIL PENULIS (tabel tersendiri) --------------------------------
+-- Identitas penulis disimpan di tabel sendiri, bukan sebagai konten JSON.
+-- Alasan: satu akun hanya boleh punya satu profil (dijamin unique index),
+-- dan aturan "hanya pemilik yang boleh mengubah" bisa ditegakkan tepat.
+-- Artikel menautkan profil lewat content_items.data.penulis_id (uuid).
+create table if not exists public.author_profiles (
+  id          uuid primary key default gen_random_uuid(),
+  email       text not null unique check (email = lower(email)),
+  nama        text not null default '',
+  foto        text not null default '',
+  bidang      text not null default '',
+  pendidikan  text not null default '',
+  pengalaman  text not null default '',   -- satu baris satu butir
+  bio         text not null default '',
+  kontak      text not null default '',
+  published   boolean not null default false,  -- hanya true yang tampil publik
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+comment on table public.author_profiles is 'Profil publik penulis artikel. Satu baris per akun staf. Hanya published=true yang boleh dibaca publik.';
+
+-- Penulisan profil tidak boleh mengubah status terbit sendiri (kecuali pengurus).
+create or replace function public.guard_author_publish() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    if new.published and not public.can_review('berita') then new.published := false; end if;
+    return new;
+  end if;
+  if new.published is distinct from old.published and not public.can_review('berita') then
+    new.published := old.published;
+  end if;
+  return new;
+end $$;
+create or replace function public.touch_author() returns trigger
+language plpgsql as $$ begin new.updated_at := now(); return new; end $$;
+drop trigger if exists trg_author_publish on public.author_profiles;
+create trigger trg_author_publish before insert or update on public.author_profiles
+  for each row execute function public.guard_author_publish();
+drop trigger if exists trg_author_touch on public.author_profiles;
+create trigger trg_author_touch before insert or update on public.author_profiles
+  for each row execute function public.touch_author();
+
+-- 3c) KONTAK PENULIS DI ARTIKEL ------------------------------------------
+comment on table public.content_items is 'Konten CMS. Artikel menautkan profil penulis lewat data.penulis_id -> author_profiles.id.';
 
 -- 4) RIWAYAT PERUBAHAN --------------------------------------------------
 create table if not exists public.change_log (
@@ -171,6 +209,7 @@ create trigger trg_last_admin before update or delete on public.staff for each r
 alter table public.staff          enable row level security;
 alter table public.site_settings  enable row level security;
 alter table public.content_items  enable row level security;
+alter table public.author_profiles enable row level security;
 alter table public.change_log     enable row level security;
 
 drop policy if exists staff_read on public.staff;
@@ -232,13 +271,33 @@ create policy items_delete on public.content_items for delete to authenticated
 drop policy if exists log_read on public.change_log;
 create policy log_read on public.change_log for select to authenticated using (public.is_admin());
 
+-- RLS profil penulis: publik hanya melihat yang terbit; staf hanya barisnya sendiri.
+drop policy if exists author_read on public.author_profiles;
+create policy author_read on public.author_profiles for select to anon, authenticated
+  using (published or email = lower(coalesce(auth.jwt() ->> 'email','')) or public.can_review('berita'));
+
+drop policy if exists author_insert_self on public.author_profiles;
+create policy author_insert_self on public.author_profiles for insert to authenticated
+  with check (public.is_staff() and email = lower(coalesce(auth.jwt() ->> 'email','')));
+
+drop policy if exists author_update_self on public.author_profiles;
+create policy author_update_self on public.author_profiles for update to authenticated
+  using (email = lower(coalesce(auth.jwt() ->> 'email','')) or public.is_admin())
+  with check (email = lower(coalesce(auth.jwt() ->> 'email','')) or public.is_admin());
+
+drop policy if exists author_delete on public.author_profiles;
+create policy author_delete on public.author_profiles for delete to authenticated
+  using (public.is_admin());
+
 -- 7) HAK AKSES TABEL ----------------------------------------------------
-revoke all on public.staff, public.site_settings, public.content_items, public.change_log from anon, authenticated;
+revoke all on public.staff, public.site_settings, public.content_items, public.change_log, public.author_profiles from anon, authenticated;
 grant select on public.site_settings, public.content_items to anon;
 grant select, insert, update, delete on public.site_settings, public.content_items to authenticated;
 grant select, insert, update, delete on public.staff to authenticated;
 grant select on public.change_log to authenticated;
 grant usage, select on sequence public.change_log_id_seq to authenticated;
+grant select on public.author_profiles to anon;
+grant select, insert, update, delete on public.author_profiles to authenticated;
 
 -- 8) PENYIMPANAN FOTO (bucket publik "media") ---------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

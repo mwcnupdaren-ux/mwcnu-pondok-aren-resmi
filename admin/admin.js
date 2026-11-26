@@ -48,14 +48,6 @@ var COLS = {
   T('nama','Nama majelis',{req:1}), T('asuh','Pengasuh / ustadz'), T('hari','Hari',{t:'select',o:HARI}), T('jam','Jam',{h:'Contoh: 19.30'}), T('tempat','Tempat'), T('ranting','Ranting / kelurahan',{t:'select',o:RT}), T('hp','Nomor HP kontak',{h:'Contoh: 0812xxxxxxx'})] },
  tanya_jawab: { l: 'Tanya Jawab Agama', g: 'Konten', e: 'ustadz', ti: function (d) { return d.q; }, su: function (d) { return d.k || ''; }, F: [
   T('k','Topik',{t:'select',o:TOPIK,req:1}), T('q','Pertanyaan',{t:'area',req:1}), T('a','Jawaban',{t:'rich',req:1,h:'Jawaban sebaiknya sudah ditinjau pengurus yang berwenang.'})] },
- penulis: { l: 'Profil Penulis', g: 'Konten', e: 'pengurus', ti: function (d) { return d.judul; }, su: function (d) { return [d.bidang, d.pendidikan].filter(Boolean).join(' · '); }, F: [
-  T('judul','Nama penulis',{req:1,h:'Tampil sebagai nama penulis pada artikel, mis. Ust. Ahmad Fauzi, S.Pd.'}),
-  T('foto','Foto penulis',{t:'image',f:'penulis'}),
-  T('bidang','Bidang',{h:'Contoh: Pendidikan Agama Islam, Dakwah, Jurnalistik.'}),
-  T('pendidikan','Pendidikan',{h:'Contoh: S1 Pendidikan Agama Islam, UIN Syarif Hidayatullah Jakarta.'}),
-  T('pengalaman','Pengalaman mengajar / bekerja',{t:'area',h:'Satu baris satu pengalaman. Contoh: Guru PAI SMP Negeri 5 Tangsel (2015–sekarang).'}),
-  T('ringkasan','Profil singkat',{t:'area',h:'Satu sampai dua kalimat yang tampil di bawah nama penulis pada artikel.'}),
-  T('kontak','Kontak publik (opsional)',{h:'Email atau nomor yang boleh dipublikasikan. Kosongkan bila tidak untuk publik.'})] },
  layanan: { l: 'Program & Layanan', g: 'Beranda', e: 'admin', filter: null, ti: function (d) { return d.judul; }, su: function (d) { return (d.tampil === false ? 'Disembunyikan · ' : '') + [d.keterangan, d.tautan].filter(Boolean).join(' · '); }, F: [
   T('judul','Judul',{req:1}), T('deskripsi','Deskripsi singkat',{t:'area'}), T('keterangan','Keterangan',{h:'Contoh: Pengajian rutin setiap pekan atau Kitab Fathul Qarib. Tampil di kartu layanan publik.'}), T('ikon','Ikon',{t:'select',o:IKON,req:1}), T('tautan','Tautan tujuan',{dl:LINKS,h:'Halaman internal (contoh #ambulans) atau alamat lengkap https://…'}), T('tampil','Tampilkan di beranda',{t:'bool'})] },
  program: { l: 'Program Khidmat', g: 'Beranda', e: 'admin', ti: function (d) { return d.judul; }, su: function (d) { return d.tombol || ''; }, F: [
@@ -107,6 +99,9 @@ function isAdmin() { return S.me && (S.me.role === 'super_admin' || S.me.role ==
 /* Pengurus (termasuk pengurus ranting) boleh membuka Anggota & Verifikasi.
    Batas wilayahnya ditegakkan RLS lewat public.verifies() di supabase-profiles.sql. */
 function canMembers() { return S.me && ['super_admin','admin','pengurus','editor'].indexOf(S.me.role) >= 0; }
+/* FASE 10H: semua staf (termasuk jurnalis & ustadz) boleh mengisi profil penulisnya sendiri. */
+function canAuthorProfile() { return !!S.me; }
+function canReviewAuthor() { return isAdmin() || (S.me && (S.me.role === 'pengurus' || S.me.role === 'editor')); }
 /* Siapa yang benar-benar dapat membuka daftar anggota (selaras viewMembers):
    Jurnalis dan Ustadz tidak dapat, meski mereka punya menu Sistem. */
 function canMembersView() { return !!S.me && (isAdmin() || S.me.role === 'pengurus' || S.me.role === 'editor'); }
@@ -142,7 +137,7 @@ function signOut() { sb.auth.signOut().then(function () { location.href = '/admi
 
 /* ---------- kerangka ---------- */
 function shell(title, active, body, actions) {
-  function navSection(label, links, open) { return '<details class="nav-group"' + (open || label === 'Konten' ? ' open' : '') + '><summary>' + esc(label) + '</summary><div class="nav-links">' + links + '</div></details>'; }
+  function navSection(label, links, open) { return '<details class="nav-group"' + (open || label === 'Konten' || label === 'Profil penulis' ? ' open' : '') + '><summary>' + esc(label) + '</summary><div class="nav-links">' + links + '</div></details>'; }
   var nav = '<a href="#/" data-nav class="nav-home' + (active === '' ? ' on' : '') + '"' + (active === '' ? ' aria-current="page"' : '') + '>Ringkasan</a>';
   GROUPS.forEach(function (g) {
     var ks = g[1].filter(function (k) { return can(COLS[k]); }); if (!ks.length) return;
@@ -157,6 +152,10 @@ function shell(title, active, body, actions) {
   }
   if (canMembers()) {
     nav += navSection('Sistem', (canMembersView() ? '<a data-nav href="#/members" class="' + (active === 'members' ? 'on' : '') + '"' + (active === 'members' ? ' aria-current="page"' : '') + '>Anggota &amp; Verifikasi</a>' : '') + (isAdmin() ? '<a data-nav href="#/staff" class="' + (active === 'staff' ? 'on' : '') + '"' + (active === 'staff' ? ' aria-current="page"' : '') + '>Pengelola</a><a data-nav href="#/log" class="' + (active === 'log' ? 'on' : '') + '"' + (active === 'log' ? ' aria-current="page"' : '') + '>Riwayat perubahan</a>' : ''), ['members','staff','log'].indexOf(active) >= 0);
+  }
+  /* FASE 10H: profil penulis — "Profil Saya" untuk semua staf, daftar untuk pengurus. */
+  if (canAuthorProfile()) {
+    nav += navSection('Profil penulis', '<a data-nav href="#/myauthor" class="' + (active === 'myauthor' ? 'on' : '') + '"' + (active === 'myauthor' ? ' aria-current="page"' : '') + '>Profil Saya</a>' + (canReviewAuthor() ? '<a data-nav href="#/authors" class="' + (active === 'authors' ? 'on' : '') + '"' + (active === 'authors' ? ' aria-current="page"' : '') + '>Daftar Penulis</a>' : ''), active === 'myauthor' || active === 'authors');
   }
   nav += '<a class="nav-site" href="/" target="_blank" rel="noopener">Lihat situs &nearr;</a>';
   root.innerHTML = '<div class="shell"><aside class="side" id="side"><div class="brand"><img src="/assets/img/favicon.png" alt=""><div><b>Admin MWCNU</b><small>Pondok Aren</small></div></div><label class="nav-search"><span class="sr-only">Cari menu</span><input id="navq" type="search" placeholder="Cari menu…" autocomplete="off"></label><nav class="nav-list" id="navList" aria-label="Menu admin">' + nav + '<p class="nav-empty" id="navEmpty" hidden>Tidak ada menu yang cocok.</p></nav></aside><main class="main"><div class="top"><div style="display:flex;gap:12px;align-items:center"><button class="btn o s burger" id="burger" aria-expanded="false" aria-controls="side">Menu</button><h2>' + esc(title) + '</h2></div><div class="who"><span>' + esc(S.me.nama || S.user.email) + ' · ' + esc(roleName(S.me.role)) + '</span>' + (actions || '') + '<button class="btn o s" id="out">Keluar</button></div></div>' + body + '</main></div>';
@@ -196,13 +195,6 @@ var STATUS_INFO = {
   draft: { l: 'Draf', cls: 'x' }
 };
 function statusChip(x) { var s = STATUS_INFO[itemStatus(x)] || STATUS_INFO.draft; return '<span class="chip ' + s.cls + '">' + s.l + '</span>'; }
-/* FASE 10G: profil penulis tersedia dari cache S.items.penulis. */
-function penulisProfileByName(nama) {
-  var n = String(nama || '').trim().toLowerCase(); if (!n) return null;
-  var list = (S.items && S.items.penulis) || [];
-  for (var i = 0; i < list.length; i++) { if (String((list[i].data && list[i].data.judul) || '').trim().toLowerCase() === n) return list[i]; }
-  return null;
-}
 
 /* ---------- pembuat formulir ---------- */
 function fieldHTML(f, v) {
@@ -504,7 +496,7 @@ async function viewList(key, q, flt, pub) {
     var me = (S.user.email || '').toLowerCase(), r = S.me.role;
     var writable = isAdmin()
       || (r === 'pengurus' && key === 'berita')
-      || ((r === 'pengurus' || r === 'editor') && ['agenda','video','galeri','kegiatan','majelis','penulis'].indexOf(key) >= 0 && x.created_by === me)
+      || ((r === 'pengurus' || r === 'editor') && ['agenda','video','galeri','kegiatan','majelis'].indexOf(key) >= 0 && x.created_by === me)
       || (r === 'jurnalis' && key === 'berita' && ['Literasi','Opini'].indexOf((x.data && x.data.kategori) || '') >= 0 && x.created_by === me)
       || (r === 'ustadz' && key === 'tanya_jawab' && x.created_by === me);
     /* Editor/pengurus yang berhak menerbitkan dapat meninjau tulisan orang lain.
@@ -575,8 +567,8 @@ async function viewEdit(key, id) {
     }
     item = r.data;
   }
-  /* FASE 10G: muat profil penulis agar pemilih penulis pada form artikel terisi. */
-  if (key === 'berita' && !(S.items && S.items.penulis)) { try { await loadItems('penulis'); } catch (e) { S.items = S.items || {}; S.items.penulis = []; } }
+  /* FASE 10H: muat profil penulis agar pemilih penulis pada form artikel terisi. */
+  if (key === 'berita') { try { var _ar = await sb.from('author_profiles').select('id,nama,email,published').order('nama', { ascending: true }); S.authors = (_ar.error ? [] : _ar.data) || []; } catch (e) { S.authors = []; } }
 
   var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita', penulis: (S.me && S.me.nama) || '' } : {}));
   if (item && !can(c, item.data)) return noAccess();
@@ -594,11 +586,13 @@ async function viewEdit(key, id) {
   }
   var fields = c.F.map(function (f) {
     if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; }
-    /* Opsi penulis diambil dari profil penulis yang sudah dibuat. */
+    /* Opsi penulis diambil dari tabel author_profiles (satu akun satu profil). */
     if (key === 'berita' && f.k === 'penulis') {
-      var fp = Object.assign({}, f), names = ((S.items && S.items.penulis) || []).map(function (x) { return String((x.data && x.data.judul) || '').trim(); }).filter(Boolean);
-      fp.o = ['Redaksi MWCNU Pondok Aren'].concat(names.filter(function (n, i, a) { return a.indexOf(n) === i; }));
-      fp.h = 'Pilih dari profil penulis (menu Profil Penulis). ' + (names.length ? names.length + ' profil tersedia.' : 'Belum ada profil penulis — buat di menu Penulis agar profil tampil di artikel.');
+      var fp = Object.assign({}, f), list = S.authors || [];
+      fp.t = 'select';
+      fp.empty = 'Tanpa profil penulis';
+      fp.o = list.map(function (a) { return { v: a.id, l: a.nama || a.email }; });
+      fp.h = list.length ? 'Pilih profil penulis. Nama, bidang, pendidikan, dan pengalaman penulis tampil di artikel.' : 'Belum ada profil penulis. Minta penulis mengisi menu Profil Saya.';
       return fp;
     }
     return f;
@@ -641,9 +635,11 @@ async function viewEdit(key, id) {
         var wantedSlug = slugify(d.slug || (item && item.data && item.data.slug) || d.judul);
         d.slug = await uniqueBeritaSlug(wantedSlug, item ? item.id : null);
         if (d.slug !== wantedSlug) slugNote = 'Slug disesuaikan menjadi ' + d.slug + ' karena sudah dipakai berita lain.';
-        /* Hubungkan artikel ke profil penulis (bila namanya cocok dengan profil). */
-        var _pw = penulisProfileByName(d.penulis);
-        d.penulis_id = _pw ? _pw.id : '';
+        /* Hubungkan artikel ke profil penulis: simpan id + nama tampilannya. */
+        var _sel = S.authors.filter(function (a) { return a.id === d.penulis; })[0];
+        d.penulis_id = _sel ? _sel.id : '';
+        d.penulis = _sel ? (_sel.nama || '') : '';
+        if (!d.penulis && item && item.data && item.data.penulis) d.penulis = item.data.penulis;
       }
       /* Kembalikan hanya kunci utama: hindari payload JSON besar, tetapi
          .single() tetap mendeteksi bila RLS tidak mengizinkan baris tersimpan
@@ -767,6 +763,80 @@ async function viewMembers(status) {
     catch (er) { toast(errMsg(er), 1); }
   });
 }
+/* ---------- FASE 10H: profil penulis (tabel author_profiles) ---------- */
+/* Satu akun = satu profil (email jadi kunci). Semua staf boleh mengisi miliknya.
+   Profil tampil di publik hanya setelah disetujui pengurus (published = true). */
+var AUTHOR_F = [
+  T('nama','Nama penulis',{req:1,h:'Tampil sebagai nama penulis pada artikel, mis. Ust. Ahmad Fauzi, S.Pd.'}),
+  T('foto','Foto penulis',{t:'image',f:'penulis'}),
+  T('bidang','Bidang',{h:'Contoh: Pendidikan Agama Islam, Dakwah, Jurnalistik.'}),
+  T('pendidikan','Pendidikan',{h:'Contoh: S1 Pendidikan Agama Islam, UIN Syarif Hidayatullah Jakarta.'}),
+  T('pengalaman','Pengalaman mengajar / bekerja',{t:'area',h:'Satu baris satu pengalaman. Contoh: Guru PAI SMP Negeri 5 Tangsel (2015–sekarang).'}),
+  T('bio','Profil singkat',{t:'area',h:'Satu sampai dua kalimat yang tampil di bawah nama penulis pada artikel.'}),
+  T('kontak','Kontak publik (opsional)',{h:'Email atau nomor yang boleh dipublikasikan. Kosongkan bila tidak untuk publik.'})
+];
+function authorStatusChip(p) { return '<span class="chip ' + (p.published ? '' : 'w') + '">' + (p.published ? 'Tampil di publik' : 'Menunggu persetujuan') + '</span>'; }
+
+async function viewMyAuthor() {
+  if (!canAuthorProfile()) return noAccess();
+  var email = String(S.user.email || '').toLowerCase();
+  var r = await sb.from('author_profiles').select('*').eq('email', email).maybeSingle();
+  if (r.error && r.error.code !== 'PGRST116') return toast(errMsg(r.error), 1);
+  var p = r.data || null;
+  var note = p
+    ? (p.published
+      ? '<div class="note ok">Profil Anda sudah tampil di publik.</div>'
+      : '<div class="note">Profil Anda tersimpan dan <b>menunggu persetujuan</b> pengurus sebelum tampil di situs.</div>')
+    : '<div class="note">Lengkapi profil Anda agar nama, bidang, pendidikan, dan pengalaman tampil pada artikel yang Anda tulis.</div>';
+  shell('Profil Saya', 'myauthor', note + '<form class="form panel" id="af" novalidate>' +
+    '<div class="fld"><label for="af-nama">Nama penulis <span class="em"></span></label><input class="in" id="af-nama" type="text" value="' + esc(p ? p.nama : (S.me.nama || '')) + '" placeholder="Nama lengkap dengan gelar"><small class="h">' + esc('Tampil sebagai nama penulis pada artikel.') + '</small><span class="em"></span></div>' +
+    fieldHTML(AUTHOR_F[1], p ? p.foto : '') +
+    fieldHTML(AUTHOR_F[2], p ? p.bidang : '') +
+    fieldHTML(AUTHOR_F[3], p ? p.pendidikan : '') +
+    fieldHTML(AUTHOR_F[4], p ? p.pengalaman : '') +
+    fieldHTML(AUTHOR_F[5], p ? p.bio : '') +
+    fieldHTML(AUTHOR_F[6], p ? p.kontak : '') +
+    '<div class="foot"><button class="btn g" id="af-save" type="submit">Simpan profil</button><a class="btn o" data-nav href="#/">Kembali</a></div></form>' +
+    '<div class="panel"><h3>Status</h3><p>' + (p ? authorStatusChip(p) : '<span class="chip x">Belum ada profil</span>') + '</p><small>Akun: ' + esc(email) + '</small></div>');
+  var form = $('#af'); bindForm(form);
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = $('#af-save'); btn.disabled = true;
+    var d = { email: email, nama: $('#af-nama').value.trim(), foto: $('[data-k="foto"] .in', form).value.trim(), bidang: $('[data-k="bidang"] .in', form).value.trim(), pendidikan: $('[data-k="pendidikan"] .in', form).value.trim(), pengalaman: $('[data-k="pengalaman"] .in', form).value.trim(), bio: $('[data-k="bio"] .in', form).value.trim(), kontak: $('[data-k="kontak"] .in', form).value.trim() };
+    if (!d.nama) { btn.disabled = false; return toast('Nama penulis wajib diisi.', 1); }
+    try {
+      if (p && p.id) {
+        var u = await sb.from('author_profiles').update(d).eq('id', p.id).select('id').single(); if (u.error) throw u.error;
+      } else {
+        var ins = await sb.from('author_profiles').insert(d).select('id').single(); if (ins.error) throw ins.error;
+      }
+      S.dirty = false; routeGuardSkip = true;
+      toast('Profil disimpan' + (canReviewAuthor() ? '.' : '. Menunggu persetujuan pengurus.'));
+      viewMyAuthor();
+    } catch (er) { toast('Gagal menyimpan profil: ' + errMsg(er), 1); }
+    finally { btn.disabled = false; }
+  });
+}
+
+/* Pengurus: daftar profil semua penulis + setujui/tolak tampil di publik. */
+async function viewAuthors() {
+  if (!canReviewAuthor()) return noAccess();
+  var r = await sb.from('author_profiles').select('*').order('nama', { ascending: true });
+  if (r.error) return toast(errMsg(r.error), 1);
+  var list = r.data || [];
+  var rows = list.map(function (p) {
+    return '<tr><td class="t"><b>' + esc(p.nama || '(tanpa nama)') + '</b><small>' + esc(p.email) + ' · ' + esc([p.bidang, p.pendidikan].filter(Boolean).join(' · ') || 'Belum diisi') + '</small></td><td class="hm">' + authorStatusChip(p) + '</td><td class="a"><button class="act" data-apub="' + esc(p.id) + '">' + (p.published ? 'Sembunyikan' : 'Setujui &amp; tampilkan') + '</button></td></tr>';
+  }).join('');
+  shell('Profil Penulis', 'authors', '<div class="note">Profil tampil pada artikel sebagai kartu penulis. Setujui setelah diperiksa agar data pribadi yang tayang sudah benar.</div>' +
+    '<div class="panel">' + (list.length ? '<table><thead><tr><th>Penulis</th><th class="hm">Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="empty">Belum ada penulis yang mengisi profil.</div>') + '</div>');
+  $('.main').addEventListener('click', async function (e) {
+    var b = e.target.closest('[data-apub]'); if (!b) return;
+    var id = b.getAttribute('data-apub'), cur = list.filter(function (x) { return x.id === id; })[0]; if (!cur) return;
+    try { var u = await sb.from('author_profiles').update({ published: !cur.published }).eq('id', id).select('id').single(); if (u.error) throw u.error; toast(cur.published ? 'Profil disembunyikan dari publik.' : 'Profil disetujui dan tampil di publik.'); viewAuthors(); }
+    catch (er) { toast(errMsg(er), 1); }
+  });
+}
+
 async function viewLog() {
   if (!isAdmin()) return noAccess();
   var r = await sb.from('change_log').select('*').order('at', { ascending: false }).limit(150); if (r.error) return toast(errMsg(r.error), 1);
@@ -789,6 +859,8 @@ function route() {
   if (!p[0]) return viewHome();
   if (p[0] === 'dir' && window.MWCDIRADM) return window.MWCDIRADM.route(p[1] || '', p[2] || '');
   if (p[0] === 'set') return viewSet(p[1]);
+  if (p[0] === 'myauthor') return viewMyAuthor();
+  if (p[0] === 'authors') return viewAuthors();
   if (p[0] === 'staff') return viewStaff();
   if (p[0] === 'members') return viewMembers(params.get('status') || '');
   if (p[0] === 'log') return viewLog();

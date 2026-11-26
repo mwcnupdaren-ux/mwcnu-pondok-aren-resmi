@@ -41,6 +41,8 @@
   M.set = function (k) { var D = M.D; return D && D.set ? D.set[k] || null : null; };
   M.managed = function (t) { var D = M.D; return !!(D && D.set && D.set.managed && D.set.managed[t]); };
   M.raw = function (t) { return (M.D && M.D.items[t]) || []; };
+  /* Profil penulis terbit (tabel author_profiles). */
+  M.authors = function () { return (M.D && Array.isArray(M.D.authors)) ? M.D.authors : []; };
   /* md(jenis, pemetaan, bawaan, pembanding): data CMS bila dikelola, jika tidak data bawaan */
   M.md = function (t, f, d, cmp) {
     if (!M.managed(t)) return d;
@@ -150,10 +152,12 @@
   function syncedData() { try { return sessionStorage.getItem('mwc_sync_data'); } catch (e) { return null; } }
   /* Cache dipakai lebih dulu agar halaman langsung terisi; data terbaru menyusul. */
   var timer = setTimeout(function () { go(cache); }, cache ? 0 : 3000);
-  Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc,id.asc'), q('site_settings?select=key,value&order=key.asc')]).then(function (r) {
+  Promise.all([q('content_items?select=type,data&published=eq.true&order=sort.asc,created_at.asc,id.asc'), q('site_settings?select=key,value&order=key.asc'), q('author_profiles?select=id,nama,foto,bidang,pendidikan,pengalaman,bio,kontak&published=eq.true&order=nama.asc').catch(function () { return []; })]).then(function (r) {
     var d = { items: {}, set: {} };
     r[0].forEach(function (x) { (d.items[x.type] = d.items[x.type] || []).push(x.data); });
     r[1].forEach(function (x) { d.set[x.key] = x.value; });
+    /* Profil penulis: disimpan terpisah dari items agar tidak tercampur konten. */
+    d.authors = Array.isArray(r[2]) ? r[2] : [];
     var next = JSON.stringify(d), prev = syncedData();
     try { localStorage.setItem('mwc_data', next); } catch (e) {}
     clearTimeout(timer);

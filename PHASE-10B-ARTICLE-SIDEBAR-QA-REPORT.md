@@ -79,6 +79,22 @@ Jalur klik yang diuji dengan browser nyata (klik sungguhan, bukan simulasi): kar
 
 Catatan: skema `content_items` dipakai ulang untuk `type='penulis'` (bukan tabel baru), sehingga RLS, riwayat perubahan, dan alur draf otomatis berlaku. Publik hanya menerima baris `published=true` karena query publik memfilter `published=eq.true`. **Perubahan skema (`supabase/schema.sql`) belum dijalankan ke database produksi** — perlu dijalankan manual oleh admin (izin terpisah).
 
+**5g. Fase 10H — Profil penulis diisi sendiri (Opsi B: tabel `author_profiles`)**
+
+Desain 10G (profil sebagai konten `type=penulis`) diganti karena RLS-nya tidak memungkinkan penulis mengisi profilnya sendiri: `can_edit('penulis')` hanya `true` untuk pengurus/super_admin, dan `with check` pada `items_update` menutup pemilik.
+
+| Aspek | Implementasi | Bukti uji |
+|---|---|---|
+| Skema | Tabel baru `author_profiles` — satu baris per akun (`email unique`), kolom nama/foto/bidang/pendidikan/pengalaman/bio/kontak, `published` default **false**. | Idempoten (`create table if not exists` + `drop policy if exists`). |
+| RLS | Publik membaca `published=true`; staf membaca barisnya sendiri; insert/update hanya pemilik (atau admin); delete hanya admin. | Anon delete tetap ditolak; payload update penulis tidak menyertakan `published`. |
+| Anti terbit sendiri | Trigger `guard_author_publish`: penulis tidak bisa menaikkan `published` (nilai lama dipertahankan), kecuali `can_review('berita')`. | Diuji lewat payload: update penulis hanya berisi kolom profil. |
+| Halaman admin | **Profil Saya** (semua staf, termasuk jurnalis/ustadz) + **Daftar Penulis** (pengurus: setujui/sembunyikan). Menu grup “Profil penulis” terbuka default. | E2E: jurnalis membuat profil → insert `author_profiles`; edit → update; pengurus menyetujui → `published=true`. |
+| Artikel | Dropdown penulis kini berisi profil (`penulis_id`), bukan nama bebas. Menyimpan artikel mengisi `data.penulis_id` + `data.penulis` dari profil. | Uji: pilih “Nyai Siti Aminah” → payload `penulis_id: ap2`, `penulis: Nyai Siti Aminah`. |
+| Publik | `content.js` mengambil `author_profiles?published=eq.true`; `app.js` membentuk `PENULIS` dari `MW.authors()` dan merender kartu penulis. | Integrasi `content.js`+`app.js` asli: **11/11** pemeriksaan lulus (nama, bidang, pendidikan, 2 butir pengalaman, bio, kontak, byline). |
+| Koleksi `type=penulis` di CMS | Dihapus dari `COLS` admin dan `can_edit` agar tidak ada dua sumber kebenaran. | `can_edit` kembali ke daftar semula (skema perlu dijalankan ulang untuk mencabut izin `penulis`). |
+
+**Tindakan manual yang tersisa (izin terpisah, belum dilakukan):** jalankan `supabase/schema.sql` versi baru di SQL Editor agar tabel `author_profiles` + RLS-nya ada, lalu penulis membuka `/admin` → **Profil Saya**.
+
 **Risiko dan Catatan**
 
 - Error console yang teramati **bukan** akibat perubahan ini (berasal dari lingkungan lokal):

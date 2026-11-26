@@ -619,10 +619,11 @@ function buildNews(){return MW.md('berita',function(x){return[x.kategori||'Berit
 ["Laporan","Launching QRIS, MWCNU Pondok Aren Melangkah Maju dari Koin NU","7 Juli 2025","Peluncuran QRIS sebagai langkah lanjutan program Koin NU.",null,"",{lead:"Peluncuran QRIS menjadi langkah maju dari program Koin NU di Pondok Aren.",p:["Majelis Wakil Cabang Nahdlatul Ulama (MWCNU) Pondok Aren meluncurkan QRIS sebagai langkah maju dari program Koin NU.","Dokumentasi peluncuran tayang di kanal TVNU Pondok Aren pada 7 Juli 2025."],vid:[4]}],
 ["Laporan","Turba MWCNU Pondok Aren di PRNU Jurangmangu Timur","5 September 2024","Kunjungan pengurus MWCNU ke ranting dalam kegiatan Turba.",null,"",{lead:"Pengurus MWCNU Pondok Aren mengunjungi ranting dalam kegiatan Turba.",p:["Majelis Wakil Cabang Nahdlatul Ulama (MWCNU) Pondok Aren melaksanakan Turba di Pengurus Ranting NU (PRNU) Jurangmangu Timur.","Dokumentasi kegiatan tayang di kanal TVNU Pondok Aren pada 5 September 2024."],vid:[5]}]],MW.byDate);}
 var N=buildNews();
-/* FASE 10G: profil penulis (disimpan CMS sebagai jenis 'penulis').
-   Dipakai untuk menampilkan nama, pendidikan, bidang, dan pengalaman di artikel.
-   Hanya profil yang sudah diterbitkan yang tersedia bagi publik. */
-var PENULIS=MW.md('penulis',function(x){return{id:x.id||'',nama:x.judul||'',foto:phSafe(x.foto),bidang:x.bidang||'',pendidikan:x.pendidikan||'',pengalaman:MW.lines(x.pengalaman),bio:x.ringkasan||'',kontak:x.kontak||''}},[]);
+/* FASE 10H: profil penulis dibaca dari tabel author_profiles (satu akun satu profil).
+   Artikel menautkan lewat data.penulis_id. Hanya profil published=true yang
+   dikirim publik (difilter juga oleh RLS di server). */
+var PENULIS=[];
+if(MW.authors){try{PENULIS=MW.authors().map(function(a){return{id:a.id||'',nama:a.nama||'',foto:phSafe(a.foto),bidang:a.bidang||'',pendidikan:a.pendidikan||'',pengalaman:MW.lines(a.pengalaman),bio:a.bio||'',kontak:a.kontak||''}})}catch(e){PENULIS=[]}}
 function penulisById(id){if(!id)return null;for(var i=0;i<PENULIS.length;i++)if(PENULIS[i].id===id)return PENULIS[i];return null}
 function penulisByName(nama){if(!nama)return null;var n=String(nama).trim().toLowerCase();for(var i=0;i<PENULIS.length;i++)if(String(PENULIS[i].nama).trim().toLowerCase()===n)return PENULIS[i];return null}
 function penulisOf(x){var p=penulisById(x.authorId)||penulisByName(x.author);return p||null}
