@@ -116,6 +116,14 @@ grant select (id, nama, foto, bidang, pendidikan, pengalaman, bio, kontak)
 
 Setelah dijalankan ulang, harapan yang harus terpenuhi: query situs → **200**, permintaan kolom `email` → **401**.
 
+**Koreksi 10H-2 (ditemukan lewat uji produksi setelah skema dijalankan):** setelah grant per-kolom aktif, query situs justru gagal `401 / 42501`. Penyebabnya: query memakai filter `published=eq.true`, dan kolom `published` **tidak** termasuk dalam grant per-kolom — PostgREST menolak kolom yang dipakai di `WHERE`. Terukur di produksi: tanpa filter → **200**, dengan filter → **401**.
+
+Dua perbaikan:
+1. `js/content.js` tidak lagi memfilter `published` di klien. Penyaringan baris sudah dilakukan RLS (`author_read`), jadi anon tetap hanya menerima profil yang disetujui. Query situs terverifikasi **200** di produksi.
+2. `supabase/schema.sql` menambahkan `published` ke grant kolom anon, sehingga filter itu tetap sah bila kelak dipakai lagi. Kolom ini hanya menandai status tampil, bukan data pribadi.
+
+Pelajaran yang dicatat di skema: **grant per-kolom harus mencakup kolom yang dipakai `WHERE`/`ORDER BY`**, bukan hanya kolom yang ditampilkan.
+
 **Tindakan manual yang tersisa (izin terpisah, belum dilakukan):** jalankan `supabase/schema.sql` versi baru di SQL Editor agar tabel `author_profiles` + RLS-nya ada, lalu penulis membuka `/admin` → **Profil Saya**.
 
 **Risiko dan Catatan**
