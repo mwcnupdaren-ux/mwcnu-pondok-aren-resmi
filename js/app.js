@@ -631,9 +631,10 @@ function buildNews(){return MW.md('berita',function(x){return[x.kategori||'Berit
 var N=buildNews();
 /* FASE 10H: profil penulis dibaca dari tabel author_profiles (satu akun satu profil).
    Artikel menautkan lewat data.penulis_id. Hanya profil published=true yang
-   dikirim publik (difilter juga oleh RLS di server). */
-var PENULIS=[];
-if(MW.authors){try{PENULIS=MW.authors().map(function(a){return{id:a.id||'',nama:a.nama||'',foto:phSafe(a.foto),bidang:a.bidang||'',pendidikan:a.pendidikan||'',pengalaman:MW.lines(a.pengalaman),bio:a.bio||'',kontak:a.kontak||''}})}catch(e){PENULIS=[]}}
+   dikirim publik (difilter juga oleh RLS di server). Foto memakai URL langsung
+   dari liveImageURL() agar tidak berubah menjadi indeks PH (integer). */
+function buildAuthors(){if(!MW.authors)return [];try{return MW.authors().map(function(a){return{id:a.id||'',nama:a.nama||'',foto:liveImageURL(a.foto),bidang:a.bidang||'',pendidikan:a.pendidikan||'',pengalaman:MW.lines(a.pengalaman),bio:a.bio||'',kontak:a.kontak||''}})}catch(e){return []}}
+var PENULIS=buildAuthors();
 function penulisById(id){if(!id)return null;for(var i=0;i<PENULIS.length;i++)if(PENULIS[i].id===id)return PENULIS[i];return null}
 function penulisByName(nama){if(!nama)return null;var n=String(nama).trim().toLowerCase();for(var i=0;i<PENULIS.length;i++)if(String(PENULIS[i].nama).trim().toLowerCase()===n)return PENULIS[i];return null}
 function penulisOf(x){var p=penulisById(x.authorId)||penulisByName(x.author);return p||null}
@@ -689,6 +690,7 @@ function newsNewestFirst(a,b){var d=newsDateKey(b).localeCompare(newsDateKey(a))
    homepage dan menjalankan route() tanpa memuat ulang halaman. */
 window.MWC_RERENDER=function(){
   try{
+    PENULIS=buildAuthors();
     N=buildNews();
     N.forEach(function(n,idx){ensureSlug(n,idx);});
     var _newest=N.slice().sort(newsNewestFirst);

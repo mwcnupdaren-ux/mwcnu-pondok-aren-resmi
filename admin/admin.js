@@ -182,7 +182,9 @@ function noAccess() { shell('Tidak ada akses', '', '<div class="panel empty">Per
    Draf (belum terbit) → Menunggu tinjauan (diajukan penulis) → Terbit
    → Ditolak (dikembalikan editor dengan catatan). */
 function itemStatus(x) {
-  var d = x.data || {};
+  /* Baris ringkas dari dashboard hanya membawa kolom tinjauan (data->>tinjauan),
+     bukan seluruh JSON data, jadi keduanya didukung tanpa menduplikasi aturan. */
+  var d = x.data || { tinjauan: x.tinjauan };
   if (x.published) return 'published';
   if (d.tinjauan === 'ditolak') return 'rejected';
   if (d.tinjauan === 'diajukan') return 'review';
@@ -447,13 +449,15 @@ function bindForm(el) {
 /* ---------- tampilan ---------- */
 async function viewHome() {
   var results = await Promise.all([
-    sb.from('content_items').select('type,published'),
+    sb.from('content_items').select('type,published,tinjauan:data->>tinjauan'),
     sb.from('content_items').select('id,type,data,published,updated_at').order('updated_at', { ascending: false }).limit(12)
   ]);
   var r = results[0], recent = results[1];
   if (r.error) return toast(errMsg(r.error), 1);
   if (recent.error) return toast(errMsg(recent.error), 1);
-  var n = {}, d = {}; (r.data || []).forEach(function (x) { n[x.type] = (n[x.type] || 0) + 1; if (!x.published) d[x.type] = (d[x.type] || 0) + 1; });
+  /* Hitung draf lewat itemStatus(): artikel "menunggu tinjauan" dan "ditolak"
+     juga belum terbit, tetapi bukan draf, jadi tidak boleh ikut dihitung. */
+  var n = {}, d = {}; (r.data || []).forEach(function (x) { n[x.type] = (n[x.type] || 0) + 1; if (itemStatus(x) === 'draft') d[x.type] = (d[x.type] || 0) + 1; });
   var un = Object.keys(COLS).filter(function (k) { return !(S.set.managed && S.set.managed[k]); });
   var cards = Object.keys(COLS).filter(function (k) { return can(COLS[k]); }).map(function (k) { return '<a class="stat" data-nav href="#/' + k + '"><b>' + (n[k] || 0) + '</b><span>' + COLS[k].l + (d[k] ? ' · ' + d[k] + ' draf' : '') + '</span></a>'; }).join('');
   var draftCount = d.berita || 0;
@@ -461,7 +465,7 @@ async function viewHome() {
   if (canMembersView()) attention += '<a class="task-card" data-nav href="#/members?status=pending"><span class="task-label">Verifikasi KTA</span><b id="memCount">…</b><small id="memHint">Memeriksa pendaftaran anggota.</small></a>';
   attention += '</div>';
   var latest = (recent.data || []).filter(function (x) { return COLS[x.type] && can(COLS[x.type], x.data); }).slice(0, 5);
-  var latestHTML = '<section class="recent-panel"><div class="section-head"><div><h3>Terakhir diperbarui</h3><p>Konten yang paling baru disentuh di CMS.</p></div></div>' + (latest.length ? '<ul class="recent-list">' + latest.map(function (x) { var c = COLS[x.type], title = c.ti(x.data) || '(tanpa judul)', date = x.updated_at ? new Date(x.updated_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; return '<li><a data-nav href="#/' + x.type + '/' + encodeURIComponent(x.id) + '"><span><b>' + esc(title) + '</b><small>' + esc(c.l) + (date ? ' · ' + esc(date) : '') + '</small></span><span class="chip ' + (x.published ? '' : 'x') + '">' + (x.published ? 'Terbit' : 'Draf') + '</span></a></li>'; }).join('') + '</ul>' : '<div class="empty">Belum ada konten terbaru yang dapat Anda kelola.</div>') + '</section>';
+  var latestHTML = '<section class="recent-panel"><div class="section-head"><div><h3>Terakhir diperbarui</h3><p>Konten yang paling baru disentuh di CMS.</p></div></div>' + (latest.length ? '<ul class="recent-list">' + latest.map(function (x) { var c = COLS[x.type], title = c.ti(x.data) || '(tanpa judul)', date = x.updated_at ? new Date(x.updated_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; return '<li><a data-nav href="#/' + x.type + '/' + encodeURIComponent(x.id) + '"><span><b>' + esc(title) + '</b><small>' + esc(c.l) + (date ? ' · ' + esc(date) : '') + '</small></span>' + statusChip(x) + '</a></li>'; }).join('') + '</ul>' : '<div class="empty">Belum ada konten terbaru yang dapat Anda kelola.</div>') + '</section>';
   shell('Ringkasan', '', (isAdmin() && un.length ? '<div class="note">Jenis konten berikut belum dikelola CMS, jadi situs masih memakai data bawaan: <b>' + un.map(function (k) { return COLS[k].l; }).join(', ') + '</b>. Jalankan <code>supabase/seed.sql</code> atau aktifkan dari halaman masing-masing.</div>' : '') + attention + '<div class="section-head"><div><h3>Kelola konten</h3><p>Ringkasan data yang dapat Anda akses.</p></div></div><div class="grid">' + cards + '</div>' + latestHTML);
   function loadMembers() {
     if (!canMembersView()) return;
@@ -487,7 +491,7 @@ async function viewList(key, q, flt, pub) {
   try { await loadItems(key); } catch (e) { return toast(errMsg(e), 1); }
   var list = S.items[key].slice(); if (c.ord === 'date') list.sort(function (a, b) { return String(b.data.tanggal || '').localeCompare(String(a.data.tanggal || '')); });
   var ff = c.filter && c.F.filter(function (f) { return f.k === c.filter; })[0];
-  var shown = list.filter(function (x) { var st = itemStatus(x); return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || (pub === 'published' ? x.published : pub === 'draft' ? !x.published : st === pub)); });
+  var shown = list.filter(function (x) { var st = itemStatus(x); return (can(c, x.data) || isAdmin() || S.me.role === 'pengurus' && key === 'berita') && (isAdmin() || S.me.role === 'pengurus' && key === 'berita' || S.me.role === 'pengurus' || S.me.role === 'editor' || x.created_by === (S.user.email || '').toLowerCase()) && (!q || JSON.stringify(x.data).toLowerCase().indexOf(q.toLowerCase()) > -1) && (!flt || x.data[c.filter] === flt) && (!pub || st === pub); });
   var movable = !c.ord && !q && !pub;
   var rows = shown.map(function (x, i) {
     /* Selaras policy items_update di supabase/schema.sql:
@@ -570,11 +574,30 @@ async function viewEdit(key, id) {
   /* FASE 10H: muat profil penulis agar pemilih penulis pada form artikel terisi. */
   if (key === 'berita') { try { var _ar = await sb.from('author_profiles').select('id,nama,email,published').order('nama', { ascending: true }); S.authors = (_ar.error ? [] : _ar.data) || []; } catch (e) { S.authors = []; } }
 
-  var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita', penulis: (S.me && S.me.nama) || '' } : {}));
+  var data = item ? item.data : (key === 'layanan' ? { tampil: true } : (key === 'berita' ? { kategori: S.me.role === 'jurnalis' ? 'Literasi' : 'Berita', penulis: '' } : {}));
+  var _missingAuthor = null;
+  if (key === 'berita') {
+    /* Pemilih penulis memakai id profil sebagai nilai, sedangkan data.penulis
+       menyimpan salinan nama. Map id <-> nama agar tautan penulis_id tidak hilang
+       saat artikel lama diedit dan artikel baru otomatis menautkan profil penulisnya. */
+    data = Object.assign({}, data);
+    var _authors = S.authors || [];
+    var _meEmail = String((S.user && S.user.email) || '').toLowerCase();
+    var _mine = _authors.filter(function (a) { return String(a.email || '').toLowerCase() === _meEmail; })[0];
+    var _linkedId = item && item.data && item.data.penulis_id ? String(item.data.penulis_id) : '';
+    var _byId = _linkedId ? _authors.filter(function (a) { return a.id === _linkedId; })[0] : null;
+    var _byName = !_linkedId && data.penulis
+      ? _authors.filter(function (a) { return String(a.nama || '').trim().toLowerCase() === String(data.penulis || '').trim().toLowerCase(); })[0]
+      : null;
+    if (_linkedId && !_byId) _missingAuthor = { id: _linkedId, nama: (item.data && item.data.penulis) || 'Profil penulis' };
+    data.penulis = item ? (_linkedId || (_byName ? _byName.id : '')) : (_mine ? _mine.id : '');
+  }
   if (item && !can(c, item.data)) return noAccess();
-  var pubDefault = item ? !!item.published : S.me.role !== 'jurnalis';
+  /* Artikel baru selalu dimulai sebagai draf agar tidak terbit tanpa sengaja;
+     jenis konten lain mempertahankan perilaku lama. */
+  var pubDefault = item ? !!item.published : (key === 'berita' ? false : S.me.role !== 'jurnalis');
   /* Jurnalis tidak dapat menerbitkan sendiri — ditegakkan guard_publish di schema.sql.
-     Kotak centang dikunci agar percobaan tidak berujung galat dari server. */
+     Kontrol terbit dikunci agar percobaan tidak berujung galat dari server. */
   var pubLocked = S.me.role === 'jurnalis' && !pubDefault;
   var hint = (!item && S.me.role === 'jurnalis') ? '<div class="note">Penyerahan ke tinjauan: tulisan Jurnalis disimpan sebagai <b>draf</b> dan perlu ditinjau Pengurus sebelum terbit.</div>' : '';
   /* FASE 10G: status tinjauan terlihat oleh penulis & editor. */
@@ -588,10 +611,15 @@ async function viewEdit(key, id) {
     if (key === 'berita' && f.k === 'kategori') { var ff = Object.assign({}, f); ff.o = S.me.role === 'jurnalis' ? ['Literasi','Opini'] : ['Berita','Laporan','Literasi','Opini']; return ff; }
     /* Opsi penulis diambil dari tabel author_profiles (satu akun satu profil). */
     if (key === 'berita' && f.k === 'penulis') {
-      var fp = Object.assign({}, f), list = S.authors || [];
+      var fp = Object.assign({}, f), list = (S.authors || []).slice();
+      if (_missingAuthor) list.push({ id: _missingAuthor.id, nama: _missingAuthor.nama, published: false, _missing: true });
       fp.t = 'select';
       fp.empty = 'Tanpa profil penulis';
-      fp.o = list.map(function (a) { return { v: a.id, l: a.nama || a.email }; });
+      fp.o = list.map(function (a) {
+        var label = a.nama || a.email || a.id;
+        if (!a._missing && !a.published) label += ' (menunggu persetujuan)';
+        return { v: a.id, l: label };
+      });
       fp.h = list.length ? 'Pilih profil penulis. Nama, bidang, pendidikan, dan pengalaman penulis tampil di artikel.' : 'Belum ada profil penulis. Minta penulis mengisi menu Profil Saya.';
       return fp;
     }
@@ -600,7 +628,19 @@ async function viewEdit(key, id) {
   var fieldsHTML = key === 'berita' ? articleFormHTML(fields, data) : formHTML(fields, data);
   /* Tombol ajukan tinjauan: hanya untuk yang tidak dapat menerbitkan sendiri (penulis). */
   var canSubmitReview = key === 'berita' && pubLocked;
-  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel ' + (key === 'berita' ? 'article-form' : '') + '" id="form" novalidate>' + fieldsHTML + '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '> Terbitkan (tampil di situs)</label><div class="foot"><button class="btn g" id="save" type="submit">Simpan</button>' + (canSubmitReview ? '<button class="btn o" id="submitReview" type="button">Simpan &amp; ajukan tinjauan</button>' : '') + '<a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
+  /* Kontrol status publikasi: segmented Draf/Terbit untuk berita, checkbox untuk
+     jenis lain. #pub tetap menjadi satu-satunya sumber nilai saat simpan. */
+  var pubHTML;
+  if (key === 'berita') {
+    var st0 = item ? itemStatus(item) : 'draft', info0 = STATUS_INFO[st0] || STATUS_INFO.draft;
+    pubHTML = '<div class="pubbar"><span class="pubbar-t">Status</span><span class="chip ' + info0.cls + '" id="pubState">' + info0.l + '</span>' +
+      '<div class="pubseg" role="group" aria-label="Status publikasi"><button type="button" class="pub-opt' + (pubDefault ? '' : ' on') + '" data-pubset="0" aria-pressed="' + (pubDefault ? 'false' : 'true') + '">Draf</button><button type="button" class="pub-opt' + (pubDefault ? ' on' : '') + '" data-pubset="1" aria-pressed="' + (pubDefault ? 'true' : 'false') + '"' + (pubLocked ? ' disabled title="Hanya Pengurus yang dapat menerbitkan tulisan Jurnalis."' : '') + '>Terbit</button></div>' +
+      '<small class="pubbar-h">' + (pubLocked ? 'Tulisan Jurnalis disimpan sebagai draf dan ditinjau Pengurus sebelum terbit.' : 'Pilih Draf untuk menyimpan tanpa menayangkan artikel.') + '</small>' +
+      '<input type="checkbox" id="pub"' + (pubDefault ? ' checked' : '') + ' hidden></div>';
+  } else {
+    pubHTML = '<label class="chk"><input type="checkbox" id="pub" ' + (pubDefault ? 'checked' : '') + '> Terbitkan (tampil di situs)</label>';
+  }
+  shell((item ? 'Ubah ' : 'Tambah ') + c.l, key, hint + '<form class="form panel ' + (key === 'berita' ? 'article-form' : '') + '" id="form" novalidate>' + pubHTML + fieldsHTML + '<div class="foot"><button class="btn g" id="save" type="submit">' + (key === 'berita' ? (pubDefault ? 'Simpan &amp; terbitkan' : 'Simpan draf') : 'Simpan') + '</button>' + (canSubmitReview ? '<button class="btn o" id="submitReview" type="button">Simpan &amp; ajukan tinjauan</button>' : '') + '<a class="btn o" data-nav href="#/' + key + '">Batal</a></div></form>');
   var form = $('#form'); form.__F = fields; bindForm(form);
   if (key === 'berita') {
     initArticleEditor(form);
@@ -617,6 +657,35 @@ async function viewEdit(key, id) {
       function updateCount() { var n = field.value.length; counter.textContent = n + ' karakter' + (n ? (n < limit - 20 ? ' · masih pendek' : n > limit + 10 ? ' · terlalu panjang' : ' · sesuai panjang umum') : ' · diisi otomatis bila kosong'); }
       field.addEventListener('input', updateCount); updateCount();
     });
+    /* Segmented Draf/Terbit hanya mengubah #pub; alur simpan tetap satu jalur.
+       Label tombol dan chip status ikut menyesuaikan agar niat terlihat jelas. */
+    var pubBox = $('#pub'), pubState = $('#pubState'), pubOpts = $$('.pub-opt', form);
+    function paintPub() {
+      var on = !!(pubBox && pubBox.checked);
+      pubOpts.forEach(function (o) {
+        var active = (o.getAttribute('data-pubset') === '1') === on;
+        o.classList.toggle('on', active);
+        o.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      if (pubState) {
+        var st = 'draft';
+        if (on) st = 'published';
+        else if (item) { var cur = itemStatus(item); if (cur === 'review' || cur === 'rejected') st = cur; }
+        var info = STATUS_INFO[st] || STATUS_INFO.draft;
+        pubState.className = 'chip ' + info.cls;
+        pubState.textContent = info.l;
+      }
+      var saveBtn = $('#save');
+      if (saveBtn) saveBtn.textContent = on ? 'Simpan & terbitkan' : 'Simpan draf';
+    }
+    pubOpts.forEach(function (o) {
+      o.addEventListener('click', function () {
+        if (o.disabled || !pubBox) return;
+        pubBox.checked = o.getAttribute('data-pubset') === '1';
+        S.dirty = true; paintPub();
+      });
+    });
+    paintPub();
   }
   if (canSubmitReview) {
     var reviewBtn = $('#submitReview');
@@ -628,7 +697,8 @@ async function viewEdit(key, id) {
     if (!can(c, d) || !categoryAllowed) { toast('Peran Anda tidak berhak mengelola kategori ini.', 1); return; } if (!validate(form, fields, d)) { toast('Periksa isian yang ditandai merah.', 1); var f = $('.fld.err', form); if (f) f.scrollIntoView({ block: 'center' }); return; }
     var btn = $('#save'); btn.disabled = true; var pub = $('#pub').checked, r2, slugNote = '';
     /* FASE 10G: kirim ke tinjauan bila tombol ajukan dipakai. */
-    if (key === 'berita' && form.__submitReview) { d.tinjauan = 'diajukan'; d.catatan_editor = ''; pub = false; }
+    var submittingReview = key === 'berita' && !!form.__submitReview;
+    if (submittingReview) { d.tinjauan = 'diajukan'; d.catatan_editor = ''; pub = false; }
     try {
       if (key === 'berita') {
         /* Slug: pertahankan slug tersimpan, buat dari judul bila kosong, lalu pastikan unik. */
@@ -636,10 +706,17 @@ async function viewEdit(key, id) {
         d.slug = await uniqueBeritaSlug(wantedSlug, item ? item.id : null);
         if (d.slug !== wantedSlug) slugNote = 'Slug disesuaikan menjadi ' + d.slug + ' karena sudah dipakai berita lain.';
         /* Hubungkan artikel ke profil penulis: simpan id + nama tampilannya. */
-        var _sel = S.authors.filter(function (a) { return a.id === d.penulis; })[0];
-        d.penulis_id = _sel ? _sel.id : '';
-        d.penulis = _sel ? (_sel.nama || '') : '';
-        if (!d.penulis && item && item.data && item.data.penulis) d.penulis = item.data.penulis;
+        var _sel = (S.authors || []).filter(function (a) { return a.id === d.penulis; })[0];
+        if (_sel) {
+          d.penulis_id = _sel.id;
+          d.penulis = _sel.nama || '';
+        } else if (_missingAuthor && d.penulis === _missingAuthor.id) {
+          d.penulis_id = _missingAuthor.id;
+          d.penulis = (item && item.data && item.data.penulis) || '';
+        } else {
+          d.penulis_id = '';
+          d.penulis = (item && item.data && !item.data.penulis_id && item.data.penulis) ? item.data.penulis : '';
+        }
       }
       /* Kembalikan hanya kunci utama: hindari payload JSON besar, tetapi
          .single() tetap mendeteksi bila RLS tidak mengizinkan baris tersimpan
@@ -661,7 +738,8 @@ async function viewEdit(key, id) {
          memicu guard route() yang masih melihat S.dirty = true dan menampilkan
          konfirmasi "Perubahan belum disimpan" padahal simpan berhasil. */
       S.dirty = false; routeGuardSkip = true;
-      toast('Tersimpan.' + (slugNote ? ' ' + slugNote : ''));
+      var savedMsg = key !== 'berita' ? 'Tersimpan.' : submittingReview ? 'Artikel diajukan untuk tinjauan.' : pub ? 'Artikel diterbitkan.' : 'Draf tersimpan.';
+      toast(savedMsg + (slugNote ? ' ' + slugNote : ''));
       if (location.hash === '#/' + key) route(); else location.hash = '#/' + key;
     } catch (er) { toast('Gagal menyimpan: ' + errMsg(er), 1); btn.disabled = false; }
   });
@@ -811,7 +889,8 @@ async function viewMyAuthor() {
         var ins = await sb.from('author_profiles').insert(d).select('id').single(); if (ins.error) throw ins.error;
       }
       S.dirty = false; routeGuardSkip = true;
-      toast('Profil disimpan' + (canReviewAuthor() ? '.' : '. Menunggu persetujuan pengurus.'));
+      var savedPub = !!(p && p.published);
+      toast('Profil disimpan' + (savedPub ? '.' : (canReviewAuthor() ? '. Aktifkan di Daftar Penulis agar tampil di publik.' : '. Menunggu persetujuan pengurus.')));
       viewMyAuthor();
     } catch (er) { toast('Gagal menyimpan profil: ' + errMsg(er), 1); }
     finally { btn.disabled = false; }

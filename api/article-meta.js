@@ -49,11 +49,23 @@ module.exports = async (req,res) => {
   const date = d.tanggal || d.created_at || '';
   const body = d.isi || d.body || '';
   const canonical = `https://www.mwcnupondokaren.or.id/berita/${slug}`;
+  let authorName = String(d.penulis || '').trim();
+  if (d.penulis_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(d.penulis_id))) {
+    try {
+      const au = `${SUPABASE_URL}/rest/v1/author_profiles?select=nama&id=eq.${encodeURIComponent(String(d.penulis_id))}&published=eq.true&limit=1`;
+      const ar = await fetch(au, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+      if (ar.ok) {
+        const arows = await ar.json();
+        if (Array.isArray(arows) && arows[0] && arows[0].nama) authorName = String(arows[0].nama).trim();
+      }
+    } catch (e) {}
+  }
+  if (!authorName || /^admin$/i.test(authorName)) authorName = 'Redaksi MWCNU Pondok Aren';
   /* Cangkang artikel untuk pembaca tanpa JavaScript. Versi ini hanya berisi
      isi artikel; app.js tidak boleh menganggapnya final (lihat script di bawah). */
   const serverFirstRender = { slug };
   const arBody = `<article id="arBody" class="ar"${serverFirstRender.slug ? ' data-server-rendered="true"' : ''}>
-  <div class="article-head"><div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a></div><div class="kick">${esc(d.kategori||'Berita')}</div><h1 class="at">${esc(d.judul||title)}</h1><div class="article-byline"><span>${esc(d.penulis||'Redaksi MWCNU Pondok Aren')}</span><i aria-hidden="true">·</i><span>${esc(date)}</span></div></div>
+  <div class="article-head"><div class="crumb"><a href="#berita">&larr; Kabar dan Berita</a></div><div class="kick">${esc(d.kategori||'Berita')}</div><h1 class="at">${esc(d.judul||title)}</h1><div class="article-byline"><span>${esc(authorName)}</span><i aria-hidden="true">·</i><span>${esc(date)}</span></div></div>
   ${img?`<figure class="af"><img class="ah" src="${esc(img)}" alt="${esc(d.judul||title)}">${d.caption?`<figcaption>${esc(d.caption)}</figcaption>`:''}</figure>`:''}
   <div class="article-content"><div class="abody">${rich(body)}</div></div>
   <div class="ashare" aria-label="Bagikan artikel"><b class="ashare-title">Bagikan Artikel</b><a class="share-btn share-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${title} ${canonical}`)}"><span>WhatsApp</span></a></div>

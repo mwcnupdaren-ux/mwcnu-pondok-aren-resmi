@@ -245,6 +245,16 @@ create policy items_update on public.content_items for update to authenticated
 create or replace function public.guard_publish() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
+  /* INSERT: jurnalis tidak boleh membuat artikel yang langsung terbit. Nilai
+     dipaksa false (bukan galat) agar permintaan API tetap konsisten dengan UI.
+     Peran lain tidak dibatasi di sini karena mereka memang mengelola jenis
+     kontennya sendiri (mis. pengurus pada agenda/galeri, ustadz pada tanya jawab). */
+  if tg_op = 'INSERT' then
+    if new.published and new.type = 'berita' and public.staff_role() = 'jurnalis' then
+      new.published := false;
+    end if;
+    return new;
+  end if;
   if new.published and not old.published and not public.can_review(new.type) then
     raise exception 'Hanya pengurus yang dapat menerbitkan konten ini';
   end if;
@@ -259,7 +269,7 @@ begin
   return new;
 end $$;
 drop trigger if exists trg_guard_publish on public.content_items;
-create trigger trg_guard_publish before update on public.content_items
+create trigger trg_guard_publish before insert or update on public.content_items
   for each row execute function public.guard_publish();
 drop trigger if exists trg_guard_item_type on public.content_items;
 create trigger trg_guard_item_type before update on public.content_items
@@ -282,8 +292,8 @@ create policy author_insert_self on public.author_profiles for insert to authent
 
 drop policy if exists author_update_self on public.author_profiles;
 create policy author_update_self on public.author_profiles for update to authenticated
-  using (email = lower(coalesce(auth.jwt() ->> 'email','')) or public.is_admin())
-  with check (email = lower(coalesce(auth.jwt() ->> 'email','')) or public.is_admin());
+  using (email = lower(coalesce(auth.jwt() ->> 'email','')) or public.can_review('berita'))
+  with check (email = lower(coalesce(auth.jwt() ->> 'email','')) or public.can_review('berita'));
 
 drop policy if exists author_delete on public.author_profiles;
 create policy author_delete on public.author_profiles for delete to authenticated
