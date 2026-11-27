@@ -10212,3 +10212,84 @@ footer.cie-footer {
 header .rv,
 .fixed .rv,
 .sticky .rv{opacity:1!important;transform:none!important;transition:none!important}
+
+/* =============================================================== */
+/*   FASE 18A — /berita di ponsel: pencarian & kategori ditata ulang */
+/*   Aturan toolbar "satu baris" di atas dipaksa berlaku juga di     */
+/*   layar kecil, sehingga kotak cari (178px) dan tab kategori       */
+/*   (162px) berdesakan. Di ponsel keduanya kini ditumpuk: kotak     */
+/*   cari penuh dengan ikon, kategori jadi baris chip yang bisa      */
+/*   digeser dan menempel rapi di tepi layar.                        */
+/* =============================================================== */
+@media(max-width:700px){
+  #berita{padding:84px 0 56px!important}
+  /* Judul halaman ditampilkan (di desktop tetap sr-only). */
+  #berita h1.sr-only{
+    position:static!important;display:block!important;
+    width:auto!important;height:auto!important;max-width:none!important;
+    margin:0 0 14px!important;padding:0!important;
+    overflow:visible!important;clip:auto!important;clip-path:none!important;
+    white-space:normal!important;border:0!important;
+    font:800 1.42rem/1.22 var(--fh)!important;letter-spacing:-.02em!important;
+    color:var(--ink)!important;
+  }
+  #berita .toolbar{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    align-items:stretch!important;justify-content:stretch!important;
+    flex-direction:column!important;flex-wrap:nowrap!important;
+    gap:12px!important;margin:0 0 20px!important;
+  }
+  #berita .toolbar .search{
+    order:0!important;width:100%!important;max-width:none!important;margin:0!important;
+    height:50px!important;min-height:50px!important;
+    padding:0 16px 0 46px!important;
+    border:1px solid var(--line)!important;border-radius:15px!important;
+    background-color:var(--surf)!important;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235C6B63' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E")!important;
+    background-repeat:no-repeat!important;background-position:16px 50%!important;background-size:18px 18px!important;
+    font-size:.95rem!important;color:var(--ink)!important;
+    box-shadow:0 1px 2px rgba(6,32,23,.05)!important;
+    -webkit-appearance:none;appearance:none;
+  }
+  #berita .search::placeholder{color:var(--mut)!important}
+  #berita .search:focus{
+    outline:0!important;border-color:var(--acc-line)!important;background-color:var(--surf)!important;
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 14%,transparent)!important;
+  }
+  #berita #ntabs{
+    order:0!important;display:flex!important;flex-wrap:nowrap!important;
+    width:calc(100% + 36px)!important;max-width:none!important;
+    margin:0 -18px!important;padding:2px 18px 6px!important;
+    gap:8px!important;overflow-x:auto!important;overflow-y:hidden!important;
+    border:0!important;border-radius:0!important;background:transparent!important;
+    scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;
+    scroll-snap-type:x proximity!important;scroll-padding-left:18px!important;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 20px),transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 20px),transparent 100%);
+  }
+  #berita #ntabs::-webkit-scrollbar{display:none!important}
+  #berita #ntabs button{
+    flex:0 0 auto!important;white-space:nowrap!important;scroll-snap-align:start!important;
+    min-height:38px!important;padding:9px 16px!important;
+    border:1px solid var(--line)!important;border-radius:999px!important;
+    background:var(--surf)!important;color:var(--ink)!important;
+    font:650 .84rem/1 var(--fz)!important;letter-spacing:.01em!important;
+    box-shadow:0 1px 2px rgba(6,32,23,.04)!important;
+  }
+  #berita #ntabs button:hover{background:var(--surf)!important;color:var(--ink)!important}
+  #berita #ntabs button[aria-selected="true"]{
+    background:var(--g2)!important;border-color:var(--g2)!important;color:var(--surf)!important;
+    box-shadow:0 8px 18px -10px color-mix(in srgb,var(--g2) 70%,transparent)!important;
+  }
+  /* Ikon cari versi terang untuk tema gelap (kontras tetap terbaca). */
+  :root[data-theme="dark"] #berita .search{
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239DB5A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E")!important;
+  }
+}
+@media(prefers-color-scheme:dark){
+  @media(max-width:700px){
+    :root:not([data-theme="light"]) #berita .search{
+      background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239DB5A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E")!important;
+    }
+  }
+}
